@@ -15,7 +15,7 @@
 
     <!-- Search Bar (hidden while a folder is open — close via X to search again) -->
     <div v-if="!openedFolder" class="d-flex align-center ga-3 mb-4">
-      <v-text-field
+      <SharedTagSearchField
         v-model="searchQuery"
         :placeholder="$t('common.search')"
         prepend-inner-icon="mdi-magnify"
@@ -329,6 +329,12 @@ onMounted(async () => {
 // Search with FTS5
 const route = useRoute()
 const searchQuery = ref('')
+
+// Clicking a tag chip on a card filters this page by that tag
+onTagFilter((tag) => {
+  openedFolderId.value = null
+  searchQuery.value = addTagToSearch(searchQuery.value, tag)
+})
 const searchResults = ref<NPC[]>([])
 const searching = ref(false)
 

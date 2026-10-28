@@ -10,7 +10,7 @@
 
     <!-- Search Bar -->
     <div class="d-flex align-center ga-3 mb-4">
-      <v-text-field
+      <SharedTagSearchField
         v-model="searchQuery"
         :placeholder="$t('common.search')"
         prepend-inner-icon="mdi-magnify"
@@ -175,6 +175,11 @@ const highlightedId = ref<number | null>(null)
 
 // State
 const searchQuery = ref('')
+
+// Clicking a tag chip on a card filters this page by that tag
+onTagFilter((tag) => {
+  searchQuery.value = addTagToSearch(searchQuery.value, tag)
+})
 const searchResults = ref<Player[]>([])
 const searching = ref(false)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null

@@ -15,7 +15,8 @@
 
     <!-- Search Bar - Non-reactive for smooth typing -->
     <div class="d-flex align-center ga-3 mb-4">
-      <v-text-field
+      <SharedTagSearchField
+        :key="searchFieldKey"
         :model-value="inputValue"
         :placeholder="$t('common.search')"
         prepend-inner-icon="mdi-magnify"
@@ -328,7 +329,8 @@ const isInSearchMode = ref(false) // Cache the search mode to avoid rebuilding t
 
 // Non-reactive search input handlers for smooth typing
 let inputTimeout: ReturnType<typeof setTimeout> | null = null
-function handleSearchInput(value: string) {
+function handleSearchInput(raw: string | null) {
+  const value = raw ?? ''
   // Update non-reactive input value immediately (smooth typing)
   inputValue = value
 
@@ -348,6 +350,13 @@ function handleSearchInput(value: string) {
     searchQuery.value = value
   }, 50) // Very short delay - just enough to keep typing smooth
 }
+
+// Clicking a tag chip filters this page by that tag
+const searchFieldKey = ref(0)
+onTagFilter((tag) => {
+  handleSearchInput(addTagToSearch(inputValue, tag))
+  searchFieldKey.value++
+})
 
 function handleSearchClear() {
   inputValue = ''

@@ -1,5 +1,12 @@
 # @dm-hero/app
 
+## 1.6.2
+
+### Minor Changes
+
+- Tags now lead somewhere: click a tag chip on a card and the page filters to everything with that tag (it adds `#tag` to the search box). Click more tags to narrow further.
+- Tag suggestions while you type: start a word with `#` in any search box (NPCs, Locations, Items, Factions, Lore, Players and the global search) and pick from your existing tags with the arrow keys and Enter.
+
 ## 1.6.1
 
 ### Minor Changes
