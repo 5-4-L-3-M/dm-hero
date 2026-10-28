@@ -3000,5 +3000,8 @@
   "purse": {
     "title": "Geldbeutel",
     "total": "Gesamt"
+  },
+  "preview": {
+    "openFull": "Vollansicht"
   }
 }

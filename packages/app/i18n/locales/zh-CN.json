@@ -3000,5 +3000,8 @@
   "purse": {
     "title": "钱袋",
     "total": "总计"
+  },
+  "preview": {
+    "openFull": "完整视图"
   }
 }

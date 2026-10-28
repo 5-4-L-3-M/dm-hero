@@ -1,5 +1,12 @@
 # @dm-hero/app
 
+## 1.6.5
+
+### Minor Changes
+
+- The quick-preview popup (map markers, pinboard, links) works without leaving the page: shops get a Shop tab right in the popup (selling to players included), and "Open full" opens the entity's full view with every tab on top of the page you're on.
+- The dashboard's "+N more" pins line is now a button that goes to the full pinboard on the Sessions page.
+
 ## 1.6.4
 
 ### Patch Changes

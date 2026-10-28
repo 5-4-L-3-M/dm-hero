@@ -3000,5 +3000,8 @@
   "purse": {
     "title": "Borsa",
     "total": "Totale"
+  },
+  "preview": {
+    "openFull": "Vista completa"
   }
 }

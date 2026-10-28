@@ -42,8 +42,10 @@
           </div>
         </div>
 
-        <div v-if="pins.length > 4" class="text-body-small text-medium-emphasis mt-2 text-center">
-          {{ $t('dashboard.pinboard.more', { count: pins.length - 4 }) }}
+        <div v-if="pins.length > 4" class="mt-2 text-center">
+          <v-btn variant="text" size="small" to="/sessions" append-icon="mdi-arrow-right" class="text-medium-emphasis">
+            {{ $t('dashboard.pinboard.more', { count: pins.length - 4 }) }}
+          </v-btn>
         </div>
       </div>
 

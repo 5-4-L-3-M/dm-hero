@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialogOpen" max-width="700" scrollable>
+  <v-dialog v-model="dialogOpen" :max-width="showShopTab ? 900 : 700" scrollable>
     <v-card v-if="entity">
       <v-card-title class="d-flex align-center">
         <v-icon :icon="entityIcon" :color="entityColor" class="mr-2" />
@@ -13,7 +13,22 @@
         <SharedPinButton v-if="entityId" :entity-id="entityId" variant="icon" size="small" />
       </v-card-title>
 
-      <v-card-text style="max-height: 60vh">
+      <v-tabs v-if="showShopTab" v-model="previewTab" density="compact" class="px-2">
+        <v-tab value="overview">
+          <v-icon start>mdi-information</v-icon>
+          {{ $t('common.details') }}
+        </v-tab>
+        <v-tab value="shop">
+          <v-icon start>mdi-store</v-icon>
+          {{ $t('shop.title') }}
+        </v-tab>
+      </v-tabs>
+
+      <v-card-text v-if="showShopTab && previewTab === 'shop'" style="max-height: 70vh">
+        <LocationShopTab :location-id="entityId!" />
+      </v-card-text>
+
+      <v-card-text v-else style="max-height: 60vh">
         <!-- NPC Details -->
         <template v-if="normalizedEntityType === 'npc'">
           <v-img
@@ -248,6 +263,9 @@
         <v-btn variant="text" prepend-icon="mdi-open-in-new" @click="goToPage">
           {{ $t('sessions.goToPage') }}
         </v-btn>
+        <v-btn v-if="fullDialog" variant="tonal" color="primary" prepend-icon="mdi-arrow-expand" @click="fullOpen = true">
+          {{ $t('preview.openFull') }}
+        </v-btn>
         <v-spacer />
         <v-btn variant="text" @click="close">
           {{ $t('common.close') }}
@@ -255,9 +273,22 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- The full page (all tabs, editing, shop) right here, without leaving this page -->
+  <component
+    :is="fullDialog.component"
+    v-if="fullDialog && fullOpen"
+    v-model:show="fullOpen"
+    v-bind="{ [fullDialog.idProp]: entityId }"
+    @saved="entityId && loadEntity(entityId)"
+  />
 </template>
 
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
+import LocationShopTab from '~/components/locations/LocationShopTab.vue'
+import { isShopLocationType } from '~~/types/shop'
+
 export type EntityPreviewType = 'npc' | 'location' | 'item' | 'faction' | 'lore' | 'player'
 
 interface Props {
@@ -324,6 +355,28 @@ const entityConfig: Record<
 
 // Normalized entity type for consistent lookups
 const normalizedEntityType = computed(() => props.entityType.toLowerCase() as EntityPreviewType)
+
+// Locations that sell things get a Shop tab right in the popout
+const previewTab = ref<'overview' | 'shop'>('overview')
+const showShopTab = computed(() =>
+  normalizedEntityType.value === 'location'
+  && isShopLocationType((entity.value?.metadata as { type?: string } | null)?.type ?? (entity.value as { type?: string } | null)?.type),
+)
+
+// "Open full": the entity's full dialog (every tab) on top of the current page
+const FULL_DIALOGS: Record<EntityPreviewType, { component: ReturnType<typeof defineAsyncComponent>, idProp: string }> = {
+  npc: { component: defineAsyncComponent(() => import('~/components/npcs/NpcEditDialog.vue')), idProp: 'npcId' },
+  location: { component: defineAsyncComponent(() => import('~/components/locations/LocationEditDialog.vue')), idProp: 'locationId' },
+  item: { component: defineAsyncComponent(() => import('~/components/items/ItemEditDialog.vue')), idProp: 'itemId' },
+  faction: { component: defineAsyncComponent(() => import('~/components/factions/FactionEditDialog.vue')), idProp: 'factionId' },
+  lore: { component: defineAsyncComponent(() => import('~/components/lore/LoreEditDialog.vue')), idProp: 'loreId' },
+  player: { component: defineAsyncComponent(() => import('~/components/players/PlayerEditDialog.vue')), idProp: 'playerId' },
+}
+const fullDialog = computed(() => (props.entityId ? FULL_DIALOGS[normalizedEntityType.value] ?? null : null))
+const fullOpen = ref(false)
+watch(() => [props.entityId, props.modelValue], () => {
+  previewTab.value = 'overview'
+})
 
 const entityIcon = computed(() => {
   const baseIcon = entityConfig[normalizedEntityType.value]?.icon || 'mdi-help'
