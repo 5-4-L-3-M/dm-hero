@@ -33,8 +33,10 @@ const emit = defineEmits<{
   click: []
 }>()
 
-function onClick() {
-  if (props.clickable) emit('click')
+function onClick(event: MouseEvent | KeyboardEvent) {
+  if (!props.clickable) return
+  event.stopPropagation()
+  emit('click')
 }
 </script>
 

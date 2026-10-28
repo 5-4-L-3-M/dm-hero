@@ -10,7 +10,7 @@
 
     <!-- Search Bar (hidden while a folder is open) -->
     <div v-if="!openedFolder" class="d-flex align-center ga-3 mb-4">
-      <v-text-field
+      <SharedTagSearchField
         v-model="searchQuery"
         :placeholder="$t('common.search')"
         prepend-inner-icon="mdi-magnify"
@@ -258,6 +258,12 @@ const { loadLoreCountsBatch } = useLoreCounts()
 
 // Refs for search
 const searchQuery = ref('')
+
+// Clicking a tag chip on a card filters this page by that tag
+onTagFilter((tag) => {
+  openedFolderId.value = null
+  searchQuery.value = addTagToSearch(searchQuery.value, tag)
+})
 const searchResults = ref<Lore[]>([])
 const searching = ref(false)
 

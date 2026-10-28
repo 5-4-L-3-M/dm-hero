@@ -1592,7 +1592,11 @@
       "addTag": "添加标签",
       "createNew": "创建“{name}”作为新标签",
       "noMatches": "没有找到标签"
-    }
+    },
+    "suggest": {
+      "title": "标签"
+    },
+    "filterBy": "显示所有带有 #{name} 的内容"
   },
   "common": {
     "name": "名称",

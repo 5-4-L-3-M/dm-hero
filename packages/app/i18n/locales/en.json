@@ -1592,7 +1592,11 @@
       "addTag": "Add tag",
       "createNew": "Create \"{name}\" as new tag",
       "noMatches": "No tag found"
-    }
+    },
+    "suggest": {
+      "title": "Tags"
+    },
+    "filterBy": "Show everything tagged #{name}"
   },
   "common": {
     "name": "Name",

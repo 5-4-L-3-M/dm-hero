@@ -6,6 +6,9 @@
       :tag="tag"
       :size="size"
       closable
+      clickable
+      :title="$t('tags.filterBy', { name: tag.name })"
+      @click="requestTagFilter(tag.name)"
       @remove="removeTag(tag)"
     />
 
