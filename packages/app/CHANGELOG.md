@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.6.4
+
+### Patch Changes
+
+- The quick-preview popup (pinboard, links, search) shows pictures at their real shape instead of cropping them into a wide strip, so square portraits keep their heads.
+
 ## 1.6.3
 
 ### Minor Changes
