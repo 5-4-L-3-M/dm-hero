@@ -77,7 +77,7 @@
                     v-model.number="profiles[season.id]!.temp_min"
                     :label="$t('calendar.tempMin')"
                     type="number"
-                    suffix="°"
+                    :suffix="tempUnit"
                     variant="outlined"
                     density="comfortable"
                     :error="!tempValid(season.id)"
@@ -88,7 +88,7 @@
                     v-model.number="profiles[season.id]!.temp_max"
                     :label="$t('calendar.tempMax')"
                     type="number"
-                    suffix="°"
+                    :suffix="tempUnit"
                     variant="outlined"
                     density="comfortable"
                     :error="!tempValid(season.id)"
@@ -191,6 +191,16 @@ interface ProfileForm {
 }
 
 const form = ref({ name: '', color: '', icon: '' })
+
+// Ranges are stored in °C and shown/typed in the chosen unit (°F by default).
+// Untouched values are written back as the original °C so they never drift.
+const { tempUnit, tempToDisplay, tempFromDisplay } = useUnits()
+const loadedTemps = ref<Record<number, { min: number, max: number, shownMin: number | null, shownMax: number | null }>>({})
+
+function storedTemp(shown: number, loadedShown: number | null | undefined, loaded: number | undefined): number {
+  if (loaded !== undefined && shown === loadedShown) return loaded
+  return tempFromDisplay(shown) ?? loaded ?? 0
+}
 const profiles = ref<Record<number, ProfileForm>>({})
 const openPanel = ref<number | null>(null)
 const saving = ref(false)
@@ -214,6 +224,7 @@ watch(
     // Build a form-shaped profile for every season — missing ones default to
     // zeros so the user can fill them in without an "add profile" step.
     const next: Record<number, ProfileForm> = {}
+    const loaded: typeof loadedTemps.value = {}
     for (const season of seasons) {
       const existing = zone.profiles.find(p => p.season_id === season.id)
       const dist = blankDistribution()
@@ -222,12 +233,18 @@ watch(
           dist[t] = existing.weather_distribution[t] ?? 0
         }
       }
+      const cMin = existing?.temp_min ?? DEFAULT_TEMP_MIN
+      const cMax = existing?.temp_max ?? DEFAULT_TEMP_MAX
+      const shownMin = tempToDisplay(cMin)
+      const shownMax = tempToDisplay(cMax)
+      loaded[season.id] = { min: cMin, max: cMax, shownMin, shownMax }
       next[season.id] = {
-        temp_min: existing?.temp_min ?? DEFAULT_TEMP_MIN,
-        temp_max: existing?.temp_max ?? DEFAULT_TEMP_MAX,
+        temp_min: shownMin ?? cMin,
+        temp_max: shownMax ?? cMax,
         distribution: dist,
       }
     }
+    loadedTemps.value = loaded
     profiles.value = next
     openPanel.value = seasons[0]?.id ?? null
   },
@@ -304,8 +321,8 @@ async function save() {
         method: 'PATCH',
         body: {
           season_id: season.id,
-          temp_min: p.temp_min,
-          temp_max: p.temp_max,
+          temp_min: storedTemp(p.temp_min, loadedTemps.value[season.id]?.shownMin, loadedTemps.value[season.id]?.min),
+          temp_max: storedTemp(p.temp_max, loadedTemps.value[season.id]?.shownMax, loadedTemps.value[season.id]?.max),
           weather_distribution: dist,
         },
       })

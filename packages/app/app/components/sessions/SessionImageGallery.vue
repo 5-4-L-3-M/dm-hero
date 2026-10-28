@@ -107,7 +107,7 @@
                 {{ $t('common.primary') }}
               </v-chip>
               <span class="text-body-small text-medium-emphasis">
-                {{ new Date(image.createdAt).toLocaleDateString('de-DE') }}
+                {{ new Date(image.createdAt).toLocaleDateString(dateLocale) }}
               </span>
             </div>
           </v-list-item-title>
@@ -191,6 +191,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const dateLocale = useDateLocale()
 const { downloadImage } = useImageDownload()
 const { showUploadError } = useErrorHandler()
 

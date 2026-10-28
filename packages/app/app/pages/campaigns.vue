@@ -165,7 +165,7 @@ const campaignForm = ref({
 })
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('de-DE', {
+  return new Date(dateString).toLocaleDateString(dateLocale.value, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -248,4 +248,7 @@ function closeDialog() {
     description: '',
   }
 }
+
+// Real-world dates follow the UI language
+const dateLocale = useDateLocale()
 </script>

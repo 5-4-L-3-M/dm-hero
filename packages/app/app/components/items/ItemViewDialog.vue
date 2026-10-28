@@ -130,7 +130,7 @@
                       <v-icon class="mr-3" color="grey">mdi-weight</v-icon>
                       <div>
                         <div class="text-body-small text-medium-emphasis">{{ $t('items.weight') }}</div>
-                        <div class="font-weight-medium">{{ item.metadata.weight }}</div>
+                        <div class="font-weight-medium">{{ formatWeight(Number(item.metadata.weight)) }}</div>
                       </div>
                     </div>
                   </v-card>
@@ -385,4 +385,6 @@ function getRarityColor(rarity: string) {
   }
   return colors[rarity] || 'grey'
 }
+
+const { formatWeight } = useUnits()
 </script>

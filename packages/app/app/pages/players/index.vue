@@ -31,6 +31,9 @@
       </v-btn>
     </div>
 
+    <!-- Party load: carried weight vs. carrying capacity for everyone -->
+    <PartyLoadCard ref="partyLoadCard" :campaign-id="campaignStore.activeCampaignIdNumber" @open="openInventory" />
+
     <!-- Loading Skeleton -->
     <v-row v-if="loading">
       <v-col v-for="i in 6" :key="i" cols="12" md="6" lg="4">
@@ -98,8 +101,10 @@
     <PlayerViewDialog
       :show="showViewDialog"
       :player="viewingPlayer"
+      :initial-tab="viewInitialTab"
       @update:show="handleViewDialogClose"
       @edit="handleEditFromView"
+      @inventory-changed="partyLoadCard?.refresh()"
     />
 
     <!-- Self-contained Edit Dialog -->
@@ -151,6 +156,7 @@ import type { Player } from '../../../types/player'
 import PlayerEditDialog from '~/components/players/PlayerEditDialog.vue'
 import PlayerViewDialog from '~/components/players/PlayerViewDialog.vue'
 import PlayerCard from '~/components/players/PlayerCard.vue'
+import PartyLoadCard from '~/components/players/PartyLoadCard.vue'
 import GroupPreviewDialog from '~/components/groups/GroupPreviewDialog.vue'
 import { useImageDownload } from '~/composables/useImageDownload'
 
@@ -177,6 +183,8 @@ const showEditDialog = ref(false)
 const showDeleteDialog = ref(false)
 const deleting = ref(false)
 const viewingPlayer = ref<Player | null>(null)
+const viewInitialTab = ref<string | undefined>(undefined)
+const partyLoadCard = ref<InstanceType<typeof PartyLoadCard> | null>(null)
 const editingPlayerId = ref<number | null>(null)
 const editDialogInitialTab = ref<string | undefined>(undefined)
 const deletingPlayer = ref<Player | null>(null)
@@ -248,6 +256,16 @@ function openCreateDialog() {
 }
 
 function viewPlayer(player: Player) {
+  viewInitialTab.value = undefined
+  viewingPlayer.value = player
+  showViewDialog.value = true
+}
+
+// Party load card → open that character straight on their Inventory tab
+function openInventory(playerId: number) {
+  const player = players.value.find(p => p.id === playerId)
+  if (!player) return
+  viewInitialTab.value = 'inventory'
   viewingPlayer.value = player
   showViewDialog.value = true
 }
@@ -268,6 +286,8 @@ function handleViewDialogClose(value: boolean) {
   showViewDialog.value = value
   if (!value) {
     viewingPlayer.value = null
+    viewInitialTab.value = undefined
+    partyLoadCard.value?.refresh()
   }
 }
 
@@ -283,12 +303,15 @@ function handleDialogClose(value: boolean) {
   if (!value) {
     editingPlayerId.value = null
     editDialogInitialTab.value = undefined
+    partyLoadCard.value?.refresh()
   }
 }
 
 async function handlePlayerSaved(player: Player) {
   // Force reload counts for this player (ignores cache)
   await reloadPlayerCounts(player)
+  // Strength or items may have changed → carrying capacity too
+  partyLoadCard.value?.refresh()
 }
 
 async function handlePlayerCreated(player: Player) {

@@ -23,7 +23,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { relationType, notes } = body
+  const { relationType } = body
+  // Notes may arrive as structured JSON (e.g. { quantity, equipped }) — store it
+  // as a JSON string like POST /api/entity-relations does.
+  const notes = body.notes !== null && typeof body.notes === 'object' ? JSON.stringify(body.notes) : body.notes
 
   db.prepare(
     `

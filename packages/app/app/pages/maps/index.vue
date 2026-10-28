@@ -736,13 +736,21 @@ const editForm = ref({
 })
 
 // Scale unit options for measurement
-const scaleUnitOptions = [
-  { value: 'km', title: 'Kilometer (km)' },
-  { value: 'miles', title: 'Miles' },
-  { value: 'm', title: 'Meter (m)' },
-  { value: 'ft', title: 'Feet (ft)' },
-  { value: 'leagues', title: 'Leagues' },
-]
+// Imperial units are listed first (and preselected) when the Imperial unit
+// system is on; metric first otherwise.
+const { isImperial, distanceUnit } = useUnits()
+const scaleUnitOptions = computed(() => {
+  const imperial = [
+    { value: 'miles', title: 'Miles' },
+    { value: 'ft', title: 'Feet (ft)' },
+    { value: 'leagues', title: 'Leagues' },
+  ]
+  const metric = [
+    { value: 'km', title: 'Kilometer (km)' },
+    { value: 'm', title: 'Meter (m)' },
+  ]
+  return isImperial.value ? [...imperial, ...metric] : [...metric, ...imperial]
+})
 const editingMap = ref<CampaignMap | null>(null)
 const saving = ref(false)
 
@@ -1494,7 +1502,7 @@ function editMap(map: CampaignMap) {
     description: map.description || '',
     version_name: map.version_name || '',
     scale_value: map.scale_value,
-    scale_unit: map.scale_unit,
+    scale_unit: map.scale_unit || distanceUnit.value,
     newImage: null,
   }
   showEditDialog.value = true

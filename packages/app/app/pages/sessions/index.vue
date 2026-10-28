@@ -1113,7 +1113,7 @@ async function loadSessions() {
 function formatRealDate(dateString: string | null) {
   if (!dateString) return '-'
 
-  return new Date(dateString).toLocaleDateString('de-DE', {
+  return parseDateOnly(dateString).toLocaleDateString(toDateLocale(locale.value), {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

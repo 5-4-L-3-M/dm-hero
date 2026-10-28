@@ -1,5 +1,21 @@
 # @dm-hero/app
 
+## 1.6.1
+
+### Minor Changes
+
+- Weight tracker: every character gets an Inventory tab with quantity, weight each, total and an "equipped" toggle. Weights are edited right in the table, and adding an item you already carry just raises the count.
+- Carrying capacity from Strength (STR × 15) with the 5e encumbrance levels: encumbered above STR × 5 (speed −10 ft), heavily encumbered above STR × 10 (speed −20 ft, disadvantage), over capacity above STR × 15.
+- Party load card on the Players page shows everyone's load side by side; click a character to open their inventory.
+- New Units setting (Settings → Units): Imperial (lb, °F, miles) by default, or Metric (kg, °C, km). Item weights, weather and climate-zone temperatures and map scales follow it. Saved data doesn't change: weights stay in pounds and temperatures in °C underneath.
+
+### Patch Changes
+
+- Real-world dates (sessions, campaigns, images, notes) now use the app's language instead of always German, so months read "October" in English.
+- The calendar's year-zero name follows the app language instead of always "Jahr 0".
+- Editing a player's item link no longer wipes its quantity and "equipped" state.
+- Updates for this build come from the 5-4-L-3-M/dm-hero fork.
+
 ## 1.6.0
 
 ### Minor Changes

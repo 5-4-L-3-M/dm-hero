@@ -184,7 +184,7 @@
                     <div>
                       {{ $t('calendar.weather.types.' + getWeatherForDay(day)!.weather_type) }}
                       <span v-if="getWeatherForDay(day)!.temperature !== null">
-                        ({{ getWeatherForDay(day)!.temperature }}°C)
+                        ({{ formatTemp(getWeatherForDay(day)!.temperature) }})
                       </span>
                     </div>
                   </v-tooltip>
@@ -327,7 +327,7 @@
                   <v-icon start size="16">{{ getWeatherIcon(getWeatherForDay(selectedDay)!.weather_type) }}</v-icon>
                   {{ $t('calendar.weather.types.' + getWeatherForDay(selectedDay)!.weather_type) }}
                   <span v-if="getWeatherForDay(selectedDay)!.temperature !== null" class="ml-1">
-                    ({{ getWeatherForDay(selectedDay)!.temperature }}°C)
+                    ({{ formatTemp(getWeatherForDay(selectedDay)!.temperature) }})
                   </span>
                 </v-chip>
                 <v-chip
@@ -758,6 +758,7 @@ interface CalendarConfig {
 }
 
 const { t } = useI18n()
+const { formatTemp } = useUnits()
 const campaignStore = useCampaignStore()
 const snackbarStore = useSnackbarStore()
 
@@ -1105,7 +1106,7 @@ async function confirmSetAsToday() {
         currentMonth: viewMonth.value,
         currentDay: selectedDay.value,
         // Keep other settings
-        yearZeroName: 'Jahr 0',
+        yearZeroName: t('calendar.yearZeroDefault'),
         eraName: calendarConfig.value.config.era_name,
         leapYearInterval: calendarConfig.value.config.leap_year_interval,
         leapYearMonth: calendarConfig.value.config.leap_year_month,
@@ -1453,7 +1454,7 @@ async function advanceDay() {
         currentYear: newYear,
         currentMonth: newMonth,
         currentDay: newDay,
-        yearZeroName: 'Jahr 0',
+        yearZeroName: t('calendar.yearZeroDefault'),
         eraName: config.era_name,
         leapYearInterval: config.leap_year_interval,
         leapYearMonth: config.leap_year_month,
@@ -1574,7 +1575,7 @@ async function doSaveSettings() {
         currentYear: settingsForm.value.currentYear,
         currentMonth: settingsForm.value.currentMonth,
         currentDay: settingsForm.value.currentDay,
-        yearZeroName: 'Jahr 0',
+        yearZeroName: t('calendar.yearZeroDefault'),
         eraName: settingsForm.value.eraName,
         leapYearInterval: settingsForm.value.leapYearInterval,
         leapYearMonth: settingsForm.value.leapYearMonth,

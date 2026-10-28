@@ -51,6 +51,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { formatTemp } = useUnits()
 
 const mapContainer = ref<HTMLElement | null>(null)
 let leafletMap: LeafletMap | null = null
@@ -596,7 +597,7 @@ function updateClimateAreas() {
     const w = props.climateWeather?.[area.id]
     const parts = [area.zone_name || 'Zone']
     if (w) {
-      const temp = w.temperature != null ? `${w.temperature}° ` : ''
+      const temp = w.temperature != null ? `${formatTemp(w.temperature)} ` : ''
       parts.push(`${temp}${t(`calendar.weather.types.${w.weather_type}`, w.weather_type)}`)
     }
     const lockHint = unlocked ? t('maps.climateUnlocked') : t('maps.climateLocked')

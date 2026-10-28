@@ -2225,7 +2225,8 @@
       "confirmButton": "Delete Calendar",
       "success": "Calendar has been reset",
       "error": "Failed to reset calendar"
-    }
+    },
+    "yearZeroDefault": "Year 0"
   },
   "pinboard": {
     "title": "Pinboard",
@@ -2900,5 +2901,50 @@
     "playerApp": {
       "hint": "Your players open {link} on their phone or laptop and join with the game code and their PIN."
     }
+  },
+  "inventory": {
+    "tab": "Inventory",
+    "carrying": "Carrying",
+    "status": {
+      "normal": "Unencumbered",
+      "encumbered": "Encumbered",
+      "heavy": "Heavily encumbered",
+      "over": "Over capacity",
+      "unknown": "No Strength set"
+    },
+    "effect": {
+      "encumbered": "Speed drops by 10 feet.",
+      "heavy": "Speed drops by 20 feet, with disadvantage on ability checks, attack rolls and saving throws that use Strength, Dexterity or Constitution.",
+      "over": "More than this character can carry. They can push, drag or lift up to twice their carrying capacity, but their speed drops to 5 feet."
+    },
+    "noStrength": "Add a Strength score on the Stats tab to see this character's carrying capacity.",
+    "basedOnStrength": "Strength {str}: encumbered above STR × 5, heavily encumbered above STR × 10, carrying capacity STR × 15.",
+    "encumberedAt": "Encumbered {weight}",
+    "heavyAt": "Heavily {weight}",
+    "maxAt": "Max {weight}",
+    "columns": {
+      "item": "Item",
+      "qty": "Qty",
+      "weightEach": "Weight each",
+      "total": "Total",
+      "equipped": "Equipped"
+    },
+    "noWeight": "none",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "removeItem": "Remove from inventory",
+    "empty": "Nothing carried yet",
+    "emptyText": "Add items below, or link them on the Items tab when editing the character.",
+    "missingWeights": "{count} item has no weight yet | {count} items have no weight yet",
+    "addItem": "Add an item",
+    "saveError": "Couldn't save that change.",
+    "partyLoad": "Party load",
+    "partyLoadHint": "Click a character to open their inventory."
+  },
+  "units": {
+    "title": "Units",
+    "description": "How weights, temperatures and map distances are shown. Your saved data doesn't change.",
+    "imperial": "Imperial (lb, °F, miles)",
+    "metric": "Metric (kg, °C, km)"
   }
 }

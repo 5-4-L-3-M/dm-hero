@@ -82,7 +82,7 @@
                 {{ $t('common.primary') }}
               </v-chip>
               <span class="text-body-small text-medium-emphasis">
-                {{ new Date(image.created_at).toLocaleDateString('de-DE') }}
+                {{ new Date(image.created_at).toLocaleDateString(dateLocale) }}
               </span>
             </div>
           </v-list-item-title>
@@ -401,6 +401,9 @@ watch(
 defineExpose({
   refresh: loadImages,
 })
+
+// Real-world dates follow the UI language
+const dateLocale = useDateLocale()
 </script>
 
 <style scoped>

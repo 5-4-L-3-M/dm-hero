@@ -2225,7 +2225,8 @@
       "confirmButton": "Elimina calendario",
       "success": "Il calendario è stato reimpostato",
       "error": "Reimpostazione del calendario non riuscita"
-    }
+    },
+    "yearZeroDefault": "Anno 0"
   },
   "pinboard": {
     "title": "Bacheca",
@@ -2900,5 +2901,50 @@
     "playerApp": {
       "hint": "I tuoi giocatori aprono {link} sul telefono o sul portatile ed entrano con il codice della partita e il loro PIN."
     }
+  },
+  "inventory": {
+    "tab": "Inventario",
+    "carrying": "Trasporta",
+    "status": {
+      "normal": "Non ingombrato",
+      "encumbered": "Ingombrato",
+      "heavy": "Molto ingombrato",
+      "over": "Sovraccarico",
+      "unknown": "Forza non impostata"
+    },
+    "effect": {
+      "encumbered": "La velocità diminuisce di 10 piedi.",
+      "heavy": "La velocità diminuisce di 20 piedi, con svantaggio alle prove di caratteristica, ai tiri per colpire e ai tiri salvezza su Forza, Destrezza o Costituzione.",
+      "over": "Più di quanto questo personaggio possa trasportare. Può spingere, trascinare o sollevare fino al doppio della sua capacità, ma la velocità scende a 5 piedi."
+    },
+    "noStrength": "Aggiungi un punteggio di Forza nella scheda Statistiche per vedere la capacità di carico.",
+    "basedOnStrength": "Forza {str}: ingombrato oltre FOR × 5, molto ingombrato oltre FOR × 10, capacità FOR × 15.",
+    "encumberedAt": "Ingombrato {weight}",
+    "heavyAt": "Molto {weight}",
+    "maxAt": "Max {weight}",
+    "columns": {
+      "item": "Oggetto",
+      "qty": "Q.tà",
+      "weightEach": "Peso cad.",
+      "total": "Totale",
+      "equipped": "Equipaggiato"
+    },
+    "noWeight": "nessuno",
+    "decrease": "Diminuisci quantità",
+    "increase": "Aumenta quantità",
+    "removeItem": "Rimuovi dall'inventario",
+    "empty": "Ancora niente",
+    "emptyText": "Aggiungi oggetti qui sotto o collegali nella scheda Oggetti modificando il personaggio.",
+    "missingWeights": "{count} oggetto non ha ancora un peso | {count} oggetti non hanno ancora un peso",
+    "addItem": "Aggiungi un oggetto",
+    "saveError": "Impossibile salvare la modifica.",
+    "partyLoad": "Carico del gruppo",
+    "partyLoadHint": "Clicca su un personaggio per aprire il suo inventario."
+  },
+  "units": {
+    "title": "Unità",
+    "description": "Come vengono mostrati pesi, temperature e distanze sulle mappe. I dati salvati non cambiano.",
+    "imperial": "Imperiale (lb, °F, miglia)",
+    "metric": "Metrico (kg, °C, km)"
   }
 }
