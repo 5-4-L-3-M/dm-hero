@@ -20,9 +20,8 @@
             v-if="entity.image_url"
             :src="`/uploads/${entity.image_url}`"
             :alt="entity.name"
-            max-height="300"
-            class="mb-4 rounded"
-            cover
+            max-height="420"
+            class="mb-4 rounded preview-image"
           />
           <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
             {{ entity.description }}
@@ -93,9 +92,8 @@
             v-if="entity.image_url"
             :src="`/uploads/${entity.image_url}`"
             :alt="entity.name"
-            max-height="300"
-            class="mb-4 rounded"
-            cover
+            max-height="420"
+            class="mb-4 rounded preview-image"
           />
           <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
             {{ entity.description }}
@@ -122,9 +120,8 @@
               v-if="entity.image_url"
               :src="`/uploads/${entity.image_url}`"
               :alt="entity.name"
-              max-height="300"
-              class="mb-4 rounded"
-              cover
+              max-height="420"
+              class="mb-4 rounded preview-image"
             />
             <v-chip
               v-if="entity.rarity"
@@ -161,9 +158,8 @@
             v-if="entity.image_url"
             :src="`/uploads/${entity.image_url}`"
             :alt="entity.name"
-            max-height="300"
-            class="mb-4 rounded"
-            cover
+            max-height="420"
+            class="mb-4 rounded preview-image"
           />
           <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
             {{ entity.description }}
@@ -193,9 +189,8 @@
             v-if="entity.image_url"
             :src="`/uploads/${entity.image_url}`"
             :alt="entity.name"
-            max-height="300"
-            class="mb-4 rounded"
-            cover
+            max-height="420"
+            class="mb-4 rounded preview-image"
           />
           <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
             {{ entity.description }}
@@ -222,9 +217,8 @@
             v-if="entity.image_url"
             :src="`/uploads/${entity.image_url}`"
             :alt="entity.name"
-            max-height="300"
-            class="mb-4 rounded"
-            cover
+            max-height="420"
+            class="mb-4 rounded preview-image"
           />
           <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
             {{ entity.description }}
