@@ -2907,6 +2907,46 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 66: Added thread_dirty to game_table_players')
     },
   },
+  {
+    version: 67,
+    name: 'shop_items_and_coins',
+    up: (db) => {
+      // What a shop location sells. Prices in base coin (copper), weight in pounds.
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS shop_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          location_id INTEGER NOT NULL,
+          item_id INTEGER,
+          name TEXT NOT NULL,
+          description TEXT,
+          category TEXT,
+          weight REAL,
+          price_cp REAL,
+          price_note TEXT,
+          stock INTEGER,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (location_id) REFERENCES entities(id) ON DELETE CASCADE,
+          FOREIGN KEY (item_id) REFERENCES entities(id) ON DELETE SET NULL
+        )
+      `)
+      db.exec('CREATE INDEX IF NOT EXISTS idx_shop_items_location ON shop_items(location_id, sort_order)')
+
+      // A character's coins, one row per currency code
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS entity_coins (
+          entity_id INTEGER NOT NULL,
+          currency_code TEXT NOT NULL,
+          amount INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY (entity_id, currency_code),
+          FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE
+        )
+      `)
+
+      console.log('✅ Migration 67: Created shop_items and entity_coins')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

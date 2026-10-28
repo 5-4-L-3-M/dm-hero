@@ -25,6 +25,10 @@
             <v-icon start>mdi-map-marker-outline</v-icon>
             {{ $t('locations.details') }}
           </v-tab>
+          <v-tab v-if="isShop" value="shop">
+            <v-icon start>mdi-store</v-icon>
+            {{ $t('shop.title') }}
+          </v-tab>
           <v-tab value="images">
             <v-icon start>mdi-image-multiple</v-icon>
             {{ $t('common.images') }}
@@ -194,6 +198,11 @@
               />
             </v-tabs-window-item>
 
+            <!-- Shop Tab -->
+            <v-tabs-window-item v-if="isShop" value="shop">
+              <LocationShopTab v-if="location && activeTab === 'shop'" :location-id="location.id" />
+            </v-tabs-window-item>
+
             <!-- Factions Tab -->
             <v-tabs-window-item value="factions">
               <EntityFactionsTab
@@ -293,6 +302,8 @@
 </template>
 
 <script setup lang="ts">
+import LocationShopTab from '~/components/locations/LocationShopTab.vue'
+import { isShopLocationType } from '~~/types/shop'
 import EntityDocuments from '~/components/shared/EntityDocuments.vue'
 import EntityImageGallery from '~/components/shared/EntityImageGallery.vue'
 import EntityPlayersTab from '~/components/shared/EntityPlayersTab.vue'
@@ -376,6 +387,7 @@ const saving = ref(false)
 const generatingImage = ref(false)
 const activeTab = ref('details')
 const location = ref<Location | null>(null)
+const isShop = computed(() => isShopLocationType(form.value.metadata.type || location.value?.metadata?.type))
 
 // Form state
 const form = ref({

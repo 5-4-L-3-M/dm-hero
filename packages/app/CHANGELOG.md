@@ -1,5 +1,13 @@
 # @dm-hero/app
 
+## 1.6.3
+
+### Minor Changes
+
+- Shop inventories: Shop, tavern and inn locations get a Shop tab. Each item has a name, short description, type, weight, cost (with an optional price note like "a sheet"), and stock. Copy items from your Items list or add custom ones; everything is editable.
+- Purse: every character's Inventory tab has a coin purse (pp/gp/sp/cp, following your campaign's currencies) with a running total.
+- Sell from a shop: the cart button adds an item to a player's inventory and takes the price out of their purse, making change the way a shopkeeper would. You can change the price (haggling) or skip the charge. Stock goes down, and custom items join your Items list the first time they're sold.
+
 ## 1.6.2
 
 ### Minor Changes

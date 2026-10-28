@@ -2950,5 +2950,55 @@
     "description": "重量、温度和地图距离的显示方式。已保存的数据不会改变。",
     "imperial": "英制（磅、°F、英里）",
     "metric": "公制（千克、°C、公里）"
+  },
+  "shop": {
+    "title": "商店",
+    "count": "{n} 件商品在售",
+    "addItem": "添加商品",
+    "editItem": "编辑商品",
+    "fromItems": "从你的物品复制（可选）",
+    "fromItemsHint": "自动填写名称、重量和价格。留空则为自定义商品。",
+    "empty": "暂无在售商品",
+    "emptyHint": "从物品列表添加，或创建自定义商品。",
+    "free": "免费",
+    "addToInventory": "加入玩家背包",
+    "sellTitle": "出售 {name}",
+    "sellTo": "玩家",
+    "quantity": "数量",
+    "priceEach": "单价",
+    "charge": "从钱袋中扣款",
+    "totalCost": "总计",
+    "purseNow": "当前钱袋",
+    "purseAfter": "购买后",
+    "notEnough": "钱不够",
+    "customNote": "自定义商品首次售出时会加入你的物品列表。",
+    "sold": "已加入 {name} 的背包",
+    "soldPaid": "已加入 {name} 的背包 · 支付 {paid}",
+    "saveError": "无法保存商店",
+    "confirmDelete": "从此商店移除 {name}？",
+    "fields": {
+      "name": "商品",
+      "description": "简短描述",
+      "category": "类型",
+      "weight": "重量",
+      "cost": "价格",
+      "priceNote": "价格备注",
+      "priceNoteHint": "每张、+ 一个承诺……",
+      "stock": "库存",
+      "stockHint": "留空表示充足"
+    },
+    "categories": {
+      "gear": "装备",
+      "common": "普通魔法",
+      "uncommon": "非普通魔法",
+      "rare": "稀有魔法",
+      "very_rare": "非常稀有魔法",
+      "legendary": "传说",
+      "lore": "剧情物品"
+    }
+  },
+  "purse": {
+    "title": "钱袋",
+    "total": "总计"
   }
 }

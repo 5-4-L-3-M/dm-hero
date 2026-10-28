@@ -2950,5 +2950,55 @@
     "description": "Come vengono mostrati pesi, temperature e distanze sulle mappe. I dati salvati non cambiano.",
     "imperial": "Imperiale (lb, °F, miglia)",
     "metric": "Metrico (kg, °C, km)"
+  },
+  "shop": {
+    "title": "Negozio",
+    "count": "{n} articoli in vendita",
+    "addItem": "Aggiungi articolo",
+    "editItem": "Modifica articolo",
+    "fromItems": "Copia dai tuoi oggetti (facoltativo)",
+    "fromItemsHint": "Compila nome, peso e prezzo. Lascia vuoto per un articolo personalizzato.",
+    "empty": "Ancora niente in vendita",
+    "emptyHint": "Aggiungi oggetti dalla tua lista o crea articoli personalizzati.",
+    "free": "Gratis",
+    "addToInventory": "Aggiungi all'inventario di un giocatore",
+    "sellTitle": "Vendi {name}",
+    "sellTo": "Giocatore",
+    "quantity": "Quantità",
+    "priceEach": "Prezzo cad.",
+    "charge": "Prendi i soldi dalla borsa",
+    "totalCost": "Totale",
+    "purseNow": "Borsa ora",
+    "purseAfter": "Borsa dopo",
+    "notEnough": "Monete insufficienti",
+    "customNote": "Gli articoli personalizzati vengono aggiunti ai tuoi oggetti alla prima vendita.",
+    "sold": "Aggiunto all'inventario di {name}",
+    "soldPaid": "Aggiunto all'inventario di {name} · pagato {paid}",
+    "saveError": "Impossibile salvare il negozio",
+    "confirmDelete": "Rimuovere {name} da questo negozio?",
+    "fields": {
+      "name": "Articolo",
+      "description": "Breve descrizione",
+      "category": "Tipo",
+      "weight": "Peso",
+      "cost": "Prezzo",
+      "priceNote": "Nota sul prezzo",
+      "priceNoteHint": "al foglio, + una promessa...",
+      "stock": "Scorte",
+      "stockHint": "Vuoto = illimitate"
+    },
+    "categories": {
+      "gear": "Equipaggiamento",
+      "common": "Magia comune",
+      "uncommon": "Magia non comune",
+      "rare": "Magia rara",
+      "very_rare": "Magia molto rara",
+      "legendary": "Leggendario",
+      "lore": "Oggetto di trama"
+    }
+  },
+  "purse": {
+    "title": "Borsa",
+    "total": "Totale"
   }
 }

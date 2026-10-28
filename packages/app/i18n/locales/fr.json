@@ -2950,5 +2950,55 @@
     "description": "Comment les poids, températures et distances sur les cartes sont affichés. Vos données enregistrées ne changent pas.",
     "imperial": "Impérial (lb, °F, miles)",
     "metric": "Métrique (kg, °C, km)"
+  },
+  "shop": {
+    "title": "Boutique",
+    "count": "{n} articles en vente",
+    "addItem": "Ajouter un article",
+    "editItem": "Modifier l'article",
+    "fromItems": "Copier depuis tes objets (facultatif)",
+    "fromItemsHint": "Remplit le nom, le poids et le prix. Laisse vide pour un article personnalisé.",
+    "empty": "Rien en vente pour l'instant",
+    "emptyHint": "Ajoute des objets de ta liste ou crée des articles personnalisés.",
+    "free": "Gratuit",
+    "addToInventory": "Ajouter à l'inventaire d'un joueur",
+    "sellTitle": "Vendre {name}",
+    "sellTo": "Joueur",
+    "quantity": "Quantité",
+    "priceEach": "Prix unitaire",
+    "charge": "Prendre l'argent dans sa bourse",
+    "totalCost": "Total",
+    "purseNow": "Bourse actuelle",
+    "purseAfter": "Bourse après",
+    "notEnough": "Pas assez de pièces",
+    "customNote": "Les articles personnalisés sont ajoutés à tes objets lors de leur première vente.",
+    "sold": "Ajouté à l'inventaire de {name}",
+    "soldPaid": "Ajouté à l'inventaire de {name} · payé {paid}",
+    "saveError": "Impossible d'enregistrer la boutique",
+    "confirmDelete": "Retirer {name} de cette boutique ?",
+    "fields": {
+      "name": "Article",
+      "description": "Description courte",
+      "category": "Type",
+      "weight": "Poids",
+      "cost": "Prix",
+      "priceNote": "Note de prix",
+      "priceNoteHint": "la feuille, + une promesse...",
+      "stock": "Stock",
+      "stockHint": "Vide = illimité"
+    },
+    "categories": {
+      "gear": "Équipement",
+      "common": "Magie commune",
+      "uncommon": "Magie peu commune",
+      "rare": "Magie rare",
+      "very_rare": "Magie très rare",
+      "legendary": "Légendaire",
+      "lore": "Objet d'histoire"
+    }
+  },
+  "purse": {
+    "title": "Bourse",
+    "total": "Total"
   }
 }
