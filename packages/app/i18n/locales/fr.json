@@ -2225,7 +2225,8 @@
       "confirmButton": "Supprimer le calendrier",
       "success": "Le calendrier a été réinitialisé",
       "error": "Échec de la réinitialisation du calendrier"
-    }
+    },
+    "yearZeroDefault": "An 0"
   },
   "pinboard": {
     "title": "Tableau d'épingles",
@@ -2900,5 +2901,50 @@
     "playerApp": {
       "hint": "Vos joueurs ouvrent {link} sur leur téléphone ou ordinateur et rejoignent avec le code de partie et leur PIN."
     }
+  },
+  "inventory": {
+    "tab": "Inventaire",
+    "carrying": "Porte",
+    "status": {
+      "normal": "Non encombré",
+      "encumbered": "Encombré",
+      "heavy": "Lourdement encombré",
+      "over": "Surchargé",
+      "unknown": "Force non définie"
+    },
+    "effect": {
+      "encumbered": "La vitesse diminue de 10 pieds.",
+      "heavy": "La vitesse diminue de 20 pieds, avec un désavantage aux tests de caractéristique, jets d'attaque et jets de sauvegarde de Force, Dextérité ou Constitution.",
+      "over": "Plus que ce que ce personnage peut porter. Il peut pousser, tirer ou soulever jusqu'au double de sa capacité, mais sa vitesse tombe à 5 pieds."
+    },
+    "noStrength": "Ajoutez une valeur de Force dans l'onglet Statistiques pour voir la capacité de charge.",
+    "basedOnStrength": "Force {str} : encombré au-delà de FOR × 5, lourdement encombré au-delà de FOR × 10, capacité FOR × 15.",
+    "encumberedAt": "Encombré {weight}",
+    "heavyAt": "Lourd {weight}",
+    "maxAt": "Max {weight}",
+    "columns": {
+      "item": "Objet",
+      "qty": "Qté",
+      "weightEach": "Poids unitaire",
+      "total": "Total",
+      "equipped": "Équipé"
+    },
+    "noWeight": "aucun",
+    "decrease": "Diminuer la quantité",
+    "increase": "Augmenter la quantité",
+    "removeItem": "Retirer de l'inventaire",
+    "empty": "Rien pour l'instant",
+    "emptyText": "Ajoutez des objets ci-dessous ou liez-les dans l'onglet Objets en modifiant le personnage.",
+    "missingWeights": "{count} objet n'a pas encore de poids | {count} objets n'ont pas encore de poids",
+    "addItem": "Ajouter un objet",
+    "saveError": "Impossible d'enregistrer cette modification.",
+    "partyLoad": "Charge du groupe",
+    "partyLoadHint": "Cliquez sur un personnage pour ouvrir son inventaire."
+  },
+  "units": {
+    "title": "Unités",
+    "description": "Comment les poids, températures et distances sur les cartes sont affichés. Vos données enregistrées ne changent pas.",
+    "imperial": "Impérial (lb, °F, miles)",
+    "metric": "Métrique (kg, °C, km)"
   }
 }

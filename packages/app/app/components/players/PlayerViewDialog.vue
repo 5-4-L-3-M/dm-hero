@@ -60,6 +60,10 @@
           {{ $t('nav.items') }}
           <v-chip v-if="counts" size="x-small" class="ml-2">{{ counts.items }}</v-chip>
         </v-tab>
+        <v-tab value="inventory">
+          <v-icon start>mdi-bag-personal</v-icon>
+          {{ $t('inventory.tab') }}
+        </v-tab>
         <v-tab value="locations">
           <v-icon start>mdi-map-marker</v-icon>
           {{ $t('nav.locations') }}
@@ -188,6 +192,15 @@
             />
           </v-window-item>
 
+          <!-- Inventory Tab (weights, carrying capacity, encumbrance) -->
+          <v-window-item value="inventory">
+            <PlayerInventoryTab
+              v-if="player && activeTab === 'inventory'"
+              :player-id="player.id"
+              @changed="emit('inventory-changed', player.id)"
+            />
+          </v-window-item>
+
           <!-- Locations Tab -->
           <v-window-item value="locations">
             <EntityRelationsList
@@ -262,10 +275,13 @@ import type { Player } from '~~/types/player'
 import EntityRelationsList from '~/components/shared/EntityRelationsList.vue'
 import EntityDocumentsView from '~/components/shared/EntityDocumentsView.vue'
 import EntityImageGalleryView from '~/components/shared/EntityImageGalleryView.vue'
+import PlayerInventoryTab from '~/components/players/PlayerInventoryTab.vue'
 
 interface Props {
   show: boolean
   player: Player | null
+  /** Tab to open on (e.g. 'inventory' from the party load card) */
+  initialTab?: string
 }
 
 const props = defineProps<Props>()
@@ -277,6 +293,7 @@ const emit = defineEmits<{
   'view-item': [itemId: number]
   'view-location': [locationId: number]
   'view-faction': [factionId: number]
+  'inventory-changed': [playerId: number]
 }>()
 
 const { getCounts, loadPlayerCounts } = usePlayerCounts()
@@ -287,6 +304,14 @@ const internalShow = computed({
 })
 
 const activeTab = ref('overview')
+
+watch(
+  () => props.show,
+  (visible) => {
+    if (visible && props.initialTab) activeTab.value = props.initialTab
+  },
+  { immediate: true },
+)
 const loading = ref(false)
 
 // Reactive counts - use getCounts() with fallback to _counts

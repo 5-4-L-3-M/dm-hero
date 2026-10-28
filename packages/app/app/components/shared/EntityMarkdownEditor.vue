@@ -530,7 +530,7 @@ function getEntitiesForType(
         id: s.id,
         name: s.title || `Session #${s.session_number}`,
         displayName: s.title || `Session #${s.session_number}`,
-        subtitle: s.date ? new Date(s.date).toLocaleDateString() : undefined,
+        subtitle: s.date ? parseDateOnly(s.date).toLocaleDateString(toDateLocale(locale.value)) : undefined,
       }))
     default:
       return []

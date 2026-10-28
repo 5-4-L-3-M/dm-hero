@@ -2225,7 +2225,8 @@
       "confirmButton": "删除日历",
       "success": "日历已重置",
       "error": "重置日历失败"
-    }
+    },
+    "yearZeroDefault": "第 0 年"
   },
   "pinboard": {
     "title": "插板",
@@ -2900,5 +2901,50 @@
     "playerApp": {
       "hint": "你的玩家在手机或电脑上打开 {link}，用游戏代码和自己的 PIN 加入。"
     }
+  },
+  "inventory": {
+    "tab": "物品栏",
+    "carrying": "负重",
+    "status": {
+      "normal": "未负重",
+      "encumbered": "负重",
+      "heavy": "重度负重",
+      "over": "超出负重上限",
+      "unknown": "未设置力量"
+    },
+    "effect": {
+      "encumbered": "速度降低 10 尺。",
+      "heavy": "速度降低 20 尺，且使用力量、敏捷或体质的属性检定、攻击检定和豁免检定具有劣势。",
+      "over": "超出该角色的负重上限。可推、拖或举起不超过负重上限两倍的重量，但速度降至 5 尺。"
+    },
+    "noStrength": "在属性页添加力量值即可查看负重上限。",
+    "basedOnStrength": "力量 {str}：超过 力量 × 5 为负重，超过 力量 × 10 为重度负重，上限为 力量 × 15。",
+    "encumberedAt": "负重 {weight}",
+    "heavyAt": "重度 {weight}",
+    "maxAt": "上限 {weight}",
+    "columns": {
+      "item": "物品",
+      "qty": "数量",
+      "weightEach": "单件重量",
+      "total": "合计",
+      "equipped": "已装备"
+    },
+    "noWeight": "无",
+    "decrease": "减少数量",
+    "increase": "增加数量",
+    "removeItem": "从物品栏移除",
+    "empty": "暂无携带物品",
+    "emptyText": "在下方添加物品，或在编辑角色时于物品页中关联。",
+    "missingWeights": "{count} 件物品尚未设置重量",
+    "addItem": "添加物品",
+    "saveError": "无法保存此更改。",
+    "partyLoad": "队伍负重",
+    "partyLoadHint": "点击角色以打开其物品栏。"
+  },
+  "units": {
+    "title": "单位",
+    "description": "重量、温度和地图距离的显示方式。已保存的数据不会改变。",
+    "imperial": "英制（磅、°F、英里）",
+    "metric": "公制（千克、°C、公里）"
   }
 }

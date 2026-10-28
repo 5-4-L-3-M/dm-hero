@@ -316,6 +316,36 @@
       </v-card-text>
     </v-card>
 
+    <!-- Units: imperial (lb, °F, miles) or metric (kg, °C, km) -->
+    <v-card class="mt-6">
+      <v-card-text>
+        <div class="mb-4">
+          <h2 class="text-headline-small mb-2">
+            {{ $t('units.title') }}
+          </h2>
+          <p class="text-medium-emphasis text-body-medium mb-0">
+            {{ $t('units.description') }}
+          </p>
+        </div>
+
+        <v-btn-toggle
+          :model-value="unitSystem"
+          mandatory
+          color="primary"
+          variant="outlined"
+          divided
+          @update:model-value="setUnitSystem($event)"
+        >
+          <v-btn value="imperial" prepend-icon="mdi-weight-pound">
+            {{ $t('units.imperial') }}
+          </v-btn>
+          <v-btn value="metric" prepend-icon="mdi-weight-kilogram">
+            {{ $t('units.metric') }}
+          </v-btn>
+        </v-btn-toggle>
+      </v-card-text>
+    </v-card>
+
     <!-- Playfulness / Easter eggs -->
     <v-card class="mt-6">
       <v-card-text>
@@ -369,6 +399,9 @@ function resetAllFeatureTooltips() {
   featureTooltipSettings.resetAllDismissed()
   snackbar.value = { show: true, color: 'success', message: t('featureTooltips.settings.resetButton') }
 }
+
+// Display units (weights, temperatures, map distances)
+const { unitSystem, setUnitSystem } = useUnits()
 
 // Playful folder hover animations (kobold, snake, spaceship, …)
 const folderAnimationSettings = useFolderAnimationSettings()

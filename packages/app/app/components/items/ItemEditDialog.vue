@@ -157,7 +157,7 @@
                   <v-text-field
                     v-model.number="form.metadata.weight"
                     :label="$t('items.weight')"
-                    :suffix="$t('items.weightUnit')"
+                    :suffix="weightUnit"
                     variant="outlined"
                     type="number"
                     step="0.1"
@@ -731,6 +731,22 @@ const emit = defineEmits<{
 // Composables & Stores
 // ============================================================================
 const { t } = useI18n()
+
+// Item weight is stored in pounds and shown/typed in the chosen unit (lb by
+// default, kg for metric). Untouched weights are saved back unchanged.
+const { weightUnit, weightToDisplay, weightFromDisplay } = useUnits()
+let loadedWeightLb: number | null = null
+let loadedWeightShown: number | null = null
+function rememberLoadedWeight(lb: number | null): number | null {
+  loadedWeightLb = lb
+  loadedWeightShown = weightToDisplay(lb)
+  return loadedWeightShown
+}
+function metadataForSave() {
+  const shown = form.value.metadata.weight as number | string | null | undefined
+  const weight = shown === loadedWeightShown ? loadedWeightLb : weightFromDisplay(shown)
+  return { ...form.value.metadata, weight }
+}
 const entitiesStore = useEntitiesStore()
 const campaignStore = useCampaignStore()
 const snackbarStore = useSnackbarStore()
@@ -987,7 +1003,7 @@ async function loadItem(itemId: number) {
       metadata: {
         type: data.metadata?.type || null,
         rarity: data.metadata?.rarity || null,
-        weight: data.metadata?.weight || null,
+        weight: rememberLoadedWeight(data.metadata?.weight ?? null),
         value: data.metadata?.value || null,
         currency_id: currencyId,
         notes: data.metadata?.notes || undefined,
@@ -1087,7 +1103,7 @@ function resetForm() {
     metadata: {
       type: null,
       rarity: null,
-      weight: null,
+      weight: rememberLoadedWeight(null),
       value: null,
       currency_id: defaultCurrency?.id || null,
       notes: undefined,
@@ -1135,7 +1151,7 @@ async function save() {
           name: form.value.name,
           description: form.value.description,
           location_id: form.value.location_id,
-          metadata: form.value.metadata,
+          metadata: metadataForSave(),
         },
       })
 
@@ -1160,7 +1176,7 @@ async function save() {
           name: form.value.name,
           description: form.value.description,
           location_id: form.value.location_id,
-          metadata: form.value.metadata,
+          metadata: metadataForSave(),
           campaignId,
         },
       })

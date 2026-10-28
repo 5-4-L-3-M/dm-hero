@@ -44,7 +44,7 @@
           v-model.number="form.temperature"
           :label="$t('calendar.weather.temperature')"
           type="number"
-          suffix="°C"
+          :suffix="tempUnit"
           variant="outlined"
           class="mb-3"
         />
@@ -127,6 +127,13 @@ const form = ref({
   notes: '',
 })
 
+// Temperatures are stored in °C and shown/typed in the chosen unit (°F by default).
+// If the user leaves the shown value alone, the stored °C is sent back unchanged
+// so opening + saving never drifts the value through rounding.
+const { tempUnit, tempToDisplay, tempFromDisplay } = useUnits()
+let loadedCelsius: number | null = null
+let loadedDisplay: number | null = null
+
 // Weather type options
 const weatherTypes = computed(() => [
   { value: 'sunny', title: t('calendar.weather.types.sunny') },
@@ -168,17 +175,21 @@ watch(
   (show) => {
     if (show) {
       if (props.weather) {
+        loadedCelsius = props.weather.temperature
+        loadedDisplay = tempToDisplay(loadedCelsius)
         form.value = {
           weatherType: props.weather.weather_type,
-          temperature: props.weather.temperature,
+          temperature: loadedDisplay,
           notes: props.weather.notes || '',
         }
       }
       else {
         // Default for new weather
+        loadedCelsius = 20
+        loadedDisplay = tempToDisplay(loadedCelsius)
         form.value = {
           weatherType: 'sunny',
-          temperature: 20,
+          temperature: loadedDisplay,
           notes: '',
         }
       }
@@ -199,7 +210,9 @@ async function save() {
         month: props.month,
         day: props.day,
         weatherType: form.value.weatherType,
-        temperature: form.value.temperature,
+        temperature: form.value.temperature === loadedDisplay
+          ? loadedCelsius
+          : tempFromDisplay(form.value.temperature),
         notes: form.value.notes || null,
       },
     })

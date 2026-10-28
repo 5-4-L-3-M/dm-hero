@@ -157,6 +157,8 @@ interface PlayerItem {
   image_url: string | null
   relation_type: string
   notes: string | null
+  /** Original notes value — may hold { quantity, equipped } from the inventory */
+  raw_notes?: string | Record<string, unknown> | null
   metadata?: { type?: string | null, [key: string]: unknown } | null
 }
 
@@ -268,6 +270,7 @@ async function loadItems() {
         image_url: rel.image_url,
         relation_type: rel.relation_type || 'owns',
         notes: getNotesText(rel.notes),
+        raw_notes: rel.notes,
         metadata: itemFromStore?.metadata || null,
       }
     })
@@ -358,18 +361,25 @@ async function saveEdit() {
 
   saving.value = true
   try {
+    const item = items.value.find(i => i.relation_id === editRelationId.value)
+    // Keep inventory data (quantity / equipped) when only the note text changes
+    const raw = item?.raw_notes
+    const notes = raw && typeof raw === 'object'
+      ? { ...raw, text: editNotes.value || undefined }
+      : editNotes.value || null
+
     await $fetch(`/api/entity-relations/${editRelationId.value}`, {
       method: 'PATCH',
       body: {
         relationType,
-        notes: editNotes.value || null,
+        notes,
       },
     })
 
-    const item = items.value.find(i => i.relation_id === editRelationId.value)
     if (item) {
       item.relation_type = relationType
       item.notes = editNotes.value || null
+      item.raw_notes = notes
     }
 
     editDialog.value = false

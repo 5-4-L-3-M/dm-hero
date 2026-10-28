@@ -69,7 +69,7 @@
         >
           <span v-if="item.metadata?.value">{{ item.metadata.value }}</span>
           <span v-if="item.metadata?.value && item.metadata?.weight"> • </span>
-          <span v-if="item.metadata?.weight">{{ item.metadata.weight }}</span>
+          <span v-if="item.metadata?.weight">{{ formatWeight(Number(item.metadata.weight)) }}</span>
         </div>
       </div>
     </div>
@@ -456,6 +456,7 @@ function onMoveError(error: unknown) {
 const { getCounts } = useItemCounts()
 const { getItemTypeIcon } = useEntityIcons()
 const { t } = useI18n()
+const { formatWeight } = useUnits()
 
 // Get counts reactively from the composable
 const counts = computed(() => getCounts(props.item.id) || props.item._counts)
@@ -506,7 +507,7 @@ const previewChips = computed(() => {
 const previewSubtitle = computed(() => {
   const parts = []
   if (props.item.metadata?.value) parts.push(props.item.metadata.value)
-  if (props.item.metadata?.weight) parts.push(props.item.metadata.weight)
+  if (props.item.metadata?.weight) parts.push(formatWeight(Number(props.item.metadata.weight)))
   return parts.join(' • ')
 })
 

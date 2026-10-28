@@ -463,7 +463,7 @@ async function deleteDocument() {
 
 function formatDate(dateString: string) {
   const date = new Date(dateString)
-  return date.toLocaleDateString(locale.value === 'de' ? 'de-DE' : 'en-US', {
+  return date.toLocaleDateString(toDateLocale(locale.value), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

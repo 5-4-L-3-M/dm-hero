@@ -65,6 +65,7 @@ export default defineEventHandler(() => {
       Item: {
         type: { type: 'string', oneOf: itemTypes.map(t => t.name) },
         rarity: { type: 'string', oneOf: itemRarities.map(r => r.name) },
+        weight: { type: 'number', note: 'weight of ONE item in pounds (lb), e.g. 2 for a shortsword' },
       },
       Faction: {
         type: { type: 'string', oneOf: FACTION_TYPES },

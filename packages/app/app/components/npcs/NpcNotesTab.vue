@@ -143,6 +143,7 @@
 import { useTabDirtyState } from '~/composables/useDialogDirtyState'
 
 const { t } = useI18n()
+const dateLocale = useDateLocale()
 const campaignStore = useCampaignStore()
 const activeCampaignId = computed(() => campaignStore.activeCampaignId)
 
@@ -325,7 +326,7 @@ function closeNoteDialog() {
 function formatDate(dateString: string): string {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  return date.toLocaleDateString(dateLocale.value, { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
 function truncateText(text: string, maxLength: number): string {

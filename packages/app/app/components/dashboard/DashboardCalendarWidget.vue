@@ -41,8 +41,8 @@
         <div v-if="weather" class="dashboard-info-box d-flex align-center py-2 px-3 rounded">
           <v-icon :icon="weatherIcon" size="18" class="mr-1" />
           <span class="text-body-medium">{{ weatherLabel }}</span>
-          <span v-if="weather.temperature" class="text-body-medium ml-2">
-            {{ weather.temperature }}°
+          <span v-if="weather.temperature != null" class="text-body-medium ml-2">
+            {{ formatTemp(weather.temperature) }}
           </span>
         </div>
       </div>
@@ -82,6 +82,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const { formatTemp } = useUnits()
 
 const hasCalendar = computed(() => !!props.calendar)
 const currentDay = computed(() => props.calendar?.currentDay || 1)

@@ -2225,7 +2225,8 @@
       "confirmButton": "Kalender löschen",
       "success": "Kalender wurde zurückgesetzt",
       "error": "Fehler beim Zurücksetzen des Kalenders"
-    }
+    },
+    "yearZeroDefault": "Jahr 0"
   },
   "pinboard": {
     "title": "Pinboard",
@@ -2900,5 +2901,50 @@
     "playerApp": {
       "hint": "Deine Spieler öffnen {link} auf Handy oder Laptop und treten mit Spielcode und ihrer PIN bei."
     }
+  },
+  "inventory": {
+    "tab": "Inventar",
+    "carrying": "Trägt",
+    "status": {
+      "normal": "Unbelastet",
+      "encumbered": "Belastet",
+      "heavy": "Schwer belastet",
+      "over": "Überladen",
+      "unknown": "Keine Stärke"
+    },
+    "effect": {
+      "encumbered": "Bewegungsrate sinkt um 10 Fuß.",
+      "heavy": "Bewegungsrate sinkt um 20 Fuß; Nachteil bei Attributswürfen, Angriffswürfen und Rettungswürfen auf Stärke, Geschicklichkeit oder Konstitution.",
+      "over": "Mehr, als der Charakter tragen kann. Bis zum Doppelten der Tragkraft kann geschoben, gezogen oder gehoben werden, die Bewegungsrate sinkt dabei auf 5 Fuß."
+    },
+    "noStrength": "Trage im Werte-Tab einen Stärkewert ein, um die Tragkraft zu sehen.",
+    "basedOnStrength": "Stärke {str}: belastet über ST × 5, schwer belastet über ST × 10, Tragkraft ST × 15.",
+    "encumberedAt": "Belastet {weight}",
+    "heavyAt": "Schwer {weight}",
+    "maxAt": "Max. {weight}",
+    "columns": {
+      "item": "Gegenstand",
+      "qty": "Anz.",
+      "weightEach": "Gewicht/Stk.",
+      "total": "Gesamt",
+      "equipped": "Ausgerüstet"
+    },
+    "noWeight": "keins",
+    "decrease": "Anzahl verringern",
+    "increase": "Anzahl erhöhen",
+    "removeItem": "Aus dem Inventar entfernen",
+    "empty": "Noch nichts dabei",
+    "emptyText": "Füge unten Gegenstände hinzu oder verknüpfe sie beim Bearbeiten des Charakters im Gegenstände-Tab.",
+    "missingWeights": "{count} Gegenstand hat noch kein Gewicht | {count} Gegenstände haben noch kein Gewicht",
+    "addItem": "Gegenstand hinzufügen",
+    "saveError": "Änderung konnte nicht gespeichert werden.",
+    "partyLoad": "Traglast der Gruppe",
+    "partyLoadHint": "Klicke auf einen Charakter, um sein Inventar zu öffnen."
+  },
+  "units": {
+    "title": "Einheiten",
+    "description": "Wie Gewichte, Temperaturen und Kartenentfernungen angezeigt werden. Gespeicherte Daten bleiben unverändert.",
+    "imperial": "Imperial (lb, °F, Meilen)",
+    "metric": "Metrisch (kg, °C, km)"
   }
 }

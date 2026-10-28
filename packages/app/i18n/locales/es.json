@@ -2225,7 +2225,8 @@
       "confirmButton": "Eliminar calendario",
       "success": "El calendario se ha restablecido",
       "error": "Error al restablecer el calendario"
-    }
+    },
+    "yearZeroDefault": "Año 0"
   },
   "pinboard": {
     "title": "Tablón",
@@ -2900,5 +2901,50 @@
     "playerApp": {
       "hint": "Tus jugadores abren {link} en el móvil o el portátil y se unen con el código de partida y su PIN."
     }
+  },
+  "inventory": {
+    "tab": "Inventario",
+    "carrying": "Carga",
+    "status": {
+      "normal": "Sin estorbo",
+      "encumbered": "Estorbado",
+      "heavy": "Muy estorbado",
+      "over": "Sobrecargado",
+      "unknown": "Sin Fuerza"
+    },
+    "effect": {
+      "encumbered": "La velocidad baja 10 pies.",
+      "heavy": "La velocidad baja 20 pies y hay desventaja en pruebas de característica, tiradas de ataque y tiradas de salvación de Fuerza, Destreza o Constitución.",
+      "over": "Más de lo que este personaje puede llevar. Puede empujar, arrastrar o levantar hasta el doble de su capacidad, pero su velocidad baja a 5 pies."
+    },
+    "noStrength": "Añade una puntuación de Fuerza en la pestaña de estadísticas para ver la capacidad de carga.",
+    "basedOnStrength": "Fuerza {str}: estorbado por encima de FUE × 5, muy estorbado por encima de FUE × 10, capacidad FUE × 15.",
+    "encumberedAt": "Estorbado {weight}",
+    "heavyAt": "Muy {weight}",
+    "maxAt": "Máx. {weight}",
+    "columns": {
+      "item": "Objeto",
+      "qty": "Cant.",
+      "weightEach": "Peso c/u",
+      "total": "Total",
+      "equipped": "Equipado"
+    },
+    "noWeight": "ninguno",
+    "decrease": "Reducir cantidad",
+    "increase": "Aumentar cantidad",
+    "removeItem": "Quitar del inventario",
+    "empty": "Aún no lleva nada",
+    "emptyText": "Añade objetos abajo o vincúlalos en la pestaña Objetos al editar el personaje.",
+    "missingWeights": "{count} objeto aún no tiene peso | {count} objetos aún no tienen peso",
+    "addItem": "Añadir un objeto",
+    "saveError": "No se pudo guardar el cambio.",
+    "partyLoad": "Carga del grupo",
+    "partyLoadHint": "Haz clic en un personaje para abrir su inventario."
+  },
+  "units": {
+    "title": "Unidades",
+    "description": "Cómo se muestran pesos, temperaturas y distancias del mapa. Tus datos guardados no cambian.",
+    "imperial": "Imperial (lb, °F, millas)",
+    "metric": "Métrico (kg, °C, km)"
   }
 }

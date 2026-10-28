@@ -46,7 +46,7 @@ jobs:
 
   build-docker-amd64:
     needs: check
-    if: needs.check.outputs.should_release == 'true'
+    if: needs.check.outputs.should_release == 'true' && github.repository == 'Flo0806/dm-hero'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -79,7 +79,7 @@ jobs:
 
   build-docker-arm64:
     needs: check
-    if: needs.check.outputs.should_release == 'true'
+    if: needs.check.outputs.should_release == 'true' && github.repository == 'Flo0806/dm-hero'
     runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
@@ -112,7 +112,7 @@ jobs:
 
   create-docker-manifest:
     needs: [check, build-docker-amd64, build-docker-arm64]
-    if: needs.check.outputs.should_release == 'true'
+    if: needs.check.outputs.should_release == 'true' && github.repository == 'Flo0806/dm-hero'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -243,7 +243,7 @@ jobs:
   # ============================================================================
   build-electron-macos:
     needs: check
-    if: needs.check.outputs.should_release == 'true'
+    if: needs.check.outputs.should_release == 'true' && github.repository == 'Flo0806/dm-hero'
     runs-on: macos-15
     permissions:
       contents: write
@@ -347,7 +347,7 @@ jobs:
   # ============================================================================
   merge-mac-latest-yml:
     needs: [check, build-electron-macos]
-    if: needs.check.outputs.should_release == 'true'
+    if: needs.check.outputs.should_release == 'true' && github.repository == 'Flo0806/dm-hero'
     runs-on: ubuntu-latest
 
     steps:
@@ -415,7 +415,8 @@ jobs:
 
   create-release:
     needs: [check, create-docker-manifest, build-electron-windows, build-electron-linux, merge-mac-latest-yml]
-    if: needs.check.outputs.should_release == 'true'
+    # Forks skip Docker/macOS (no registry or Apple secrets), so only require Windows.
+    if: ${{ !cancelled() && needs.check.outputs.should_release == 'true' && needs.build-electron-windows.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -431,24 +432,28 @@ jobs:
           path: ./artifacts
 
       - name: Download Linux artifacts
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: dm-hero-linux
           path: ./artifacts
 
       - name: Download macOS arm64 artifacts
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: dm-hero-macos-arm64
           path: ./artifacts
 
       - name: Download macOS x64 artifacts
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: dm-hero-macos-x64
           path: ./artifacts
 
       - name: Download merged macOS latest yml
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: dm-hero-macos-latest
