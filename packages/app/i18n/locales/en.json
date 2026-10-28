@@ -2950,5 +2950,55 @@
     "description": "How weights, temperatures and map distances are shown. Your saved data doesn't change.",
     "imperial": "Imperial (lb, °F, miles)",
     "metric": "Metric (kg, °C, km)"
+  },
+  "shop": {
+    "title": "Shop",
+    "count": "{n} items for sale",
+    "addItem": "Add item",
+    "editItem": "Edit item",
+    "fromItems": "Copy from your Items (optional)",
+    "fromItemsHint": "Fills in the name, weight and price. Leave empty for a custom item.",
+    "empty": "Nothing for sale yet",
+    "emptyHint": "Add items from your Items list or make custom ones.",
+    "free": "Free",
+    "addToInventory": "Add to a player's inventory",
+    "sellTitle": "Sell {name}",
+    "sellTo": "Player",
+    "quantity": "Quantity",
+    "priceEach": "Price each",
+    "charge": "Take the money from their purse",
+    "totalCost": "Total",
+    "purseNow": "Purse now",
+    "purseAfter": "Purse after",
+    "notEnough": "Not enough coin",
+    "customNote": "Custom items are added to your Items list the first time they're sold.",
+    "sold": "Added to {name}'s inventory",
+    "soldPaid": "Added to {name}'s inventory · paid {paid}",
+    "saveError": "Couldn't save the shop",
+    "confirmDelete": "Remove {name} from this shop?",
+    "fields": {
+      "name": "Item",
+      "description": "Short description",
+      "category": "Type",
+      "weight": "Weight",
+      "cost": "Cost",
+      "priceNote": "Price note",
+      "priceNoteHint": "a sheet, + a promise...",
+      "stock": "Stock",
+      "stockHint": "Leave empty for plenty"
+    },
+    "categories": {
+      "gear": "Gear",
+      "common": "Common magic",
+      "uncommon": "Uncommon magic",
+      "rare": "Rare magic",
+      "very_rare": "Very rare magic",
+      "legendary": "Legendary",
+      "lore": "Story item"
+    }
+  },
+  "purse": {
+    "title": "Purse",
+    "total": "Total"
   }
 }

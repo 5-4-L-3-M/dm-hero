@@ -23,6 +23,10 @@
           <v-icon start>mdi-information</v-icon>
           {{ $t('common.details') }}
         </v-tab>
+        <v-tab v-if="isShop" value="shop">
+          <v-icon start>mdi-store</v-icon>
+          {{ $t('shop.title') }}
+        </v-tab>
         <v-tab value="npcs">
           <v-icon start>mdi-account-group</v-icon>
           {{ $t('npcs.title') }}
@@ -191,6 +195,11 @@
             />
           </v-window-item>
 
+          <!-- Shop Tab -->
+          <v-window-item v-if="isShop" value="shop">
+            <LocationShopTab v-if="location && currentTab === 'shop'" :location-id="location.id" />
+          </v-window-item>
+
           <!-- Factions Tab -->
           <v-window-item value="factions">
             <EntityRelationsList
@@ -225,6 +234,8 @@
 import EntityRelationsList from '~/components/shared/EntityRelationsList.vue'
 import EntityDocumentsView from '~/components/shared/EntityDocumentsView.vue'
 import EntityImageGalleryView from '~/components/shared/EntityImageGalleryView.vue'
+import LocationShopTab from '~/components/locations/LocationShopTab.vue'
+import { isShopLocationType } from '~~/types/shop'
 
 interface Location {
   id: number
@@ -317,6 +328,7 @@ const { t: _t } = useI18n() // Needed for $t in template
 
 // Local tab state
 const currentTab = ref('overview')
+const isShop = computed(() => isShopLocationType(props.location?.metadata?.type))
 
 // Reset tab when dialog opens
 watch(

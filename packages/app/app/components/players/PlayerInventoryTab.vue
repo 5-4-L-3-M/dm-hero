@@ -3,6 +3,8 @@
     <v-progress-linear v-if="loading && !inventory" indeterminate class="mb-3" />
 
     <template v-else-if="inventory">
+      <PlayerPurse ref="purseRef" :player-id="playerId" />
+
       <!-- Load summary -->
       <v-card variant="tonal" class="pa-4 mb-4">
         <div class="d-flex align-center flex-wrap ga-3 mb-3">
@@ -186,6 +188,7 @@
 
 <script setup lang="ts">
 import CarryLoadBar from '~/components/players/CarryLoadBar.vue'
+import PlayerPurse from '~/components/players/PlayerPurse.vue'
 import {
   loadStatus,
   serializeInventoryNotes,
@@ -205,6 +208,7 @@ const { getItemTypeIcon } = useEntityIcons()
 const { weightUnit, formatWeight, weightToDisplay, weightFromDisplay } = useUnits()
 
 const inventory = ref<PlayerInventory | null>(null)
+const purseRef = ref<{ reload: () => Promise<void> } | null>(null)
 const loading = ref(false)
 const adding = ref(false)
 const addItemId = ref<number | null>(null)
@@ -366,7 +370,7 @@ async function addItem() {
   }
 }
 
-defineExpose({ reload: load })
+defineExpose({ reload: () => Promise.all([load(), purseRef.value?.reload()]) })
 </script>
 
 <style scoped>

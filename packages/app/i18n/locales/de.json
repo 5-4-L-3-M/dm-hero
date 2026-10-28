@@ -2950,5 +2950,55 @@
     "description": "Wie Gewichte, Temperaturen und Kartenentfernungen angezeigt werden. Gespeicherte Daten bleiben unverändert.",
     "imperial": "Imperial (lb, °F, Meilen)",
     "metric": "Metrisch (kg, °C, km)"
+  },
+  "shop": {
+    "title": "Laden",
+    "count": "{n} Waren im Angebot",
+    "addItem": "Ware hinzufügen",
+    "editItem": "Ware bearbeiten",
+    "fromItems": "Aus deinen Gegenständen übernehmen (optional)",
+    "fromItemsHint": "Übernimmt Name, Gewicht und Preis. Leer lassen für eine eigene Ware.",
+    "empty": "Noch nichts im Angebot",
+    "emptyHint": "Füge Gegenstände aus deiner Liste oder eigene Waren hinzu.",
+    "free": "Gratis",
+    "addToInventory": "Ins Inventar eines Spielers",
+    "sellTitle": "{name} verkaufen",
+    "sellTo": "Spieler",
+    "quantity": "Anzahl",
+    "priceEach": "Preis pro Stück",
+    "charge": "Geld aus dem Geldbeutel nehmen",
+    "totalCost": "Gesamt",
+    "purseNow": "Geldbeutel jetzt",
+    "purseAfter": "Geldbeutel danach",
+    "notEnough": "Nicht genug Münzen",
+    "customNote": "Eigene Waren werden beim ersten Verkauf zu deinen Gegenständen hinzugefügt.",
+    "sold": "Zum Inventar von {name} hinzugefügt",
+    "soldPaid": "Zum Inventar von {name} hinzugefügt · {paid} bezahlt",
+    "saveError": "Laden konnte nicht gespeichert werden",
+    "confirmDelete": "{name} aus diesem Laden entfernen?",
+    "fields": {
+      "name": "Ware",
+      "description": "Kurzbeschreibung",
+      "category": "Art",
+      "weight": "Gewicht",
+      "cost": "Preis",
+      "priceNote": "Preisnotiz",
+      "priceNoteHint": "pro Blatt, + ein Versprechen...",
+      "stock": "Vorrat",
+      "stockHint": "Leer lassen für unbegrenzt"
+    },
+    "categories": {
+      "gear": "Ausrüstung",
+      "common": "Gewöhnliche Magie",
+      "uncommon": "Ungewöhnliche Magie",
+      "rare": "Seltene Magie",
+      "very_rare": "Sehr seltene Magie",
+      "legendary": "Legendär",
+      "lore": "Story-Gegenstand"
+    }
+  },
+  "purse": {
+    "title": "Geldbeutel",
+    "total": "Gesamt"
   }
 }

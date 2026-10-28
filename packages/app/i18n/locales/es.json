@@ -2950,5 +2950,55 @@
     "description": "Cómo se muestran pesos, temperaturas y distancias del mapa. Tus datos guardados no cambian.",
     "imperial": "Imperial (lb, °F, millas)",
     "metric": "Métrico (kg, °C, km)"
+  },
+  "shop": {
+    "title": "Tienda",
+    "count": "{n} artículos a la venta",
+    "addItem": "Añadir artículo",
+    "editItem": "Editar artículo",
+    "fromItems": "Copiar de tus objetos (opcional)",
+    "fromItemsHint": "Rellena el nombre, el peso y el precio. Déjalo vacío para un artículo propio.",
+    "empty": "Aún no hay nada a la venta",
+    "emptyHint": "Añade objetos de tu lista o crea artículos propios.",
+    "free": "Gratis",
+    "addToInventory": "Añadir al inventario de un jugador",
+    "sellTitle": "Vender {name}",
+    "sellTo": "Jugador",
+    "quantity": "Cantidad",
+    "priceEach": "Precio por unidad",
+    "charge": "Cobrar de su bolsa",
+    "totalCost": "Total",
+    "purseNow": "Bolsa ahora",
+    "purseAfter": "Bolsa después",
+    "notEnough": "No hay monedas suficientes",
+    "customNote": "Los artículos propios se añaden a tus objetos la primera vez que se venden.",
+    "sold": "Añadido al inventario de {name}",
+    "soldPaid": "Añadido al inventario de {name} · pagó {paid}",
+    "saveError": "No se pudo guardar la tienda",
+    "confirmDelete": "¿Quitar {name} de esta tienda?",
+    "fields": {
+      "name": "Artículo",
+      "description": "Descripción corta",
+      "category": "Tipo",
+      "weight": "Peso",
+      "cost": "Precio",
+      "priceNote": "Nota de precio",
+      "priceNoteHint": "por hoja, + una promesa...",
+      "stock": "Existencias",
+      "stockHint": "Vacío = sin límite"
+    },
+    "categories": {
+      "gear": "Equipo",
+      "common": "Magia común",
+      "uncommon": "Magia poco común",
+      "rare": "Magia rara",
+      "very_rare": "Magia muy rara",
+      "legendary": "Legendario",
+      "lore": "Objeto de historia"
+    }
+  },
+  "purse": {
+    "title": "Bolsa",
+    "total": "Total"
   }
 }
