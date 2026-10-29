@@ -3054,9 +3054,13 @@
     "total": "Totale"
   },
   "preview": {
-    "openFull": "Modifica",
+    "openFull": "Apri tutto",
     "connections": "Collegamenti",
-    "notFound": "Impossibile caricare questa voce."
+    "notFound": "Impossibile caricare questa voce.",
+    "edit": "Modifica",
+    "sections": {
+      "images": "Immagini"
+    }
   },
   "entityTabs": {
     "openAsTab": "Apri in una scheda",

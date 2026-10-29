@@ -3054,9 +3054,13 @@
     "total": "Total"
   },
   "preview": {
-    "openFull": "Editar",
+    "openFull": "Abrir completo",
     "connections": "Conexiones",
-    "notFound": "No se pudo cargar esta entrada."
+    "notFound": "No se pudo cargar esta entrada.",
+    "edit": "Editar",
+    "sections": {
+      "images": "Imágenes"
+    }
   },
   "entityTabs": {
     "openAsTab": "Abrir como pestaña",

@@ -81,8 +81,11 @@
           <SharedPinButton :entity-id="active.id" variant="icon" size="small" />
         </div>
         <div class="d-flex flex-wrap ga-2 px-4 pb-2 flex-shrink-0">
-          <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-pencil" @click="fullOpen = true">
+          <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-arrow-expand" @click="viewOpen = true">
             {{ $t('preview.openFull') }}
+          </v-btn>
+          <v-btn size="small" variant="text" prepend-icon="mdi-pencil" @click="fullOpen = true">
+            {{ $t('preview.edit') }}
           </v-btn>
           <v-btn size="small" variant="text" prepend-icon="mdi-open-in-new" @click="goToPage">
             {{ $t('sessions.goToPage') }}
@@ -103,7 +106,16 @@
     </div>
   </v-navigation-drawer>
 
-  <!-- Full dialog (every tab, editing) on top of whatever page is open -->
+  <!-- Full page to read (every section, roomy) -->
+  <SharedEntityFullView
+    v-if="active"
+    v-model="viewOpen"
+    :entity-type="active.type"
+    :entity-id="active.id"
+    :entity-name="active.name"
+  />
+
+  <!-- Editor (every tab) on top of whatever page is open -->
   <component
     :is="ENTITY_FULL_DIALOGS[active.type].component"
     v-if="active && fullOpen"
@@ -131,6 +143,7 @@ const { mobile } = useDisplay()
 
 const active = computed(() => tabs.activeTab)
 const fullOpen = ref(false)
+const viewOpen = ref(false)
 const bodyRef = ref<{ reload: () => Promise<void> } | null>(null)
 
 const keyOf = (tab: EntityTab) => entityTabKey(tab)
@@ -140,6 +153,7 @@ watch(() => campaignStore.activeCampaignIdNumber, id => tabs.useCampaign(id ?? n
 
 watch(() => tabs.activeKey, () => {
   fullOpen.value = false
+  viewOpen.value = false
 })
 
 function onLoaded(entity: PreviewEntity | null) {

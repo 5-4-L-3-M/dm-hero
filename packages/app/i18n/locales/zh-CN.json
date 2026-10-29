@@ -3054,9 +3054,13 @@
     "total": "总计"
   },
   "preview": {
-    "openFull": "编辑",
+    "openFull": "完整打开",
     "connections": "关联",
-    "notFound": "无法加载此条目。"
+    "notFound": "无法加载此条目。",
+    "edit": "编辑",
+    "sections": {
+      "images": "图片"
+    }
   },
   "entityTabs": {
     "openAsTab": "在标签页中打开",
