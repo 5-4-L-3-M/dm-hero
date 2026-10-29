@@ -7,6 +7,7 @@ import {
   isCarriedRelation,
   loadStatus,
   parseInventoryNotes,
+  readCarryBonus,
   readItemWeight,
   readStrength,
   serializeInventoryNotes,
@@ -21,7 +22,7 @@ import {
 
 describe('carrying capacity (D&D 5e)', () => {
   it('derives thresholds from Strength', () => {
-    expect(carryThresholds(14)).toEqual({ encumbered: 70, heavy: 140, capacity: 210 })
+    expect(carryThresholds(14)).toEqual({ encumbered: 70, heavy: 140, capacity: 210, bonus: 0 })
     expect(carryThresholds(null)).toBeNull()
     expect(carryThresholds(0)).toBeNull()
   })
@@ -34,6 +35,21 @@ describe('carrying capacity (D&D 5e)', () => {
     expect(loadStatus(210, 14)).toBe('heavy')
     expect(loadStatus(211, 14)).toBe('over')
     expect(loadStatus(10, null)).toBe('unknown')
+  })
+
+  it('adds a per-player carry bonus to max capacity only', () => {
+    // Alfonzo: STR 11 × 15 = 165, + 15 lb bonus = 180
+    expect(carryThresholds(11, 15)).toEqual({ encumbered: 55, heavy: 110, capacity: 180, bonus: 15 })
+    expect(carryThresholds(11, -20)?.capacity).toBe(145)
+    expect(carryThresholds(1, -100)?.capacity).toBe(0) // never below zero
+    expect(carryThresholds(null, 15)).toBeNull()
+    expect(loadStatus(170, 11)).toBe('over')
+    expect(loadStatus(170, 11, 15)).toBe('heavy')
+    expect(loadStatus(181, 11, 15)).toBe('over')
+    expect(readCarryBonus({ carry_bonus: 15 })).toBe(15)
+    expect(readCarryBonus({ carry_bonus: '-5' })).toBe(-5)
+    expect(readCarryBonus({ carry_bonus: 'lots' })).toBe(0)
+    expect(readCarryBonus(null)).toBe(0)
   })
 
   it('sums weight × quantity and ignores items without a weight', () => {
@@ -152,6 +168,16 @@ describe('inventory queries', () => {
     const z = party.find(p => p.player_id === playerId)!
     expect(z).toMatchObject({ player_name: 'Joe', carried: 12, item_count: 4, status: 'normal' })
     expect(party.find(p => p.name === 'Lyra')).toMatchObject({ carried: 0, status: 'unknown', thresholds: null })
+  })
+
+  it('reads carry_bonus from player metadata on the server', () => {
+    db.prepare('UPDATE entities SET metadata = json_set(COALESCE(metadata, \'{}\'), \'$.carry_bonus\', ?) WHERE id = ?').run(15, playerId)
+    const inv = getPlayerInventory(db, playerId)
+    expect(inv.thresholds).toMatchObject({ capacity: 225, bonus: 15 })
+    const z = getPartyLoad(db, campaignId).find(p => p.player_id === playerId)!
+    expect(z.thresholds).toMatchObject({ capacity: 225, bonus: 15 })
+    db.prepare('UPDATE entities SET metadata = json_remove(metadata, \'$.carry_bonus\') WHERE id = ?').run(playerId)
+    expect(getPlayerInventory(db, playerId).thresholds?.capacity).toBe(210)
   })
 
   it('updates weight in metadata JSON without touching other keys', () => {

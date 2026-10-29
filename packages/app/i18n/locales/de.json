@@ -1075,7 +1075,19 @@
     },
     "incomingLoreTooltip": "Verknüpfung wurde vom Wissenseintrag erstellt",
     "image": "Bild",
-    "parent": "Liegt in"
+    "parent": "Liegt in",
+    "view": {
+      "list": "Liste",
+      "cards": "Karten",
+      "typeFilter": "Nach Typ filtern",
+      "expandAll": "Alle aufklappen",
+      "collapseAll": "Alle zuklappen",
+      "allLocations": "Alle Orte",
+      "inside": "{count} darin",
+      "results": "Treffer: {count}",
+      "browseInside": "Hineinschauen",
+      "nothingInside": "Hier ist noch nichts."
+    }
   },
   "items": {
     "title": "Items",
@@ -1990,7 +2002,9 @@
       "misunderstands": "Missversteht",
       "teaches": "Lehrt",
       "studies": "Studiert"
-    }
+    },
+    "carryBonus": "Tragkraft-Bonus ({unit})",
+    "carryBonusHint": "Wird zu Stärke × 15 addiert. Darf negativ sein."
   },
   "calendar": {
     "title": "Kalender",
@@ -2943,7 +2957,8 @@
     "addItem": "Gegenstand hinzufügen",
     "saveError": "Änderung konnte nicht gespeichert werden.",
     "partyLoad": "Traglast der Gruppe",
-    "partyLoadHint": "Klicke auf einen Charakter, um sein Inventar zu öffnen."
+    "partyLoadHint": "Klicke auf einen Charakter, um sein Inventar zu öffnen.",
+    "capacityWithBonus": "Tragkraft: {breakdown} (inkl. Bonus)"
   },
   "units": {
     "title": "Einheiten",
@@ -3002,6 +3017,18 @@
     "total": "Gesamt"
   },
   "preview": {
-    "openFull": "Vollansicht"
+    "openFull": "Vollansicht",
+    "connections": "Verbindungen",
+    "notFound": "Dieser Eintrag konnte nicht geladen werden."
+  },
+  "entityTabs": {
+    "openAsTab": "Als Tab öffnen",
+    "closeTab": "Tab schließen",
+    "closeAll": "Alle Tabs schließen",
+    "closeOthers": "Andere Tabs schließen",
+    "wider": "Breiter",
+    "narrower": "Schmaler",
+    "hide": "Tab-Leiste ausblenden",
+    "show": "Tab-Leiste einblenden"
   }
 }

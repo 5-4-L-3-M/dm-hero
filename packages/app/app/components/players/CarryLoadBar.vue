@@ -8,11 +8,9 @@
         bg-opacity="0.18"
         rounded
       />
-      <!-- Encumbrance thresholds: STR×5 and STR×10 of a STR×15 capacity -->
-      <template v-if="thresholds">
-        <span class="carry-load__tick" style="left: 33.333%" />
-        <span class="carry-load__tick" style="left: 66.667%" />
-      </template>
+      <!-- Encumbrance thresholds (STR×5, STR×10) placed against the real capacity,
+           which includes the player's carry bonus -->
+      <span v-for="(left, i) in ticks" :key="i" class="carry-load__tick" :style="{ left: `${left}%` }" />
     </div>
     <div v-if="!compact && thresholds" class="d-flex justify-space-between text-body-small text-medium-emphasis mt-1">
       <span>0</span>
@@ -36,8 +34,17 @@ const props = defineProps<{
 const { formatWeight } = useUnits()
 
 const percent = computed(() => {
-  if (!props.thresholds) return 0
+  if (!props.thresholds || props.thresholds.capacity <= 0) return 0
   return Math.min(100, (props.carried / props.thresholds.capacity) * 100)
+})
+
+/** Tick positions (%) for the encumbered and heavy lines; hidden past the end of the bar. */
+const ticks = computed(() => {
+  const t = props.thresholds
+  if (!t || t.capacity <= 0) return []
+  return [t.encumbered, t.heavy]
+    .map(w => (w / t.capacity) * 100)
+    .filter(p => p > 0 && p < 100)
 })
 
 const statusColor = loadStatusColor

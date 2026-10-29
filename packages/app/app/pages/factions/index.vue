@@ -52,7 +52,7 @@
           <v-col v-for="faction in factionsInOpenFolder" :key="faction.id" cols="12" md="6" lg="4">
             <FactionCard
               :faction="faction"
-              @view="viewFaction"
+              @view="openInTab"
               @edit="editFaction"
               @download="(f: Faction) => downloadImage(`/uploads/${f.image_url}`, f.name)"
               @archive="archiveEntity"
@@ -82,7 +82,7 @@
                 fallback-icon="mdi-shield-account-outline"
                 class="flex-grow-1"
                 style="min-width: 0"
-                @open="viewFaction(faction)"
+                @open="openInTab(faction)"
               />
               <v-btn
                 icon="mdi-folder-arrow-left-outline"
@@ -128,7 +128,7 @@
             <FactionCard
               :faction="faction"
               :is-highlighted="highlightedId === faction.id"
-              @view="viewFaction"
+              @view="openInTab"
               @edit="editFaction"
               @download="(f) => downloadImage(`/uploads/${f.image_url}`, f.name)"
               @archive="archiveEntity"
@@ -560,6 +560,12 @@ async function handleFactionCreated(faction: Faction) {
 // ============================================================================
 const showViewDialog = ref(false)
 const viewingFaction = ref<Faction | null>(null)
+
+// Eye button: open the entry as a tab in the side panel (stays open across pages)
+const entityTabs = useEntityTabsStore()
+function openInTab(entry: Faction) {
+  entityTabs.open('faction', entry.id, entry.name)
+}
 
 function viewFaction(faction: Faction) {
   viewingFaction.value = faction

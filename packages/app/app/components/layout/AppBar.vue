@@ -46,6 +46,24 @@
       </v-list>
     </v-menu>
 
+    <!-- Entry tabs side panel toggle (only once something is open as a tab) -->
+    <ClientOnly>
+      <v-btn
+        v-if="entityTabs.count > 0"
+        variant="text"
+        class="mr-1 px-2"
+        min-width="0"
+        :color="entityTabs.panelOpen ? 'primary' : undefined"
+        :prepend-icon="entityTabs.panelOpen ? 'mdi-tab' : 'mdi-tab-unselected'"
+        @click="entityTabs.setPanelOpen(!entityTabs.panelOpen)"
+      >
+        {{ entityTabs.count }}
+        <v-tooltip activator="parent" location="bottom">
+          {{ entityTabs.panelOpen ? $t('entityTabs.hide') : $t('entityTabs.show') }}
+        </v-tooltip>
+      </v-btn>
+    </ClientOnly>
+
     <v-btn icon="mdi-magnify" class="search-btn" @click="$emit('search-click')" />
   </v-app-bar>
 </template>
@@ -83,6 +101,7 @@ defineEmits<{
 }>()
 
 const version = packageJson.version
+const entityTabs = useEntityTabsStore()
 
 // Each minor release gets its own codename, shown in the header in its OWN
 // font — every release looks different. Add an entry per minor as it ships.

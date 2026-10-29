@@ -4,6 +4,7 @@ import {
   isCarriedRelation,
   loadStatus,
   parseInventoryNotes,
+  readCarryBonus,
   readItemWeight,
   readStrength,
   totalCarried,
@@ -79,16 +80,25 @@ export function getInventoryEntries(db: Database.Database, entityId: number): In
     })
 }
 
-export function getPlayerInventory(db: Database.Database, playerId: number): PlayerInventory {
+/** Player's carrying capacity bonus (lb) from entity metadata `carry_bonus`; 0 when unset. */
+export function getCarryBonus(db: Database.Database, entityId: number): number {
+  const row = db.prepare('SELECT metadata FROM entities WHERE id = ?').get(entityId) as
+    | { metadata: string | null }
+    | undefined
+  return readCarryBonus(parseJson(row?.metadata ?? null))
+}
+
+export function getPlayerInventory(db: Database.Database, playerId: number, carryBonus?: number): PlayerInventory {
   const items = getInventoryEntries(db, playerId)
   const strength = getEntityStrength(db, playerId)
+  const bonus = carryBonus ?? getCarryBonus(db, playerId)
   const carried = totalCarried(items)
   return {
     player_id: playerId,
     strength,
-    thresholds: carryThresholds(strength),
+    thresholds: carryThresholds(strength, bonus),
     carried,
-    status: loadStatus(carried, strength),
+    status: loadStatus(carried, strength, bonus),
     missing_weights: items.filter(i => i.weight === null).length,
     items,
   }
@@ -109,8 +119,8 @@ export function getPartyLoad(db: Database.Database, campaignId: number): PartyLo
     .all(campaignId) as Array<{ id: number, name: string, image_url: string | null, metadata: string | null }>
 
   return players.map((p) => {
-    const inv = getPlayerInventory(db, p.id)
     const meta = parseJson(p.metadata)
+    const inv = getPlayerInventory(db, p.id, readCarryBonus(meta))
     return {
       player_id: p.id,
       name: p.name,

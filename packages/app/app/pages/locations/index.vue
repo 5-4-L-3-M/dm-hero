@@ -26,6 +26,22 @@
         @update:model-value="handleSearchInput"
         @click:clear="handleSearchClear"
       />
+      <v-select
+        v-model="typeFilter"
+        :items="typeOptions"
+        :label="$t('locations.view.typeFilter')"
+        prepend-inner-icon="mdi-filter-variant"
+        variant="outlined"
+        multiple
+        clearable
+        hide-details
+        class="location-type-filter"
+      >
+        <template #selection="{ item, index }">
+          <v-chip v-if="index < 2" size="small">{{ item.title }}</v-chip>
+          <span v-else-if="index === 2" class="text-body-small text-medium-emphasis">+{{ typeFilter.length - 2 }}</span>
+        </template>
+      </v-select>
       <v-btn
         :icon="entitiesStore.showArchived ? 'mdi-archive-check' : 'mdi-archive-off'"
         :color="entitiesStore.showArchived ? 'warning' : undefined"
@@ -37,6 +53,17 @@
           {{ $t('common.showArchived') }}
         </v-tooltip>
       </v-btn>
+      <!-- View switcher: tidy list or drill-down cards (remembered) -->
+      <v-btn-toggle v-model="viewMode" mandatory density="comfortable" variant="outlined" divided>
+        <v-btn value="list" icon="mdi-file-tree">
+          <v-icon>mdi-file-tree</v-icon>
+          <v-tooltip activator="parent" location="bottom">{{ $t('locations.view.list') }}</v-tooltip>
+        </v-btn>
+        <v-btn value="cards" icon="mdi-view-grid-outline">
+          <v-icon>mdi-view-grid-outline</v-icon>
+          <v-tooltip activator="parent" location="bottom">{{ $t('locations.view.cards') }}</v-tooltip>
+        </v-btn>
+      </v-btn-toggle>
     </div>
 
     <v-row v-if="pending">
@@ -72,106 +99,121 @@
         </div>
       </v-overlay>
 
-      <!-- Tree View -->
-      <v-card>
-        <v-treeview
-          v-model:opened="openedNodes"
-          :items="treeItems"
-          :open-on-click="true"
-          item-value="id"
-          item-title="title"
-          density="comfortable"
-        >
-          <!-- Location type icon (expand/collapse is handled by v-treeview default) -->
-          <template #prepend="{ internalItem }">
-            <v-icon
-              :class="{ 'highlight-blink-prepend': highlightedId === internalItem.raw.id }"
-              :color="getNodeColor(internalItem.raw)"
-              size="small"
-            >
-              {{ getNodeIcon(internalItem.raw) }}
-            </v-icon>
-          </template>
+      <!-- List view: the location tree with slim rows -->
+      <template v-if="viewMode === 'list'">
+        <div class="d-flex align-center ga-1 mb-2">
+          <v-btn size="small" variant="text" prepend-icon="mdi-unfold-more-horizontal" class="text-none" @click="expandAll">
+            {{ $t('locations.view.expandAll') }}
+          </v-btn>
+          <v-btn size="small" variant="text" prepend-icon="mdi-unfold-less-horizontal" class="text-none" @click="openedNodes = []">
+            {{ $t('locations.view.collapseAll') }}
+          </v-btn>
+        </div>
+        <v-card>
+          <v-treeview
+            v-model:opened="openedNodes"
+            :items="treeItems"
+            :open-on-click="true"
+            item-value="id"
+            item-title="title"
+            density="compact"
+          >
+            <!-- Location type icon (expand/collapse is handled by v-treeview default) -->
+            <template #prepend="{ internalItem }">
+              <v-icon
+                :class="{ 'highlight-blink-prepend': highlightedId === internalItem.raw.id }"
+                :color="getNodeColor(internalItem.raw)"
+                size="small"
+              >
+                {{ getNodeIcon(internalItem.raw) }}
+              </v-icon>
+            </template>
 
-          <!-- Custom title to highlight search results -->
-          <template #title="{ internalItem }">
-            <div
-              :id="`location-${internalItem.raw.id}`"
-              :key="`location-title-${internalItem.raw.id}-${animationKey}`"
-              :class="{
-                'highlight-blink-title': highlightedId === internalItem.raw.id,
-              }"
-              @contextmenu.prevent="openQuickLinkMenu($event, internalItem.raw)"
-            >
-              <span :class="{ 'text-primary font-weight-bold': internalItem.raw.isSearchResult }" :style="{ opacity: internalItem.raw.archived_at ? 0.5 : 1 }">
-                {{ internalItem.title }}
-                <v-chip v-if="internalItem.raw.archived_at" size="x-small" color="warning" variant="tonal" class="ml-1">
-                  {{ $t('common.archived') }}
+            <!-- Custom title to highlight search results -->
+            <template #title="{ internalItem }">
+              <div
+                :id="`location-${internalItem.raw.id}`"
+                :key="`location-title-${internalItem.raw.id}-${animationKey}`"
+                :class="{
+                  'highlight-blink-title': highlightedId === internalItem.raw.id,
+                }"
+                @contextmenu.prevent="openQuickLinkMenu($event, internalItem.raw)"
+              >
+                <span :class="{ 'text-primary font-weight-bold': internalItem.raw.isSearchResult }" :style="{ opacity: internalItem.raw.archived_at ? 0.5 : 1 }">
+                  {{ internalItem.title }}
+                  <v-chip v-if="internalItem.raw.archived_at" size="x-small" color="warning" variant="tonal" class="ml-1">
+                    {{ $t('common.archived') }}
+                  </v-chip>
+                </span>
+              </div>
+            </template>
+
+            <template #append="{ internalItem }">
+              <div class="d-flex align-center ga-1">
+                <!-- Type chip -->
+                <v-chip
+                  v-if="internalItem.raw.metadata?.type"
+                  size="x-small"
+                  color="primary"
+                  variant="tonal"
+                  class="mr-2"
+                >
+                  {{ $t(`locations.types.${internalItem.raw.metadata.type}`, internalItem.raw.metadata.type) }}
                 </v-chip>
-              </span>
-            </div>
-          </template>
 
-          <template #append="{ internalItem }">
-            <div class="d-flex align-center ga-1">
-              <!-- Type chip -->
-              <v-chip
-                v-if="internalItem.raw.metadata?.type"
-                size="x-small"
-                color="primary"
-                variant="tonal"
-                class="mr-2"
-              >
-                {{ $t(`locations.types.${internalItem.raw.metadata.type}`, internalItem.raw.metadata.type) }}
-              </v-chip>
+                <!-- Tag pinner inline with type-chip + actions -->
+                <SharedTagPinner :entity-id="internalItem.raw.id" class="mr-2" />
 
-              <!-- Tag pinner inline with type-chip + actions -->
-              <SharedTagPinner :entity-id="internalItem.raw.id" class="mr-2" />
+                <!-- Eye opens the place as a tab; everything else lives in the ⋮ menu -->
+                <v-btn
+                  icon="mdi-eye"
+                  size="x-small"
+                  variant="text"
+                  @click.stop="openInTab(internalItem.raw)"
+                >
+                  <v-icon>mdi-eye</v-icon>
+                  <v-tooltip activator="parent" location="bottom">{{ $t('entityTabs.openAsTab') }}</v-tooltip>
+                </v-btn>
+                <v-icon
+                  v-if="gameTableStore.shareOf('location', internalItem.raw.id)"
+                  size="x-small"
+                  color="primary"
+                  class="mx-1"
+                >
+                  mdi-share-variant
+                </v-icon>
+                <LocationActionsMenu
+                  :location="internalItem.raw"
+                  size="x-small"
+                  @edit="editLocation"
+                  @graph="openChaosGraph"
+                  @archive="archiveLocation"
+                  @delete="deleteLocation"
+                />
+              </div>
+            </template>
+          </v-treeview>
+          <div v-if="treeItems.length === 0" class="text-center text-medium-emphasis py-8">
+            {{ $t('common.noResults') }}
+          </div>
+        </v-card>
+      </template>
 
-              <!-- Actions -->
-              <v-btn
-                icon="mdi-eye"
-                size="x-small"
-                variant="text"
-                @click.stop="viewLocation(internalItem.raw)"
-              />
-              <GameTableShareButton type="location" :entity-id="internalItem.raw.id" :name="internalItem.raw.name" size="x-small" />
-              <v-btn
-                icon="mdi-pencil"
-                size="x-small"
-                variant="text"
-                @click.stop="editLocation(internalItem.raw)"
-              />
-              <v-btn
-                icon="mdi-graph"
-                size="x-small"
-                variant="text"
-                color="primary"
-                @click.stop="openChaosGraph(internalItem.raw)"
-              />
-              <v-btn
-                :icon="internalItem.raw.archived_at ? 'mdi-package-up' : 'mdi-archive-arrow-down'"
-                size="x-small"
-                variant="text"
-                :color="internalItem.raw.archived_at ? 'success' : 'warning'"
-                @click.stop="archiveLocation(internalItem.raw)"
-              >
-                <v-icon>{{ internalItem.raw.archived_at ? 'mdi-package-up' : 'mdi-archive-arrow-down' }}</v-icon>
-                <v-tooltip activator="parent" location="bottom">
-                  {{ internalItem.raw.archived_at ? $t('common.unarchive') : $t('common.archive') }}
-                </v-tooltip>
-              </v-btn>
-              <v-btn
-                icon="mdi-delete"
-                size="x-small"
-                variant="text"
-                color="error"
-                @click.stop="deleteLocation(internalItem.raw)"
-              />
-            </div>
-          </template>
-        </v-treeview>
-      </v-card>
+      <!-- Card view: drill down one level at a time -->
+      <LocationCardsView
+        v-else
+        v-model:parent-id="cardParentId"
+        :locations="locations || []"
+        :matches="cardMatches"
+        :highlighted-id="highlightedId"
+        @open="openInTab"
+        @browse="browseInside"
+        @edit="editLocation"
+        @graph="openChaosGraph"
+        @archive="archiveLocation"
+        @delete="deleteLocation"
+        @contextmenu="openQuickLinkMenu"
+      />
     </div>
 
     <ClientOnly v-else>
@@ -282,6 +324,8 @@
 <script setup lang="ts">
 import LocationViewDialog from '~/components/locations/LocationViewDialog.vue'
 import LocationEditDialog from '~/components/locations/LocationEditDialog.vue'
+import LocationActionsMenu from '~/components/locations/LocationActionsMenu.vue'
+import LocationCardsView from '~/components/locations/LocationCardsView.vue'
 import ImagePreviewDialog from '~/components/shared/ImagePreviewDialog.vue'
 import QuickLinkContextMenu from '~/components/shared/QuickLinkContextMenu.vue'
 import QuickLinkEntitySelectDialog from '~/components/shared/QuickLinkEntitySelectDialog.vue'
@@ -364,7 +408,7 @@ function handleSearchClear() {
   if (inputTimeout) clearTimeout(inputTimeout)
 }
 
-const { locale } = useI18n()
+const { locale, t, te } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const entitiesStore = useEntitiesStore()
@@ -547,6 +591,75 @@ const filteredLocations = computed(() => {
   return [...(locations.value || [])].sort((a, b) => a.name.localeCompare(b.name))
 })
 
+// --- View switcher (list / cards), remembered in this browser ---
+type LocationsView = 'list' | 'cards'
+const VIEW_STORAGE_KEY = 'dmhero.locations.view'
+function readSavedView(): LocationsView {
+  try {
+    return localStorage.getItem(VIEW_STORAGE_KEY) === 'cards' ? 'cards' : 'list'
+  }
+  catch {
+    return 'list'
+  }
+}
+const viewMode = ref<LocationsView>(import.meta.client ? readSavedView() : 'list')
+watch(viewMode, (v) => {
+  try {
+    localStorage.setItem(VIEW_STORAGE_KEY, v)
+  }
+  catch {
+    // storage blocked — the choice just isn't remembered
+  }
+})
+
+// --- Type filter (District, Shop, Tavern, …): only types that are in use ---
+const typeFilter = ref<string[]>([])
+const typeOptions = computed(() => {
+  const types = new Set<string>()
+  for (const loc of locations.value || []) {
+    if (loc.metadata?.type) types.add(loc.metadata.type)
+  }
+  return [...types]
+    .map(type => ({ value: type, title: te(`locations.types.${type}`) ? t(`locations.types.${type}`) : type }))
+    .sort((a, b) => a.title.localeCompare(b.title))
+})
+const typeFilteredLocations = computed(() => {
+  if (typeFilter.value.length === 0) return filteredLocations.value
+  return filteredLocations.value.filter(l => !!l.metadata?.type && typeFilter.value.includes(l.metadata.type))
+})
+const isFiltering = computed(() => isInSearchMode.value || typeFilter.value.length > 0)
+
+// --- Card view ---
+const cardParentId = ref<number | null>(null)
+/** Flat matches for the card grid while searching / filtering; null = browse */
+const cardMatches = computed(() => (isFiltering.value ? typeFilteredLocations.value : null))
+
+/** "Browse inside" a search match: drop the search + filter and go into it */
+function browseInside(id: number) {
+  typeFilter.value = []
+  if (inputValue || searchQuery.value) {
+    handleSearchInput('')
+    handleSearchClear()
+    searchFieldKey.value++
+  }
+  cardParentId.value = id
+}
+
+// Highlighted place (global search, after save) in card view: show its level
+watch(highlightedId, (id) => {
+  if (!id || viewMode.value !== 'cards' || isFiltering.value) return
+  const loc = (locations.value || []).find(l => l.id === id)
+  if (loc) cardParentId.value = loc.parent_entity_id ?? null
+})
+
+// Eye button: open the place as a tab in the side panel
+const entityTabs = useEntityTabsStore()
+function openInTab(location: { id: number, name: string }) {
+  entityTabs.open('location', location.id, location.name)
+}
+
+const gameTableStore = useGameTableStore()
+
 // Build tree structure from flat location list.
 // TreeNode extends Location so that all original fields (metadata, archived_at, …)
 // are directly accessible on the node — Vuetify 4's v-treeview slot prop is
@@ -567,13 +680,14 @@ function getParentIds(locationId: number, allLocations: Location[]): number[] {
 }
 
 const treeItems = computed(() => {
-  const searchResults = filteredLocations.value
+  const searchResults = typeFilteredLocations.value
   const allLocations = locations.value || []
 
   if (!searchResults || searchResults.length === 0) return []
 
-  // Use cached search mode instead of reading searchQuery directly
-  const isSearching = isInSearchMode.value
+  // Searching or filtering by type: show matches + their parents.
+  // (Cached search mode instead of reading searchQuery directly.)
+  const isSearching = isFiltering.value
 
   let locationsToShow: Location[] = []
   const searchResultIds = new Set<number>()
@@ -676,9 +790,15 @@ const treeItems = computed(() => {
 // Use a writable ref that tracks both manual and search-based opening
 const openedNodes = ref<number[]>([])
 
+function expandAll() {
+  openedNodes.value = (locations.value || [])
+    .filter(l => (locations.value || []).some(c => c.parent_entity_id === l.id))
+    .map(l => l.id)
+}
+
 // Update opened nodes when search results change
 watch(
-  [isInSearchMode, searchResults],
+  [isFiltering, typeFilteredLocations],
   ([searching, results]) => {
     if (searching && results.length > 0) {
       // When searching, expand all nodes that contain search results
@@ -999,6 +1119,10 @@ function handleLinked() {
 </script>
 
 <style scoped>
+.location-type-filter {
+  max-width: 260px;
+  min-width: 180px;
+}
 .image-download-btn {
   position: absolute;
   bottom: 8px;

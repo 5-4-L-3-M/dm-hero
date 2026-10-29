@@ -1075,7 +1075,19 @@
     },
     "incomingLoreTooltip": "Relación creada por la entrada de lore",
     "image": "Imagen",
-    "parent": "Se encuentra en"
+    "parent": "Se encuentra en",
+    "view": {
+      "list": "Lista",
+      "cards": "Tarjetas",
+      "typeFilter": "Filtrar por tipo",
+      "expandAll": "Expandir todo",
+      "collapseAll": "Contraer todo",
+      "allLocations": "Todos los lugares",
+      "inside": "{count} dentro",
+      "results": "Resultados: {count}",
+      "browseInside": "Ver dentro",
+      "nothingInside": "Aún no hay nada aquí."
+    }
   },
   "items": {
     "title": "Objetos",
@@ -1990,7 +2002,9 @@
       "misunderstands": "Malinterpreta",
       "teaches": "Enseña",
       "studies": "Estudia"
-    }
+    },
+    "carryBonus": "Bonificación de capacidad de carga ({unit})",
+    "carryBonusHint": "Se suma a Fuerza × 15. Puede ser negativa."
   },
   "calendar": {
     "title": "Calendario",
@@ -2943,7 +2957,8 @@
     "addItem": "Añadir un objeto",
     "saveError": "No se pudo guardar el cambio.",
     "partyLoad": "Carga del grupo",
-    "partyLoadHint": "Haz clic en un personaje para abrir su inventario."
+    "partyLoadHint": "Haz clic en un personaje para abrir su inventario.",
+    "capacityWithBonus": "Capacidad de carga: {breakdown} (bonificación incluida)"
   },
   "units": {
     "title": "Unidades",
@@ -3002,6 +3017,18 @@
     "total": "Total"
   },
   "preview": {
-    "openFull": "Vista completa"
+    "openFull": "Vista completa",
+    "connections": "Conexiones",
+    "notFound": "No se pudo cargar esta entrada."
+  },
+  "entityTabs": {
+    "openAsTab": "Abrir como pestaña",
+    "closeTab": "Cerrar pestaña",
+    "closeAll": "Cerrar todas las pestañas",
+    "closeOthers": "Cerrar las demás pestañas",
+    "wider": "Más ancho",
+    "narrower": "Más estrecho",
+    "hide": "Ocultar panel de pestañas",
+    "show": "Mostrar panel de pestañas"
   }
 }

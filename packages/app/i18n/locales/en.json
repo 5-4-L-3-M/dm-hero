@@ -1075,7 +1075,19 @@
     },
     "incomingLoreTooltip": "Relation created by the lore entry",
     "image": "Image",
-    "parent": "Lies in"
+    "parent": "Lies in",
+    "view": {
+      "list": "List",
+      "cards": "Cards",
+      "typeFilter": "Filter by type",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "allLocations": "All locations",
+      "inside": "{count} inside",
+      "results": "Results: {count}",
+      "browseInside": "Browse inside",
+      "nothingInside": "Nothing inside yet."
+    }
   },
   "items": {
     "title": "Items",
@@ -1990,7 +2002,9 @@
       "misunderstands": "Misunderstands",
       "teaches": "Teaches",
       "studies": "Studies"
-    }
+    },
+    "carryBonus": "Carrying capacity bonus ({unit})",
+    "carryBonusHint": "Added to Strength × 15. Can be negative."
   },
   "calendar": {
     "title": "Calendar",
@@ -2943,7 +2957,8 @@
     "addItem": "Add an item",
     "saveError": "Couldn't save that change.",
     "partyLoad": "Party load",
-    "partyLoadHint": "Click a character to open their inventory."
+    "partyLoadHint": "Click a character to open their inventory.",
+    "capacityWithBonus": "Carrying capacity: {breakdown} (bonus included)"
   },
   "units": {
     "title": "Units",
@@ -3002,6 +3017,18 @@
     "total": "Total"
   },
   "preview": {
-    "openFull": "Open full"
+    "openFull": "Open full",
+    "connections": "Connections",
+    "notFound": "This entry couldn't be loaded."
+  },
+  "entityTabs": {
+    "openAsTab": "Open as tab",
+    "closeTab": "Close tab",
+    "closeAll": "Close all tabs",
+    "closeOthers": "Close other tabs",
+    "wider": "Wider panel",
+    "narrower": "Narrower panel",
+    "hide": "Hide tabs panel",
+    "show": "Show tabs panel"
   }
 }

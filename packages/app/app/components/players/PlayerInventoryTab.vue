@@ -40,6 +40,10 @@
         />
         <div v-else class="text-body-small text-medium-emphasis mt-2">
           {{ $t('inventory.basedOnStrength', { str: inventory.strength }) }}
+          <div v-if="capacityBreakdown" class="mt-1">
+            <v-icon size="x-small" class="mr-1">mdi-weight</v-icon>
+            {{ $t('inventory.capacityWithBonus', { breakdown: capacityBreakdown }) }}
+          </div>
         </div>
       </v-card>
 
@@ -217,7 +221,17 @@ const addQuantity = ref(1)
 const weightInputs = ref<Record<number, number | string | null>>({})
 
 const carried = computed(() => totalCarried(inventory.value?.items ?? []))
-const status = computed(() => loadStatus(carried.value, inventory.value?.strength ?? null))
+const status = computed(() => loadStatus(carried.value, inventory.value?.strength ?? null, inventory.value?.thresholds?.bonus ?? 0))
+
+/** "165 + 15 lb" when a carry bonus is set, empty otherwise */
+const capacityBreakdown = computed(() => {
+  const th = inventory.value?.thresholds
+  if (!th || !th.bonus) return ''
+  const base = weightToDisplay(th.capacity - th.bonus) ?? 0
+  const bonus = weightToDisplay(Math.abs(th.bonus)) ?? 0
+  const fmt = (n: number) => Number(n.toFixed(2))
+  return `${fmt(base)} ${th.bonus > 0 ? '+' : '−'} ${fmt(bonus)} ${weightUnit.value}`
+})
 const missingWeights = computed(() => inventory.value?.items.filter(i => i.weight === null).length ?? 0)
 
 const availableItems = computed(() =>

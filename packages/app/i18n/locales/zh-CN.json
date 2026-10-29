@@ -1075,7 +1075,19 @@
     },
     "incomingLoreTooltip": "由传说条目创建的关系",
     "image": "图片",
-    "parent": "位于"
+    "parent": "位于",
+    "view": {
+      "list": "列表",
+      "cards": "卡片",
+      "typeFilter": "按类型筛选",
+      "expandAll": "全部展开",
+      "collapseAll": "全部折叠",
+      "allLocations": "所有地点",
+      "inside": "内含 {count} 处",
+      "results": "结果：{count}",
+      "browseInside": "查看内部",
+      "nothingInside": "这里还没有内容。"
+    }
   },
   "items": {
     "title": "物品",
@@ -1990,7 +2002,9 @@
       "misunderstands": "误解",
       "teaches": "教学",
       "studies": "研究"
-    }
+    },
+    "carryBonus": "负重上限加成（{unit}）",
+    "carryBonusHint": "加到力量 × 15 上，可以为负数。"
   },
   "calendar": {
     "title": "日历",
@@ -2943,7 +2957,8 @@
     "addItem": "添加物品",
     "saveError": "无法保存此更改。",
     "partyLoad": "队伍负重",
-    "partyLoadHint": "点击角色以打开其物品栏。"
+    "partyLoadHint": "点击角色以打开其物品栏。",
+    "capacityWithBonus": "负重上限：{breakdown}（含加成）"
   },
   "units": {
     "title": "单位",
@@ -3002,6 +3017,18 @@
     "total": "总计"
   },
   "preview": {
-    "openFull": "完整视图"
+    "openFull": "完整视图",
+    "connections": "关联",
+    "notFound": "无法加载此条目。"
+  },
+  "entityTabs": {
+    "openAsTab": "在标签页中打开",
+    "closeTab": "关闭标签页",
+    "closeAll": "关闭所有标签页",
+    "closeOthers": "关闭其他标签页",
+    "wider": "加宽",
+    "narrower": "变窄",
+    "hide": "隐藏标签面板",
+    "show": "显示标签面板"
   }
 }
