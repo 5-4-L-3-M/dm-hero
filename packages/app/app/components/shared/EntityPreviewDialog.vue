@@ -27,7 +27,7 @@
         <v-btn variant="text" prepend-icon="mdi-open-in-new" :disabled="!entity" @click="goToPage">
           {{ $t('sessions.goToPage') }}
         </v-btn>
-        <v-btn v-if="fullDialog" variant="tonal" color="primary" prepend-icon="mdi-arrow-expand" @click="fullOpen = true">
+        <v-btn v-if="fullDialog" variant="tonal" color="primary" prepend-icon="mdi-pencil" @click="fullOpen = true">
           {{ $t('preview.openFull') }}
         </v-btn>
         <v-btn variant="text" prepend-icon="mdi-tab-plus" :disabled="!entity" @click="openAsTab(normalizedEntityType, entityId, entity?.name ?? '')">

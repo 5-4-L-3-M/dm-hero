@@ -81,7 +81,7 @@
           <SharedPinButton :entity-id="active.id" variant="icon" size="small" />
         </div>
         <div class="d-flex flex-wrap ga-2 px-4 pb-2 flex-shrink-0">
-          <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-arrow-expand" @click="fullOpen = true">
+          <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-pencil" @click="fullOpen = true">
             {{ $t('preview.openFull') }}
           </v-btn>
           <v-btn size="small" variant="text" prepend-icon="mdi-open-in-new" @click="goToPage">

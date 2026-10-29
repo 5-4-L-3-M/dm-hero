@@ -151,12 +151,9 @@ export default defineEventHandler((event) => {
         FROM entities_fts fts
         INNER JOIN entities e ON fts.rowid = e.id
         LEFT JOIN entity_images ei ON e.id = ei.entity_id AND ei.is_primary = 1
-        LEFT JOIN entity_relations npc_rel ON npc_rel.to_entity_id = e.id
-        LEFT JOIN entities npc ON npc.id = npc_rel.from_entity_id AND npc.deleted_at IS NULL AND npc.type_id = ?
-        LEFT JOIN entity_relations item_rel ON item_rel.to_entity_id = e.id
-        LEFT JOIN entities item ON item.id = item_rel.from_entity_id AND item.deleted_at IS NULL AND item.type_id = ?
-        LEFT JOIN entity_relations lore_rel ON lore_rel.to_entity_id = e.id
-        LEFT JOIN entities lore ON lore.id = lore_rel.from_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?
+        LEFT JOIN (entity_relations npc_rel JOIN entities npc ON npc.id = npc_rel.from_entity_id AND npc.deleted_at IS NULL AND npc.type_id = ?) ON npc_rel.to_entity_id = e.id
+        LEFT JOIN (entity_relations item_rel JOIN entities item ON item.id = item_rel.from_entity_id AND item.deleted_at IS NULL AND item.type_id = ?) ON item_rel.to_entity_id = e.id
+        LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.from_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?) ON lore_rel.to_entity_id = e.id
         WHERE entities_fts MATCH ?
           AND e.type_id = ?
           AND e.campaign_id = ?
@@ -193,12 +190,9 @@ export default defineEventHandler((event) => {
           FROM entities_fts fts
           INNER JOIN entities e ON fts.rowid = e.id
           LEFT JOIN entity_images ei ON e.id = ei.entity_id AND ei.is_primary = 1
-          LEFT JOIN entity_relations npc_rel ON npc_rel.to_entity_id = e.id
-          LEFT JOIN entities npc ON npc.id = npc_rel.from_entity_id AND npc.deleted_at IS NULL AND npc.type_id = ?
-          LEFT JOIN entity_relations item_rel ON item_rel.to_entity_id = e.id
-          LEFT JOIN entities item ON item.id = item_rel.from_entity_id AND item.deleted_at IS NULL AND item.type_id = ?
-          LEFT JOIN entity_relations lore_rel ON lore_rel.to_entity_id = e.id
-          LEFT JOIN entities lore ON lore.id = lore_rel.from_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?
+          LEFT JOIN (entity_relations npc_rel JOIN entities npc ON npc.id = npc_rel.from_entity_id AND npc.deleted_at IS NULL AND npc.type_id = ?) ON npc_rel.to_entity_id = e.id
+          LEFT JOIN (entity_relations item_rel JOIN entities item ON item.id = item_rel.from_entity_id AND item.deleted_at IS NULL AND item.type_id = ?) ON item_rel.to_entity_id = e.id
+          LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.from_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?) ON lore_rel.to_entity_id = e.id
           WHERE entities_fts MATCH ?
             AND e.type_id = ?
             AND e.campaign_id = ?
@@ -238,12 +232,9 @@ export default defineEventHandler((event) => {
           GROUP_CONCAT(DISTINCT lore.name) as linked_lore_names
         FROM entities e
         LEFT JOIN entity_images ei ON e.id = ei.entity_id AND ei.is_primary = 1
-        LEFT JOIN entity_relations npc_rel ON npc_rel.to_entity_id = e.id
-        LEFT JOIN entities npc ON npc.id = npc_rel.from_entity_id AND npc.deleted_at IS NULL AND npc.type_id = ?
-        LEFT JOIN entity_relations item_rel ON item_rel.to_entity_id = e.id
-        LEFT JOIN entities item ON item.id = item_rel.from_entity_id AND item.deleted_at IS NULL AND item.type_id = ?
-        LEFT JOIN entity_relations lore_rel ON lore_rel.to_entity_id = e.id
-        LEFT JOIN entities lore ON lore.id = lore_rel.from_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?
+        LEFT JOIN (entity_relations npc_rel JOIN entities npc ON npc.id = npc_rel.from_entity_id AND npc.deleted_at IS NULL AND npc.type_id = ?) ON npc_rel.to_entity_id = e.id
+        LEFT JOIN (entity_relations item_rel JOIN entities item ON item.id = item_rel.from_entity_id AND item.deleted_at IS NULL AND item.type_id = ?) ON item_rel.to_entity_id = e.id
+        LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.from_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?) ON lore_rel.to_entity_id = e.id
         WHERE e.type_id = ?
           AND e.campaign_id = ?
           AND e.deleted_at IS NULL
@@ -777,12 +768,9 @@ export default defineEventHandler((event) => {
         GROUP_CONCAT(DISTINCT lore.name) as linked_lore_names
       FROM entities e
       LEFT JOIN entity_images ei ON e.id = ei.entity_id AND ei.is_primary = 1
-      LEFT JOIN entity_relations npc_rel ON npc_rel.to_entity_id = e.id
-      LEFT JOIN entities npc ON npc.id = npc_rel.from_entity_id AND npc.deleted_at IS NULL AND npc.type_id = ?
-      LEFT JOIN entity_relations item_rel ON item_rel.to_entity_id = e.id
-      LEFT JOIN entities item ON item.id = item_rel.from_entity_id AND item.deleted_at IS NULL AND item.type_id = ?
-      LEFT JOIN entity_relations lore_rel ON lore_rel.to_entity_id = e.id
-      LEFT JOIN entities lore ON lore.id = lore_rel.from_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?
+      LEFT JOIN (entity_relations npc_rel JOIN entities npc ON npc.id = npc_rel.from_entity_id AND npc.deleted_at IS NULL AND npc.type_id = ?) ON npc_rel.to_entity_id = e.id
+      LEFT JOIN (entity_relations item_rel JOIN entities item ON item.id = item_rel.from_entity_id AND item.deleted_at IS NULL AND item.type_id = ?) ON item_rel.to_entity_id = e.id
+      LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.from_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?) ON lore_rel.to_entity_id = e.id
       WHERE e.type_id = ?
         AND e.campaign_id = ?
         AND e.deleted_at IS NULL
