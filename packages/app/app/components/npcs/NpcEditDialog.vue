@@ -171,6 +171,7 @@
                     chips
                     item-title="title"
                     item-value="value"
+                    @update:model-value="classSearch = ''"
                   >
                     <template #no-data>
                       <SharedCreateFromSearch :search="classSearch" type="classes" @created="onClassCreated" />
@@ -443,6 +444,7 @@
                   chips
                   item-title="title"
                   item-value="value"
+                  @update:model-value="classSearch = ''"
                 >
                   <template #no-data>
                     <SharedCreateFromSearch :search="classSearch" type="classes" @created="onClassCreated" />

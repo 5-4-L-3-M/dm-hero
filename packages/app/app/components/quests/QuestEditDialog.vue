@@ -82,6 +82,7 @@
           variant="outlined"
           density="comfortable"
           class="mb-2"
+          @update:model-value="quickInvolvedSearch = ''"
         >
           <template #item="{ props: itemProps, item }">
             <v-list-item v-bind="itemProps" :prepend-icon="iconFor(item.type)" :subtitle="item.type" />

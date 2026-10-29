@@ -1,5 +1,16 @@
 # @dm-hero/app
 
+## 1.7.4
+
+### Minor Changes
+
+- The side panel shows everything the editor's tabs hold, as foldable sections: images, a player's inventory (with quantities and what's equipped), linked NPCs, players, places, items, factions, lore and quests (each in its own section), NPC notes and documents. Folded sections stay folded.
+- "Open full" opens a roomy read-only page of the entry with the same sections; "Edit" is its own button and is the only one that opens the editor.
+
+### Patch Changes
+
+- Picking someone in a multi-pick list (who's involved in a quest, beat or world event; NPC classes) clears what you typed.
+
 ## 1.7.3
 
 ### Minor Changes

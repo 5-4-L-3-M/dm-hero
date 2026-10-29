@@ -80,6 +80,7 @@
           </v-row>
           <v-autocomplete
             v-model="eventForm.entityIds"
+            v-model:search="involvedSearch"
             :items="store.entities"
             item-title="name"
             item-value="id"
@@ -89,6 +90,7 @@
             closable-chips
             variant="outlined"
             density="comfortable"
+            @update:model-value="involvedSearch = ''"
           />
         </v-card-text>
         <v-card-actions>
@@ -161,6 +163,8 @@ const groups = computed(() => {
 
 // --- event dialog ------------------------------------------------------
 const eventOpen = ref(false)
+// Typed text clears once someone is picked
+const involvedSearch = ref('')
 const eventEditing = ref<CalEvent | null>(null)
 const eventForm = ref({ title: '', description: '', year: 1 as number | null, month: 1, day: 1, entityIds: [] as number[] })
 
