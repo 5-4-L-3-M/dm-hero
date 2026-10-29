@@ -27,6 +27,7 @@ export default defineNuxtConfig({
     '@mdi/font/css/materialdesignicons.css',
     '@/assets/md-editor-theme.css',
     '@/assets/css/animations.css',
+    '@/assets/css/container-grid.css',
     '@/assets/css/dashboard.css',
     '@/assets/css/emily-theme.css',
     '@/assets/css/music-theme.css',

@@ -1,0 +1,42 @@
+/*
+ * Card grids follow the space the page really has, not the window width.
+ * With the entry-tabs side panel open (or a narrow window) the page area is
+ * much smaller than the breakpoints assume, and 3-across cards got squeezed
+ * until names wrapped letter by letter.
+ *
+ * Vuetify 4 sizes a column through --v-col-size (of --v-col-size-columns);
+ * setting those here overrides the breakpoint value when the page is narrow.
+ */
+.content-scrollable > .v-container {
+  container-type: inline-size;
+  container-name: page;
+}
+
+/* Unlayered on purpose: beats Vuetify's layered breakpoint sizes */
+/* Not enough room for 3–4 across → 2 across */
+@container page (max-width: 1040px) {
+  .v-col--cols-lg-4,
+  .v-col--cols-lg-3,
+  .v-col--cols-md-4 {
+    --v-col-size: 6;
+    --v-col-size-columns: 12;
+    --v-col-is-size: initial;
+    --v-col-is-auto: ;
+    --v-col-is-grow: ;
+  }
+}
+
+/* Not enough room for 2 across → 1 across */
+@container page (max-width: 700px) {
+  .v-col--cols-lg-4,
+  .v-col--cols-lg-3,
+  .v-col--cols-md-4,
+  .v-col--cols-md-6,
+  .v-col--cols-sm-6 {
+    --v-col-size: 12;
+    --v-col-size-columns: 12;
+    --v-col-is-size: initial;
+    --v-col-is-auto: ;
+    --v-col-is-grow: ;
+  }
+}

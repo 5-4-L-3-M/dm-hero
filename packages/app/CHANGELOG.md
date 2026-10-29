@@ -8,6 +8,10 @@
 - Type to create: in the pickers for items, NPCs, places, factions and lore (inventories, links, quests, Story Board beats and clusters), typing a name that doesn't exist offers "Create "…" as new …" — one click makes the page and selects it.
 - NPC race and class pickers can be typed into; a race or class that doesn't exist yet is added to Reference Data.
 
+### Patch Changes
+
+- Card grids (NPCs, places, items, factions, lore, players) fit the space the page actually has: with the side panel open or a small window they drop to two or one across instead of squeezing names letter by letter.
+
 ## 1.7.1
 
 ### Minor Changes
