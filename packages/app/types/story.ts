@@ -1,7 +1,7 @@
 // Story Board: storylines → clusters → beats, the sparks shelf, the
 // next-session tray, quests and faction agendas. Shared by server and client.
 
-export const STORY_COLOR_COUNT = 6
+export const STORY_COLOR_COUNT = 12
 export const BEAT_KINDS = ['scene', 'combat', 'social', 'reveal', 'hook', 'travel'] as const
 export const BEAT_STATUSES = ['idea', 'ready', 'played', 'cut'] as const
 export const CLUSTER_HEATS = ['cold', 'warm', 'hot'] as const
@@ -46,7 +46,7 @@ export interface LinkedEntity {
 export interface StoryLine {
   id: number
   name: string
-  color: number // 1..6 → theme color "story-N"
+  color: number // 1..12 → theme color "story-N"
   sort_order: number
 }
 
@@ -135,7 +135,7 @@ export function oneOf<T extends string>(list: readonly T[], value: unknown, fall
   return (list as readonly unknown[]).includes(value) ? value as T : fallback
 }
 
-/** Storyline color index kept in 1..6. */
+/** Storyline color index kept in 1..STORY_COLOR_COUNT. */
 export function clampStoryColor(value: unknown): number {
   const n = Math.round(Number(value))
   return Number.isFinite(n) && n >= 1 && n <= STORY_COLOR_COUNT ? n : 1

@@ -6,6 +6,7 @@
 
 - The side panel shows everything the editor's tabs hold, as foldable sections: images, a player's inventory (with quantities and what's equipped), linked NPCs, players, places, items, factions, lore and quests (each in its own section), NPC notes and documents. Folded sections stay folded.
 - "Open full" opens a roomy read-only page of the entry with the same sections; "Edit" is its own button and is the only one that opens the editor.
+- Twelve storyline colors per theme (was six), all readable on that theme's background.
 - Right-click menu in the desktop app: spelling suggestions for red-underlined words (click one to fix it), "Add to dictionary", and cut / copy / paste / select all.
 
 ### Patch Changes

@@ -74,7 +74,8 @@ describe('story board helpers', () => {
     expect(clampClock(9, 6)).toEqual({ size: 6, filled: 6 })
     expect(clampClock(-1, 5)).toEqual({ size: 6, filled: 0 })
     expect(nextStoryColor([1, 2, 4])).toBe(3)
-    expect(nextStoryColor([1, 2, 3, 4, 5, 6])).toBe(1)
+    expect(nextStoryColor([1, 2, 3, 4, 5, 6])).toBe(7)
+    expect(nextStoryColor([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])).toBe(1)
     expect(readQuestMetadata('{"status":"bogus","objectives":["Find the key",{"text":"","done":true}]}')).toMatchObject({
       status: 'rumor',
       objectives: [{ text: 'Find the key', done: false }],
