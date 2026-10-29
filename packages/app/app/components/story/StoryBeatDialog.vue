@@ -75,6 +75,7 @@
               variant="outlined"
               density="comfortable"
               hide-details
+              @update:model-value="quickEntitiesSearch = ''"
             >
               <template #item="{ props: itemProps, item }">
                 <v-list-item v-bind="itemProps" :prepend-icon="iconFor(item.type)" :subtitle="item.type" />

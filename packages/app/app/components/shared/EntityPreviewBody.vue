@@ -268,16 +268,37 @@
           </div>
         </template>
 
-        <!-- Connections: every linked entry, click to open it as a tab -->
-        <template v-if="connections.length > 0">
-          <v-divider class="my-4" />
-          <div class="d-flex align-center mb-1">
-            <strong>{{ $t('preview.connections') }}</strong>
-            <v-chip size="x-small" class="ml-2">{{ connections.length }}</v-chip>
+        <!-- Images beyond the main one -->
+        <SharedPreviewSection v-if="gallery.length > 1" id="images" :title="$t('preview.sections.images')" icon="mdi-image-multiple" :count="gallery.length">
+          <div class="gallery">
+            <a v-for="img in gallery" :key="img.id" :href="`/uploads/${img.image_url}`" target="_blank" rel="noopener" class="gallery__item">
+              <v-img :src="`/uploads/${img.image_url}`" :alt="img.caption || entity.name" aspect-ratio="1" cover class="rounded" />
+            </a>
           </div>
+        </SharedPreviewSection>
+
+        <!-- Player inventory: what they carry, with quantities -->
+        <SharedPreviewSection v-if="inventory && inventory.items.length" id="inventory" :title="$t('inventory.tab')" icon="mdi-bag-personal" :count="inventory.items.length">
+          <div class="text-body-small text-medium-emphasis mb-1">{{ $t('inventory.carrying') }}: {{ Math.round(inventory.carried * 10) / 10 }} lb</div>
+          <div v-for="it in inventory.items" :key="it.relation_id" class="d-flex align-center py-1 inv-row">
+            <span class="inv-qty text-medium-emphasis">{{ it.quantity }}×</span>
+            <SharedEntityLink :id="it.item_id" type="Item" :name="it.name" class="flex-grow-1" />
+            <v-chip v-if="it.equipped" size="x-small" color="primary" variant="tonal" class="ml-1">{{ $t('inventory.columns.equipped') }}</v-chip>
+          </div>
+        </SharedPreviewSection>
+
+        <!-- Connections grouped like the editor's tabs: NPCs, Items, Locations … -->
+        <SharedPreviewSection
+          v-for="g in connectionGroups"
+          :id="`group-${g.type}`"
+          :key="g.type"
+          :title="g.title"
+          :icon="g.icon"
+          :count="g.items.length"
+        >
           <v-list density="compact" class="py-0 bg-transparent">
             <v-list-item
-              v-for="c in connections"
+              v-for="c in g.items"
               :key="c.relationId"
               :disabled="!toPreviewType(c.entityType)"
               rounded
@@ -297,14 +318,19 @@
               </template>
             </v-list-item>
           </v-list>
-        </template>
+        </SharedPreviewSection>
+
+        <!-- NPC notes (the editor's Notes tab) -->
+        <SharedPreviewSection v-if="npcNotes.length" id="notes" :title="$t('common.notes')" icon="mdi-note-text" :count="npcNotes.length">
+          <div v-for="n in npcNotes" :key="n.id" class="mb-2">
+            <SharedFormattedText :text="n.content" class="text-body-medium" />
+          </div>
+        </SharedPreviewSection>
 
         <!-- Documents (DM secrets, letters, handouts) -->
-        <template v-if="documents.length > 0">
-          <v-divider class="my-4" />
-          <strong>{{ $t('documents.title') }}</strong>
+        <SharedPreviewSection v-if="documents.length > 0" id="documents" :title="$t('documents.title')" icon="mdi-file-document" :count="documents.length">
           <SharedEntityDocumentsView :documents="documents" empty-message="" class="mx-n4" />
-        </template>
+        </SharedPreviewSection>
 
         <!-- Stats -->
         <SharedEntityPreviewStats v-if="entityId && (type === 'npc' || type === 'player')" :entity-id="entityId" />
@@ -326,6 +352,7 @@ import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
 import FactionAgendaList from '~/components/story/FactionAgendaList.vue'
 import { ageText } from '~~/types/age'
+import type { PlayerInventory } from '~~/types/inventory'
 import { QUEST_STATUS_ICONS, readQuestMetadata, type LinkedEntity, type QuestObjective, type QuestStatus } from '~~/types/story'
 import type { EntityPreviewType } from './EntityPreviewDialog.vue'
 
@@ -477,6 +504,52 @@ async function load() {
 
 watch(() => [props.entityId, props.entityType], load, { immediate: true })
 
+// --- the editor's tabs as sections -------------------------------------
+interface GalleryImage { id: number, image_url: string, caption: string | null }
+const gallery = ref<GalleryImage[]>([])
+const inventory = ref<PlayerInventory | null>(null)
+const npcNotes = ref<{ id: number, content: string }[]>([])
+
+async function loadExtras(id: number, t: EntityPreviewType) {
+  const [imgs, inv, notes] = await Promise.all([
+    $fetch<GalleryImage[]>(`/api/entities/${id}/images`).catch(() => []),
+    t === 'player' ? $fetch<PlayerInventory>(`/api/players/${id}/inventory`).catch(() => null) : Promise.resolve(null),
+    t === 'npc' ? $fetch<Array<{ id: number, title: string | null, summary: string | null, notes: string | null }>>(`/api/npcs/${id}/notes`).catch(() => []) : Promise.resolve([]),
+  ])
+  if (props.entityId !== id) return
+  gallery.value = Array.isArray(imgs) ? imgs : []
+  inventory.value = inv
+  npcNotes.value = (Array.isArray(notes) ? notes : [])
+    .map(n => ({ id: n.id, content: [n.title ? `${n.title}:` : null, n.summary, n.notes].filter(Boolean).join('\n') }))
+    .filter(n => n.content.trim())
+}
+watch(() => [props.entityId, props.entityType] as const, ([id, t]) => {
+  gallery.value = []
+  inventory.value = null
+  npcNotes.value = []
+  if (id) loadExtras(id, String(t).toLowerCase() as EntityPreviewType)
+}, { immediate: true })
+
+const GROUPS: Array<{ type: string, title: string, icon: string }> = [
+  { type: 'NPC', title: 'nav.npcs', icon: 'mdi-account-group' },
+  { type: 'Player', title: 'nav.players', icon: 'mdi-account-star' },
+  { type: 'Location', title: 'nav.locations', icon: 'mdi-map-marker' },
+  { type: 'Item', title: 'nav.items', icon: 'mdi-sword' },
+  { type: 'Faction', title: 'nav.factions', icon: 'mdi-shield' },
+  { type: 'Lore', title: 'nav.lore', icon: 'mdi-book-open-variant' },
+  { type: 'Quest', title: 'nav.quests', icon: 'mdi-script-text' },
+]
+const connectionGroups = computed(() => {
+  const known = new Set(GROUPS.map(g => g.type))
+  const groups = GROUPS
+    // A player's items are shown as the inventory above
+    .filter(g => !(g.type === 'Item' && inventory.value && inventory.value.items.length))
+    .map(g => ({ type: g.type, title: t(g.title), icon: g.icon, items: connections.value.filter(c => c.entityType === g.type) }))
+  const other = connections.value.filter(c => !known.has(c.entityType))
+  if (other.length) groups.push({ type: 'other', title: t('preview.connections'), icon: 'mdi-link', items: other })
+  return groups.filter(g => g.items.length)
+})
+
 function openConnection(c: Connection) {
   const t = toPreviewType(c.entityType)
   if (t) emit('open', t, c.entityId, c.entityName)
@@ -498,6 +571,14 @@ defineExpose({ reload: load })
 </script>
 
 <style scoped>
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 6px;
+}
+.inv-qty {
+  min-width: 32px;
+}
 .facts,
 .quest-facts {
   display: grid;

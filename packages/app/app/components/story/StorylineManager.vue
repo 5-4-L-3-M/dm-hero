@@ -9,7 +9,7 @@
             <template #activator="{ props: menu }">
               <button v-bind="menu" class="swatch" :style="{ background: `rgb(var(--v-theme-story-${line.color}))` }" :aria-label="$t('story.storyline.color')" />
             </template>
-            <v-card class="pa-2 d-flex ga-2">
+            <v-card class="pa-2 d-flex flex-wrap ga-2" max-width="200">
               <button
                 v-for="c in STORY_COLOR_COUNT"
                 :key="c"
@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { STORY_COLOR_COUNT } from '~~/types/story'
 
-/** Storylines and their colors (6 per theme). Deleting one keeps its clusters. */
+/** Storylines and their colors (12 per theme). Deleting one keeps its clusters. */
 defineProps<{ modelValue: boolean }>()
 defineEmits<{ 'update:modelValue': [value: boolean] }>()
 

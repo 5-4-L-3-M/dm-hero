@@ -369,17 +369,18 @@ const nocturne: ThemeDefinition = {
  * calmly on that theme's surfaces. Clusters use them as rgb(var(--v-theme-story-N)).
  */
 export const STORY_COLOR_COUNT = 6
-const STORY_PALETTES: Record<string, [string, string, string, string, string, string]> = {
-  dark: ['#D4A574', '#7B92AB', '#A3B18A', '#C97B7B', '#9A8CB8', '#6FA8A0'],
-  hell: ['#8B4513', '#2E5E7E', '#4E6B2F', '#8B2E2E', '#5E4B8B', '#2F6F68'],
-  linux: ['#E95420', '#19B6EE', '#8FBF5A', '#E8A33D', '#B07CC6', '#5EC8B8'],
-  green: ['#4CAF7C', '#64B5F6', '#FFCA28', '#E57373', '#BA9CE0', '#4DD0C4'],
-  blue: ['#4FC3F7', '#FF9100', '#81C784', '#F06292', '#B39DDB', '#FFD54F'],
-  purple: ['#B388FF', '#FFD740', '#80CBC4', '#F48FB1', '#90CAF9', '#C5E1A5'],
-  orange: ['#FF7043', '#7986CB', '#FFCA28', '#81C784', '#BCAAA4', '#4DB6AC'],
-  emily: ['#4DD0E1', '#FF7B69', '#A5D6A7', '#FFD180', '#CE93D8', '#90CAF9'],
-  music: ['#FF8A3D', '#00A6E0', '#E0248F', '#7BD389', '#FFD23F', '#9B8CFF'],
-  nocturne: ['#C8D3F5', '#5EEAD4', '#A78BFA', '#FCA5A5', '#FCD34D', '#7DD3FC'],
+// 12 storyline colors per theme, readable on that theme's background
+const STORY_PALETTES: Record<string, string[]> = {
+  dark: ['#D4A574', '#7B92AB', '#A3B18A', '#C97B7B', '#9A8CB8', '#6FA8A0', '#E3C567', '#D9895B', '#E59AC1', '#7FC8E0', '#B8D46A', '#A08C7A'],
+  hell: ['#8B4513', '#2E5E7E', '#4E6B2F', '#8B2E2E', '#5E4B8B', '#2F6F68', '#9A7B0A', '#B5541C', '#A23B72', '#1D7A99', '#5E7E14', '#6B5B4E'],
+  linux: ['#E95420', '#19B6EE', '#8FBF5A', '#E8A33D', '#B07CC6', '#5EC8B8', '#F5D547', '#FF8A65', '#F48FB1', '#4DD0E1', '#C6E377', '#BCAAA4'],
+  green: ['#4CAF7C', '#64B5F6', '#FFCA28', '#E57373', '#BA9CE0', '#4DD0C4', '#AED581', '#FF8A65', '#F48FB1', '#4FC3F7', '#FFF176', '#A1887F'],
+  blue: ['#4FC3F7', '#FF9100', '#81C784', '#F06292', '#B39DDB', '#FFD54F', '#4DB6AC', '#E57373', '#AED581', '#CE93D8', '#FFAB91', '#90A4AE'],
+  purple: ['#B388FF', '#FFD740', '#80CBC4', '#F48FB1', '#90CAF9', '#C5E1A5', '#FF8A80', '#82B1FF', '#FFAB40', '#A7FFEB', '#EA80FC', '#BCAAA4'],
+  orange: ['#FF7043', '#7986CB', '#FFCA28', '#81C784', '#BCAAA4', '#4DB6AC', '#F06292', '#4FC3F7', '#AED581', '#9575CD', '#FFF176', '#90A4AE'],
+  emily: ['#4DD0E1', '#FF7B69', '#A5D6A7', '#FFD180', '#CE93D8', '#90CAF9', '#FFAB91', '#80CBC4', '#F48FB1', '#E6EE9C', '#B39DDB', '#BCAAA4'],
+  music: ['#FF8A3D', '#00A6E0', '#E0248F', '#7BD389', '#FFD23F', '#9B8CFF', '#FF5C6C', '#3DDC97', '#6FC3FF', '#F7A1D9', '#C3F73A', '#B9A6A0'],
+  nocturne: ['#C8D3F5', '#5EEAD4', '#A78BFA', '#FCA5A5', '#FCD34D', '#7DD3FC', '#F9A8D4', '#86EFAC', '#FDBA74', '#93C5FD', '#D8B4FE', '#94A3B8'],
 }
 for (const [name, theme] of Object.entries({ dark, hell, linux, green, blue, purple, orange, emily, music, nocturne })) {
   const palette = STORY_PALETTES[name]!

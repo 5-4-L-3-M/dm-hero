@@ -357,6 +357,39 @@ function createWindow() {
     shell.openExternal(url)
   })
 
+  // Right-click menu: spelling suggestions for red-underlined words, "Add to
+  // dictionary", and the usual cut / copy / paste. Electron shows no context
+  // menu by default, so without this the underline had no options.
+  mainWindow.webContents.on('context-menu', (_event, params) => {
+    const de = app.getLocale().startsWith('de')
+    const L = de
+      ? { noSuggestions: 'Keine Vorschläge', addToDictionary: 'Zum Wörterbuch hinzufügen', cut: 'Ausschneiden', copy: 'Kopieren', paste: 'Einfügen', selectAll: 'Alles auswählen' }
+      : { noSuggestions: 'No suggestions', addToDictionary: 'Add to dictionary', cut: 'Cut', copy: 'Copy', paste: 'Paste', selectAll: 'Select all' }
+    const items = []
+    if (params.misspelledWord) {
+      for (const suggestion of params.dictionarySuggestions.slice(0, 6)) {
+        items.push({ label: suggestion, click: () => mainWindow.webContents.replaceMisspelling(suggestion) })
+      }
+      if (!params.dictionarySuggestions.length) items.push({ label: L.noSuggestions, enabled: false })
+      items.push({
+        label: L.addToDictionary,
+        click: () => mainWindow.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord),
+      })
+      items.push({ type: 'separator' })
+    }
+    if (params.isEditable) {
+      items.push({ label: L.cut, role: 'cut', enabled: params.editFlags.canCut })
+      items.push({ label: L.copy, role: 'copy', enabled: params.editFlags.canCopy })
+      items.push({ label: L.paste, role: 'paste', enabled: params.editFlags.canPaste })
+      items.push({ type: 'separator' })
+      items.push({ label: L.selectAll, role: 'selectAll' })
+    }
+    else if (params.selectionText) {
+      items.push({ label: L.copy, role: 'copy' })
+    }
+    if (items.length) Menu.buildFromTemplate(items).popup({ window: mainWindow })
+  })
+
   mainWindow.loadURL(serverUrl)
 
   if (isDev) {
