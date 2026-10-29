@@ -51,6 +51,14 @@ describe('navigation layout', () => {
     expect(await call('index.get.ts')).toEqual([...NAV_KEYS])
   })
 
+  it('entries new in this version slot in after the entry they follow', () => {
+    const oldLayout = NAV_KEYS.filter(k => k !== 'story' && k !== 'quests').reverse()
+    const layout = normalizeNavLayout(oldLayout)
+    const at = layout.indexOf('search')
+    expect(layout.slice(at, at + 3)).toEqual(['search', 'story', 'quests'])
+    expect(layout).toHaveLength(NAV_KEYS.length)
+  })
+
   it('rejects a body without a layout', async () => {
     await expect(call('index.put.ts', { layout: 'npcs' })).rejects.toMatchObject({ statusCode: 400 })
   })

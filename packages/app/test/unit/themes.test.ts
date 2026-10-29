@@ -21,3 +21,12 @@ describe('themes', () => {
     }
   })
 })
+
+describe('story board colors', () => {
+  it('every theme has all six story colors', () => {
+    for (const name of THEME_NAMES) {
+      const colors = themes[name].colors as Record<string, string>
+      for (let i = 1; i <= 6; i++) expect(colors[`story-${i}`], `${name}.story-${i}`).toMatch(/^#[0-9A-F]{6}$/i)
+    }
+  })
+})

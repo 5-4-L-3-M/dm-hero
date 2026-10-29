@@ -34,7 +34,7 @@ export default defineEventHandler(() => {
     // What else the MCP can do once entities exist (see the tool descriptions):
     // images (set_entity_image / set_session_cover), documents (add_document),
     // sessions (list/create/update_session), archive_entities, delete_entities.
-    alsoAvailable: ['images', 'documents', 'sessions', 'groups', 'maps', 'encounters', 'archive', 'delete', 'what_can_i_do'],
+    alsoAvailable: ['images', 'documents', 'sessions', 'groups', 'maps', 'encounters', 'storyBoard', 'quests', 'factionAgendas', 'worldEvents', 'archive', 'delete', 'what_can_i_do'],
 
     // Descriptions may cross-link entities of this payload before ids exist:
     // "{{ref:npc:1}}" (payload ref) or "{{ref:existing:12}}" → resolved to
@@ -75,6 +75,13 @@ export default defineEventHandler(() => {
       },
       Location: {
         // Locations carry free-form metadata; no constrained keys.
+      },
+      // Quests aren't bulk-imported: use create_quest / update_quest (they keep these keys in metadata).
+      Quest: {
+        status: { type: 'string', oneOf: ['rumor', 'active', 'completed', 'failed'] },
+        giver_id: { type: 'number', note: 'entity id of the quest giver' },
+        reward: { type: 'string' },
+        objectives: { type: 'array', note: '[{ text: "Find the key", done: false }]' },
       },
       // Players can't be imported, but update_entities edits them by id.
       Player: {

@@ -12,6 +12,7 @@ export const ENTITY_PREVIEW_CONFIG: Record<
   faction: { icon: 'mdi-flag', color: 'purple', endpoint: '/api/factions', route: '/factions' },
   lore: { icon: 'mdi-book-open-variant', color: 'orange', endpoint: '/api/lore', route: '/lore' },
   player: { icon: 'mdi-account-star', color: 'pink', endpoint: '/api/players', route: '/players' },
+  quest: { icon: 'mdi-script-text', color: 'brown', endpoint: '/api/quests', route: '/quests' },
 }
 
 /** "Open full": each type's full dialog (every tab, editing) and its id prop. */
@@ -22,6 +23,7 @@ export const ENTITY_FULL_DIALOGS: Record<EntityPreviewType, { component: ReturnT
   faction: { component: defineAsyncComponent(() => import('~/components/factions/FactionEditDialog.vue')), idProp: 'factionId' },
   lore: { component: defineAsyncComponent(() => import('~/components/lore/LoreEditDialog.vue')), idProp: 'loreId' },
   player: { component: defineAsyncComponent(() => import('~/components/players/PlayerEditDialog.vue')), idProp: 'playerId' },
+  quest: { component: defineAsyncComponent(() => import('~/components/quests/QuestEditDialog.vue')), idProp: 'questId' },
 }
 
 /** Page link that shows + highlights the entity ("Go to page"). */

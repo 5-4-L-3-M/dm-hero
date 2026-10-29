@@ -35,9 +35,10 @@ import type {
   ExportRace,
   ExportClass,
   ExportStatTemplate,
-  ExportEntityStats,
+  ExportEntityStats, ExportStoryBoard,
 } from '~~/types/export'
 import { EXPORT_FORMAT_VERSION } from '~~/types/export'
+import { exportStoryBoard } from '~~/server/utils/storyBoardTransfer'
 
 // Get app version from package.json
 import pkg from '~~/package.json'
@@ -419,6 +420,7 @@ export default defineEventHandler(async (event) => {
   let exportCurrencies: ExportCurrency[] = []
   let exportNotes: ExportNote[] = []
   let exportPinboard: ExportPinboardItem[] = []
+  let exportStory: ExportStoryBoard | undefined
 
   const sessionExportIdMap = new Map<number, string>()
   const eventExportIdMap = new Map<number, string>()
@@ -1028,6 +1030,8 @@ export default defineEventHandler(async (event) => {
         entity: entityExportIdMap.get(p.entity_id)!,
         display_order: p.display_order,
       }))
+    // Story Board (storylines, clusters, beats, agendas, quest links)
+    exportStory = exportStoryBoard(db, campaignId, entityExportIdMap, sessionExportIdMap)
   }
 
   // ==========================================================================
@@ -1165,6 +1169,7 @@ export default defineEventHandler(async (event) => {
     currencies: exportCurrencies.length > 0 ? exportCurrencies : undefined,
     notes: exportNotes.length > 0 ? exportNotes : undefined,
     pinboard: exportPinboard.length > 0 ? exportPinboard : undefined,
+    storyBoard: exportStory,
     races: exportRaces.length > 0 ? exportRaces : undefined,
     classes: exportClasses.length > 0 ? exportClasses : undefined,
     statTemplates: exportStatTemplates.length > 0 ? exportStatTemplates : undefined,

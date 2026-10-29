@@ -5,6 +5,7 @@ import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
 import { pipeline } from 'stream/promises'
 import { getDb } from '~~/server/utils/db'
+import { importStoryBoard } from '~~/server/utils/storyBoardTransfer'
 import { getUploadPath } from '~~/server/utils/paths'
 import { hasImportableCalendar } from '~~/server/utils/calendarImport'
 import { STANDARD_RACE_KEYS, STANDARD_CLASS_KEYS } from '~~/server/utils/i18n-lookup'
@@ -1549,6 +1550,14 @@ export default defineEventHandler(async (event) => {
           note.updated_at || new Date().toISOString(),
         )
       }
+    }
+
+    // ==========================================================================
+    // IMPORT STORY BOARD
+    // ==========================================================================
+
+    if (manifest.storyBoard) {
+      importStoryBoard(db, campaignId, manifest.storyBoard, idMapping.entities, idMapping.sessions)
     }
 
     // ==========================================================================

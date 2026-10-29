@@ -186,6 +186,7 @@ export interface CampaignExportManifest {
   currencies?: ExportCurrency[]
   notes?: ExportNote[]
   pinboard?: ExportPinboardItem[]
+  storyBoard?: ExportStoryBoard
 
   // Custom races & classes - exported if NPCs use them
   // These are GLOBAL (not campaign-scoped), so import may cause conflicts
@@ -543,6 +544,41 @@ export interface ExportNote {
 export interface ExportPinboardItem {
   entity: string // "entity:1"
   display_order: number
+}
+
+// Story Board — storylines, clusters, beats (sparks + tray), faction agendas.
+// Entity links use export ids ("entity:1"), sessions "session:1"; storylines
+// and clusters are referenced by their position-free local ref ("line:1").
+export interface ExportStoryBoard {
+  settings?: { color_by: string, party_location?: string | null }
+  storylines: Array<{ ref: string, name: string, color: number, sort_order: number }>
+  clusters: Array<{
+    ref: string
+    storyline?: string | null
+    title: string
+    notes: string | null
+    heat: string
+    status: string
+    location?: string | null
+    quest?: string | null
+    collapsed: boolean
+    sort_order: number
+  }>
+  beats: Array<{
+    cluster?: string | null
+    title: string
+    body: string | null
+    kind: string
+    status: string
+    location?: string | null
+    sort_order: number
+    tray_order: number | null
+    played_session?: string | null
+    entities: string[]
+  }>
+  agendas: Array<{ faction: string, goal: string, next_step: string | null, clock_size: number, clock_filled: number, status: string, sort_order: number }>
+  // Quest metadata holds database ids (giver, storyline) — remapped on import
+  quests: Array<{ quest: string, giver?: string | null, storyline?: string | null }>
 }
 
 // =============================================================================

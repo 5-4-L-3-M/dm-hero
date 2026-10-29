@@ -164,6 +164,7 @@ const eventTypeOptions = computed(() => [
   { title: t('calendar.eventTypes.festival'), value: 'festival' },
   { title: t('calendar.eventTypes.war'), value: 'war' },
   { title: t('calendar.eventTypes.founding'), value: 'founding' },
+  { title: t('calendar.eventTypes.world'), value: 'world' },
 ])
 
 // Group entities by type for better UX

@@ -164,7 +164,7 @@ const updateSchema = z.object({
   tags: z.array(z.string()).optional().describe('REPLACES the entity\'s whole tag set (lowercase a-z + hyphens).'),
 })
 
-const server = new McpServer({ name: 'dm-hero', version: '1.2.0' })
+const server = new McpServer({ name: 'dm-hero', version: '1.3.0' })
 
 server.registerTool('what_can_i_do', {
   description: 'Call this when the user asks what you can do with DM Hero, or at the start of a bigger job (e.g. "import this one-shot PDF"). Returns a plain-language overview of every capability, how to ask for it, and the rules you follow (preview → confirm). Repeat it to the user in THEIR language.',
@@ -180,6 +180,9 @@ server.registerTool('what_can_i_do', {
     { area: 'Groups', canDo: 'list groups, create groups (the party, a cult, the villains of a chapter) and add members', askLike: '"Group the three cultists as \'Cult of the Eye\'"' },
     { area: 'Maps', canDo: 'create maps from an image, place NPCs/items as markers and locations as areas (circles) on them', askLike: '"Add the region map from page 3 and place Eichwald and the ruins on it"' },
     { area: 'Encounters', canDo: 'prepare combat encounters with participants (NPCs as monsters) and HP, optionally attached to a session', askLike: '"Prepare the ambush encounter with 4 goblins and the boss"' },
+    { area: 'Story Board', canDo: 'read the board, add beats to a cluster or loose ideas to the sparks shelf, move beats, plan them for the next session, log them as played, create clusters/storylines', askLike: '"Add these three rumors as sparks" / "Mark the ambush as played in session 5" / "What is planned for next session?"' },
+    { area: 'Quests', canDo: 'list, create and update quests (status, giver, place, reward, objectives)', askLike: '"Add the missing-ship quest, given by the harbormaster" / "Tick off the first objective"' },
+    { area: 'World', canDo: 'faction agendas with progress clocks, dated world events on the in-game calendar', askLike: '"Advance the Tide Court\'s clock by 2" / "On the 3rd of Frostmoon the bridge collapses"' },
     { area: 'Reading', canDo: 'look up what already exists: search entities, read one entity in full (relations, documents, tags), list sessions/groups/maps/encounters', askLike: '"What do we know about the mayor?" / "Which sessions exist?"' },
   ],
   rules: [
@@ -681,6 +684,239 @@ server.registerTool('create_encounter', {
     added = p.body
   }
   return asText({ encounter: r.body, participants: added })
+})
+
+// ---------------------------------------------------------------------------
+// Story Board: clusters of beats, the sparks shelf, the next-session tray
+// ---------------------------------------------------------------------------
+
+interface BoardBeat { id: number, cluster_id: number | null, title: string, body: string | null, kind: string, status: string, location_name: string | null, tray_order: number | null, played_session_id: number | null, entities: Array<{ id: number, name: string, type: string }> }
+interface Board {
+  settings: { color_by: string, party_location_id: number | null }
+  storylines: Array<{ id: number, name: string, color: number }>
+  clusters: Array<{ id: number, storyline_id: number | null, title: string, notes: string | null, heat: string, status: string, location_name: string | null, quest_name: string | null }>
+  beats: BoardBeat[]
+}
+
+const beatKinds = z.enum(['scene', 'combat', 'social', 'reveal', 'hook', 'travel'])
+const beatStatuses = z.enum(['idea', 'ready', 'played', 'cut'])
+
+function compactBeat(b: BoardBeat) {
+  return {
+    id: b.id,
+    title: b.title,
+    kind: b.kind,
+    status: b.status,
+    ...(b.body ? { body: b.body } : {}),
+    ...(b.location_name ? { where: b.location_name } : {}),
+    ...(b.entities.length ? { involves: b.entities.map(e => `${e.name} (${e.type} #${e.id})`) } : {}),
+    ...(b.tray_order !== null ? { nextSession: true } : {}),
+  }
+}
+
+server.registerTool('get_story_board', {
+  description: 'Read the Story Board of a campaign: storylines, clusters (story threads, each with its beats), the sparks shelf (loose ideas without a cluster), the next-session tray, and where the party is. Use it before adding sparks/beats so you link to the right cluster and don\'t duplicate ideas.',
+  inputSchema: { campaignId: z.number().int().positive() },
+}, async ({ campaignId }) => {
+  const r = await callApi(`/api/story/board?campaignId=${campaignId}`)
+  if (!r.ok) return asText(r.body)
+  const b = r.body as Board
+  const line = (id: number | null) => b.storylines.find(s => s.id === id)?.name ?? null
+  return asText({
+    partyLocationId: b.settings.party_location_id,
+    storylines: b.storylines.map(s => ({ id: s.id, name: s.name })),
+    clusters: b.clusters.map(c => ({
+      id: c.id,
+      title: c.title,
+      storyline: line(c.storyline_id),
+      heat: c.heat,
+      status: c.status,
+      ...(c.location_name ? { where: c.location_name } : {}),
+      ...(c.quest_name ? { quest: c.quest_name } : {}),
+      ...(c.notes ? { notes: c.notes } : {}),
+      beats: b.beats.filter(x => x.cluster_id === c.id).map(compactBeat),
+    })),
+    sparks: b.beats.filter(x => x.cluster_id === null).map(compactBeat),
+    nextSession: b.beats.filter(x => x.tray_order !== null).sort((x, y) => x.tray_order! - y.tray_order!).map(x => ({ id: x.id, title: x.title })),
+  })
+})
+
+server.registerTool('add_story_beat', {
+  description: 'Add a beat (scene, combat, reveal, hook …) to the Story Board. Without clusterId it lands on the sparks shelf as a loose idea the DM can drag into a cluster later — use that for ideas, rumors, "what if" moments. entityIds link NPCs/items/places/quests (find ids with search_entities). Show the user what you will add and wait for OK.',
+  inputSchema: {
+    campaignId: z.number().int().positive(),
+    title: z.string().min(1).describe('Short: what happens'),
+    body: z.string().optional().describe('Details. Plain text; "## Heading", "- bullet", "**bold**", "Label: text" render formatted.'),
+    kind: beatKinds.optional(),
+    status: beatStatuses.optional(),
+    clusterId: z.number().int().positive().optional().describe('Cluster to put it in (from get_story_board). Omit for the sparks shelf.'),
+    locationId: z.number().int().positive().optional().describe('Where it happens (a Location id).'),
+    entityIds: z.array(z.number().int().positive()).optional(),
+    nextSession: z.boolean().optional().describe('Also put it in the next-session tray.'),
+  },
+}, async ({ campaignId, title, body, kind, status, clusterId, locationId, entityIds, nextSession }) => {
+  const r = await callApi('/api/story/beats', {
+    method: 'POST',
+    body: JSON.stringify({ campaignId, title, body, kind, status, cluster_id: clusterId, location_id: locationId, entity_ids: entityIds, in_tray: nextSession }),
+  })
+  return asText(r.ok ? compactBeat(r.body as BoardBeat) : r.body)
+})
+
+server.registerTool('update_story_beat', {
+  description: 'Change a beat: edit text, move it to another cluster (clusterId null = back to the sparks shelf), add/remove it from the next-session tray, or log it as played in a session (playedSessionId → status "played", leaves the tray). entityIds REPLACES the linked entries. Get ids from get_story_board / list_sessions.',
+  inputSchema: {
+    beatId: z.number().int().positive(),
+    title: z.string().optional(),
+    body: z.string().optional(),
+    kind: beatKinds.optional(),
+    status: beatStatuses.optional(),
+    clusterId: z.number().int().positive().nullable().optional(),
+    locationId: z.number().int().positive().nullable().optional(),
+    entityIds: z.array(z.number().int().positive()).optional(),
+    nextSession: z.boolean().optional(),
+    playedSessionId: z.number().int().positive().optional(),
+  },
+}, async ({ beatId, clusterId, locationId, entityIds, nextSession, playedSessionId, ...rest }) => {
+  const changes: Record<string, unknown> = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined))
+  if (clusterId !== undefined) changes.cluster_id = clusterId
+  if (locationId !== undefined) changes.location_id = locationId
+  if (entityIds !== undefined) changes.entity_ids = entityIds
+  if (nextSession !== undefined) changes.in_tray = nextSession
+  if (playedSessionId !== undefined) changes.played_session_id = playedSessionId
+  const r = await callApi(`/api/story/beats/${beatId}`, { method: 'PATCH', body: JSON.stringify(changes) })
+  return asText(r.ok ? compactBeat(r.body as BoardBeat) : r.body)
+})
+
+server.registerTool('create_story_cluster', {
+  description: 'Create a cluster on the Story Board: one thread of the story (a plot, a place, a mystery) that beats get grouped into. storyline is a name — an existing storyline is reused, a new one is created (it gets its own color).',
+  inputSchema: {
+    campaignId: z.number().int().positive(),
+    title: z.string().min(1),
+    storyline: z.string().optional(),
+    heat: z.enum(['cold', 'warm', 'hot']).optional().describe('How pressing it is right now'),
+    status: z.enum(['active', 'dormant', 'resolved']).optional(),
+    notes: z.string().optional(),
+    locationId: z.number().int().positive().optional(),
+    questId: z.number().int().positive().optional(),
+  },
+}, async ({ campaignId, title, storyline, heat, status, notes, locationId, questId }) => {
+  let storylineId: number | undefined
+  if (storyline) {
+    const b = await callApi(`/api/story/board?campaignId=${campaignId}`)
+    if (!b.ok) return asText(b.body)
+    const existing = (b.body as Board).storylines.find(s => s.name.toLowerCase() === storyline.toLowerCase())
+    if (existing) storylineId = existing.id
+    else {
+      const c = await callApi('/api/story/storylines', { method: 'POST', body: JSON.stringify({ campaignId, name: storyline }) })
+      if (!c.ok) return asText(c.body)
+      storylineId = (c.body as { id: number }).id
+    }
+  }
+  const r = await callApi('/api/story/clusters', {
+    method: 'POST',
+    body: JSON.stringify({ campaignId, title, storyline_id: storylineId, heat, status, notes, location_id: locationId, quest_id: questId }),
+  })
+  return asText(r.body)
+})
+
+// ---------------------------------------------------------------------------
+// Quests
+// ---------------------------------------------------------------------------
+
+const questStatuses = z.enum(['rumor', 'active', 'completed', 'failed'])
+const objectiveSchema = z.object({ text: z.string(), done: z.boolean().optional() })
+
+server.registerTool('list_quests', {
+  description: 'List the quests of a campaign with status (rumor/active/completed/failed), giver, place, reward and objectives.',
+  inputSchema: { campaignId: z.number().int().positive() },
+}, async ({ campaignId }) => {
+  const r = await callApi(`/api/quests?campaignId=${campaignId}`)
+  return asText(r.body)
+})
+
+server.registerTool('create_quest', {
+  description: 'Create a quest on the quest board. giverId = the NPC (or faction/player) who gives it, locationId = where it happens (find ids with search_entities). Show the user what you will add and wait for OK.',
+  inputSchema: {
+    campaignId: z.number().int().positive(),
+    name: z.string().min(1),
+    description: z.string().optional(),
+    status: questStatuses.optional(),
+    giverId: z.number().int().positive().optional(),
+    locationId: z.number().int().positive().optional(),
+    reward: z.string().optional(),
+    objectives: z.array(objectiveSchema).optional(),
+  },
+}, async ({ campaignId, giverId, locationId, ...rest }) => {
+  const r = await callApi('/api/quests', { method: 'POST', body: JSON.stringify({ campaignId, ...rest, giver_id: giverId, location_id: locationId }) })
+  return asText(r.body)
+})
+
+server.registerTool('update_quest', {
+  description: 'Edit a quest: move it along (status), tick objectives off, change giver/place/reward. objectives REPLACES the list — read it with list_quests first and send the full updated list.',
+  inputSchema: {
+    questId: z.number().int().positive(),
+    name: z.string().optional(),
+    description: z.string().optional(),
+    status: questStatuses.optional(),
+    giverId: z.number().int().positive().nullable().optional(),
+    locationId: z.number().int().positive().nullable().optional(),
+    reward: z.string().optional(),
+    objectives: z.array(objectiveSchema).optional(),
+  },
+}, async ({ questId, giverId, locationId, ...rest }) => {
+  const changes: Record<string, unknown> = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined))
+  if (giverId !== undefined) changes.giver_id = giverId
+  if (locationId !== undefined) changes.location_id = locationId
+  const r = await callApi(`/api/quests/${questId}`, { method: 'PATCH', body: JSON.stringify(changes) })
+  return asText(r.body)
+})
+
+// ---------------------------------------------------------------------------
+// The wider world: faction agendas (clocks) and dated world events
+// ---------------------------------------------------------------------------
+
+server.registerTool('list_faction_agendas', {
+  description: 'List what each faction is working towards: goal, next step and a progress clock (filled / size).',
+  inputSchema: { campaignId: z.number().int().positive(), factionId: z.number().int().positive().optional() },
+}, async ({ campaignId, factionId }) => {
+  const r = await callApi(`/api/story/agendas?campaignId=${campaignId}${factionId ? `&factionId=${factionId}` : ''}`)
+  return asText(r.body)
+})
+
+server.registerTool('save_faction_agenda', {
+  description: 'Create a faction agenda (pass factionId + goal) or change one (pass agendaId): advance its clock (clockFilled), set the next step, or mark it achieved/foiled. Clock sizes: 4, 6, 8, 10 or 12.',
+  inputSchema: {
+    campaignId: z.number().int().positive(),
+    agendaId: z.number().int().positive().optional(),
+    factionId: z.number().int().positive().optional(),
+    goal: z.string().optional(),
+    nextStep: z.string().optional(),
+    clockSize: z.number().int().optional(),
+    clockFilled: z.number().int().nonnegative().optional(),
+    status: z.enum(['active', 'achieved', 'foiled']).optional(),
+  },
+}, async ({ campaignId, agendaId, factionId, goal, nextStep, clockSize, clockFilled, status }) => {
+  const body = Object.fromEntries(Object.entries({ goal, next_step: nextStep, clock_size: clockSize, clock_filled: clockFilled, status }).filter(([, v]) => v !== undefined))
+  const r = agendaId
+    ? await callApi(`/api/story/agendas/${agendaId}`, { method: 'PATCH', body: JSON.stringify(body) })
+    : await callApi('/api/story/agendas', { method: 'POST', body: JSON.stringify({ campaignId, faction_id: factionId, ...body }) })
+  return asText(r.body)
+})
+
+server.registerTool('add_world_event', {
+  description: 'Put a dated world event on the in-game calendar (shows on the Story Board\'s World tab and in the calendar): something that happens in the world whether or not the party is there. month is the month number (1 = first month of the campaign calendar). entityIds link who/what is involved.',
+  inputSchema: {
+    campaignId: z.number().int().positive(),
+    title: z.string().min(1),
+    description: z.string().optional(),
+    year: z.number().int().optional(),
+    month: z.number().int().positive(),
+    day: z.number().int().positive(),
+    entityIds: z.array(z.number().int().positive()).optional(),
+  },
+}, async ({ campaignId, ...event }) => {
+  const r = await callApi('/api/calendar/events', { method: 'POST', body: JSON.stringify({ campaignId, ...event, eventType: 'world' }) })
+  return asText(r.body)
 })
 
 const transport = new StdioServerTransport()
