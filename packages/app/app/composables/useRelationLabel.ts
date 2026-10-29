@@ -22,6 +22,7 @@ export function useRelationLabel() {
       `lore.relationTypes.${relationType}`,
       `players.relationTypes.${relationType}`,
       `chaos.relationTypes.${relationType}`,
+      `quests.relationTypes.${relationType}`,
     ]
     for (const key of keys) {
       if (te(key)) return capitalize(t(key))

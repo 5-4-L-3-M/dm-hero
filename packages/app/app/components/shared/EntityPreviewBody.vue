@@ -140,31 +140,54 @@
           </template>
         </template>
 
-        <!-- Quest Details -->
+        <!-- Quest Details: everything at a glance, objectives tickable -->
         <template v-if="type === 'quest'">
           <div class="d-flex flex-wrap ga-1 mb-3">
             <v-chip size="small" :color="QUEST_COLORS[quest.status]" variant="flat">
               <v-icon start size="small">{{ QUEST_STATUS_ICONS[quest.status] }}</v-icon>{{ $t(`quests.statuses.${quest.status}`) }}
             </v-chip>
+            <v-chip v-if="questStoryline" size="small" :color="`story-${questStoryline.color}`" variant="flat">{{ questStoryline.name }}</v-chip>
           </div>
-          <div class="text-body-medium mb-3">
-            <div v-if="entity.giver_name" class="mb-1">
-              <strong>{{ $t('quests.giver') }}:</strong>
+
+          <div class="quest-facts text-body-medium mb-3">
+            <template v-if="entity.giver_name">
+              <v-icon size="small" class="text-medium-emphasis">mdi-account-voice</v-icon>
+              <span class="text-medium-emphasis">{{ $t('quests.giver') }}</span>
               <SharedEntityLink :id="Number(entity.giver_id)" :type="giverType" :name="String(entity.giver_name)" />
-            </div>
-            <div v-if="entity.location_name" class="mb-1">
-              <strong>{{ $t('quests.location') }}:</strong>
+            </template>
+            <template v-if="entity.location_name">
+              <v-icon size="small" class="text-medium-emphasis">mdi-map-marker</v-icon>
+              <span class="text-medium-emphasis">{{ $t('quests.location') }}</span>
               <SharedEntityLink :id="Number(entity.location_id)" type="Location" :name="String(entity.location_name)" />
-            </div>
-            <div v-if="entity.reward" class="mb-1">
-              <strong>{{ $t('quests.reward') }}:</strong> {{ entity.reward }}
+            </template>
+            <template v-if="entity.reward">
+              <v-icon size="small" class="text-medium-emphasis">mdi-treasure-chest</v-icon>
+              <span class="text-medium-emphasis">{{ $t('quests.reward') }}</span>
+              <span>{{ entity.reward }}</span>
+            </template>
+          </div>
+
+          <div v-if="questInvolved.length" class="mb-3">
+            <div class="text-body-small text-medium-emphasis mb-1">{{ $t('quests.involved') }}</div>
+            <div class="d-flex flex-wrap ga-1">
+              <v-chip v-for="e in questInvolved" :key="e.id" size="small" variant="tonal">
+                <v-icon start size="small">{{ toPreviewType(e.type) ? ENTITY_PREVIEW_CONFIG[toPreviewType(e.type)!].icon : 'mdi-link' }}</v-icon>
+                <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
+              </v-chip>
             </div>
           </div>
+
           <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
+
           <template v-if="quest.objectives.length">
-            <strong>{{ $t('quests.objectives') }}</strong>
+            <div class="d-flex align-center mb-1">
+              <strong>{{ $t('quests.objectives') }}</strong>
+              <v-spacer />
+              <span class="text-body-small text-medium-emphasis">{{ $t('quests.objectivesDone', { done: questDone, total: quest.objectives.length }) }}</span>
+            </div>
+            <v-progress-linear :model-value="(questDone / quest.objectives.length) * 100" :color="QUEST_COLORS[quest.status]" height="6" rounded class="mb-2" />
             <div v-for="(o, i) in quest.objectives" :key="i" class="d-flex align-center">
-              <v-checkbox-btn :model-value="o.done" density="compact" @update:model-value="toggleObjective(i, !!$event)" />
+              <v-checkbox-btn :model-value="o.done" density="compact" class="flex-grow-0" @update:model-value="toggleObjective(i, !!$event)" />
               <span :class="{ 'text-decoration-line-through text-medium-emphasis': o.done }">{{ o.text }}</span>
             </div>
           </template>
@@ -282,7 +305,7 @@ import { isShopLocationType } from '~~/types/shop'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
 import FactionAgendaList from '~/components/story/FactionAgendaList.vue'
-import { QUEST_STATUS_ICONS, readQuestMetadata, type QuestObjective, type QuestStatus } from '~~/types/story'
+import { QUEST_STATUS_ICONS, readQuestMetadata, type LinkedEntity, type QuestObjective, type QuestStatus } from '~~/types/story'
 import type { EntityPreviewType } from './EntityPreviewDialog.vue'
 
 /**
@@ -349,6 +372,17 @@ const campaignId = computed(() => useCampaignStore().activeCampaignIdNumber)
 // Quests: status + objectives (tick them off right here)
 const QUEST_COLORS: Record<QuestStatus, string> = { rumor: 'warning', active: 'primary', completed: 'success', failed: 'error' }
 const quest = computed(() => readQuestMetadata(entity.value ?? {}))
+const questDone = computed(() => quest.value.objectives.filter(o => o.done).length)
+const questInvolved = computed(() => (Array.isArray(entity.value?.involved) ? entity.value.involved as LinkedEntity[] : []))
+const storyStore = useStoryBoardStore()
+const questStoryline = computed(() => storyStore.storylines.find(l => l.id === quest.value.storyline_id) ?? null)
+watch(() => type.value === 'quest' && campaignId.value, (id) => {
+  if (id) storyStore.load(id)
+}, { immediate: true })
+// A quest saved anywhere else (quest board, full dialog) → show the new version
+watch(() => storyStore.questVersion, () => {
+  if (type.value === 'quest') load()
+})
 const giverType = computed(() => String(entity.value?.giver_type ?? 'NPC'))
 async function toggleObjective(index: number, done: boolean) {
   if (!entity.value) return
@@ -410,3 +444,12 @@ function getRarityColor(rarity: unknown): string {
 
 defineExpose({ reload: load })
 </script>
+
+<style scoped>
+.quest-facts {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 6px 8px;
+  align-items: center;
+}
+</style>

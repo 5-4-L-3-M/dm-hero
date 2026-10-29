@@ -3235,6 +3235,10 @@
       "active": "Active",
       "completed": "Completed",
       "failed": "Failed"
+    },
+    "involved": "Who and what is involved",
+    "relationTypes": {
+      "involved": "Involved"
     }
   }
 }

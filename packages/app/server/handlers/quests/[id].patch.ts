@@ -1,5 +1,5 @@
 import { getDb } from '../../utils/db'
-import { loadQuest } from '../../utils/storyBoard'
+import { loadQuest, setQuestInvolved } from '../../utils/storyBoard'
 import { questMetadataFromBody } from '../../utils/questInput'
 
 /** PATCH /api/quests/:id — only the fields sent change. */
@@ -20,5 +20,6 @@ export default defineEventHandler(async (event) => {
     JSON.stringify(metadata),
     id,
   )
+  if (has('involved_ids')) setQuestInvolved(db, campaignId, id, body.involved_ids)
   return loadQuest(db, id)
 })

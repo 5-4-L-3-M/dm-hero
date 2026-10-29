@@ -3235,6 +3235,10 @@
       "active": "Aktiv",
       "completed": "Erledigt",
       "failed": "Gescheitert"
+    },
+    "involved": "Wer und was beteiligt ist",
+    "relationTypes": {
+      "involved": "Beteiligt"
     }
   }
 }

@@ -845,9 +845,10 @@ server.registerTool('create_quest', {
     locationId: z.number().int().positive().optional(),
     reward: z.string().optional(),
     objectives: z.array(objectiveSchema).optional(),
+    involvedIds: z.array(z.number().int().positive()).optional().describe('Other NPCs, places, items, factions… involved in the quest (shown as connections).'),
   },
-}, async ({ campaignId, giverId, locationId, ...rest }) => {
-  const r = await callApi('/api/quests', { method: 'POST', body: JSON.stringify({ campaignId, ...rest, giver_id: giverId, location_id: locationId }) })
+}, async ({ campaignId, giverId, locationId, involvedIds, ...rest }) => {
+  const r = await callApi('/api/quests', { method: 'POST', body: JSON.stringify({ campaignId, ...rest, giver_id: giverId, location_id: locationId, involved_ids: involvedIds }) })
   return asText(r.body)
 })
 
@@ -862,9 +863,11 @@ server.registerTool('update_quest', {
     locationId: z.number().int().positive().nullable().optional(),
     reward: z.string().optional(),
     objectives: z.array(objectiveSchema).optional(),
+    involvedIds: z.array(z.number().int().positive()).optional().describe('REPLACES the entries involved in the quest.'),
   },
-}, async ({ questId, giverId, locationId, ...rest }) => {
+}, async ({ questId, giverId, locationId, involvedIds, ...rest }) => {
   const changes: Record<string, unknown> = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined))
+  if (involvedIds !== undefined) changes.involved_ids = involvedIds
   if (giverId !== undefined) changes.giver_id = giverId
   if (locationId !== undefined) changes.location_id = locationId
   const r = await callApi(`/api/quests/${questId}`, { method: 'PATCH', body: JSON.stringify(changes) })

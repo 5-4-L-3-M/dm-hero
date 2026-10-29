@@ -54,7 +54,7 @@ describe('story board helpers', () => {
     expect(clusterColor(c, 'storyline', lines)).toBe('story-3')
     expect(clusterColor({ ...c, storyline_id: null }, 'storyline', lines)).toBe('surface-variant')
     expect(clusterColor(c, 'heat', lines)).toBe('error')
-    expect(clusterColor(c, 'status', lines)).toBe('secondary')
+    expect(clusterColor(c, 'status', lines)).toBe('warning')
     expect(clusterColor(c, 'region', lines, [7, 42])).toBe('story-2')
   })
 
@@ -165,6 +165,13 @@ describe('quests API', () => {
     expect(moved.status).toBe('active')
     expect(moved.giver_name).toBe('Harbormaster') // untouched fields stay
     expect(moved.objectives).toEqual([{ text: 'Ask at the docks', done: true }])
+
+    // Entries involved in the quest are relations, so they show up as connections both ways
+    const ship = entity('Location', 'The Seawind')
+    const linked = await quests<Quest>('PATCH', String(q.id), { involved_ids: [ship, giver, q.id] })
+    expect(linked.involved.map(e => e.name)).toEqual(['Harbormaster', 'The Seawind'])
+    expect(db.prepare('SELECT COUNT(*) AS n FROM entity_relations WHERE from_entity_id = ? AND relation_type = ?').get(q.id, 'involved')).toEqual({ n: 2 })
+    expect((await quests<Quest>('PATCH', String(q.id), { reward: '50 gp' })).involved).toHaveLength(2) // untouched unless sent
 
     expect((await quests<Quest[]>('GET', '', undefined, { campaignId })).map(x => x.name)).toEqual(['Find the missing ship'])
     await quests('DELETE', String(q.id))

@@ -18,6 +18,8 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     entities: [] as LinkedEntity[],
     locations: [] as { id: number, name: string, parent_id: number | null }[],
     quests: [] as Quest[],
+    /** Bumped whenever a quest is saved, so open side-panel tabs reload */
+    questVersion: 0,
   }),
 
   getters: {
@@ -170,6 +172,7 @@ export const useStoryBoardStore = defineStore('storyBoard', {
       if (i >= 0) this.quests[i] = quest
       else this.quests.push(quest)
       if (!id) this.entities.push({ id: quest.id, name: quest.name, type: 'Quest' })
+      this.questVersion++
       return quest
     },
     async deleteQuest(id: number) {
