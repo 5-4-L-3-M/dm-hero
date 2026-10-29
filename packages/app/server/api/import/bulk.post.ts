@@ -21,6 +21,9 @@ import { parseExistingId, extractRefLinks, resolveRefLinks } from '~~/server/uti
  * Refs are local to the payload ("npc:1") and resolved to real ids on commit.
  * Validation is strict and happens BEFORE any write so a bad payload never
  * half-imports.
+ *
+ * Links-only: `entities` may be empty when `relations` is not — every end is
+ * then "existing:<id>", which links entities that already exist.
  */
 
 const ENTITY_TYPES = ['NPC', 'Location', 'Item', 'Faction', 'Lore'] as const
@@ -60,7 +63,7 @@ export default defineEventHandler(async (event) => {
 
   const entities = Array.isArray(body?.entities) ? body!.entities : []
   const relations = Array.isArray(body?.relations) ? body!.relations : []
-  if (entities.length === 0) errors.push('entities must be a non-empty array')
+  if (entities.length === 0 && relations.length === 0) errors.push('pass at least one entity or one relation')
 
   // --- validate entities + collect refs ---
   const refs = new Set<string>()
@@ -151,6 +154,25 @@ export default defineEventHandler(async (event) => {
   for (const e of entities) perType[e.type!] = (perType[e.type!] ?? 0) + 1
 
   if (dryRun) {
+    // Readable link list so the user can confirm "Sif –worships→ The Matron of
+    // Ravens" by name, plus a flag for links that are already there.
+    const nameOf = new Map<string, string>()
+    for (const e of entities) nameOf.set(e.ref!, `${e.name} (new ${e.type})`)
+    if (existingIds.size > 0) {
+      const ids = [...existingIds]
+      const rows = db
+        .prepare(`SELECT e.id, e.name, t.name AS type FROM entities e JOIN entity_types t ON t.id = e.type_id WHERE e.id IN (${ids.map(() => '?').join(',')})`)
+        .all(...ids) as { id: number, name: string, type: string }[]
+      for (const row of rows) nameOf.set(`existing:${row.id}`, `${row.name} (${row.type} #${row.id})`)
+    }
+    const findRelation = db.prepare('SELECT 1 FROM entity_relations WHERE from_entity_id = ? AND to_entity_id = ? AND relation_type = ?')
+    const links = relations.map((r) => {
+      const fromId = parseExistingId(r.from)
+      const toId = parseExistingId(r.to)
+      const alreadyLinked = fromId !== null && toId !== null && !!findRelation.get(fromId, toId, String(r.type))
+      return { from: nameOf.get(r.from!) ?? r.from, type: r.type, to: nameOf.get(r.to!) ?? r.to, ...(alreadyLinked ? { alreadyLinked } : {}) }
+    })
+
     return {
       dryRun: true,
       wouldCreate: {
@@ -163,6 +185,7 @@ export default defineEventHandler(async (event) => {
       },
       warnings,
       preview: resolved.map(e => ({ ref: e.ref, type: e.type, name: e.name, metadata: e._metadata })),
+      links,
     }
   }
 
@@ -271,7 +294,9 @@ export default defineEventHandler(async (event) => {
 
     // Signal the app that an external (AI/MCP) import happened, so it can show
     // a snackbar + refresh. Only this endpoint records it — manual creates don't.
-    recordImport(campaignId, perType)
+    // A links-only call edits existing entries, so it reports as an edit.
+    if (entities.length > 0) recordImport(campaignId, perType)
+    else if (relationsCreated > 0) recordImport(campaignId, { Relations: existingIds.size }, 'update')
 
     return {
       dryRun: false,

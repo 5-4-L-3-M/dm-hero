@@ -51,7 +51,7 @@
           <v-col v-for="loreEntry in loreInOpenFolder" :key="loreEntry.id" cols="12" md="6" lg="4">
             <LoreCard
               :lore="loreEntry"
-              @view="viewLore"
+              @view="openInTab"
               @edit="editLore"
               @download="(lore: Lore) => downloadImage(`/uploads/${lore.image_url}`, lore.name)"
               @archive="archiveEntity"
@@ -81,7 +81,7 @@
                 fallback-icon="mdi-book-open-variant"
                 class="flex-grow-1"
                 style="min-width: 0"
-                @open="viewLore(loreEntry)"
+                @open="openInTab(loreEntry)"
               />
               <v-btn
                 icon="mdi-folder-arrow-left-outline"
@@ -129,7 +129,7 @@
             <LoreCard
               :lore="loreEntry"
               :is-highlighted="highlightedId === loreEntry.id"
-              @view="viewLore"
+              @view="openInTab"
               @edit="editLore"
               @download="(lore) => downloadImage(`/uploads/${lore.image_url}`, lore.name)"
               @archive="archiveEntity"
@@ -494,6 +494,12 @@ function openCreateDialog() {
   editingLoreId.value = null
   editDialogInitialTab.value = undefined
   showEditDialog.value = true
+}
+
+// Eye button: open the entry as a tab in the side panel (stays open across pages)
+const entityTabs = useEntityTabsStore()
+function openInTab(entry: Lore) {
+  entityTabs.open('lore', entry.id, entry.name)
 }
 
 // View lore entry

@@ -183,6 +183,18 @@
             </div>
 
             <v-text-field
+              v-model.number="carryBonusInput"
+              :label="$t('players.carryBonus', { unit: weightUnit })"
+              :hint="$t('players.carryBonusHint')"
+              persistent-hint
+              type="number"
+              step="any"
+              variant="outlined"
+              prepend-inner-icon="mdi-weight"
+              class="mb-3"
+            />
+
+            <v-text-field
               v-model="form.email"
               :label="$t('players.email')"
               :placeholder="$t('players.emailPlaceholder')"
@@ -427,6 +439,7 @@
 
 <script setup lang="ts">
 import type { Player } from '~~/types/player'
+import { readCarryBonus } from '~~/types/inventory'
 import EntityImageUpload from '../shared/EntityImageUpload.vue'
 import EntityImageGallery from '../shared/EntityImageGallery.vue'
 import EntityDocuments from '../shared/EntityDocuments.vue'
@@ -493,6 +506,24 @@ const form = ref({
   location_id: null as number | null,
   birthday: null as { year: number, month: number, day: number } | null,
   showBirthdayInCalendar: true,
+  /** Carrying capacity bonus, always stored in lb */
+  carry_bonus: 0,
+})
+
+/** Metadata as loaded — keys this form doesn't know about are kept on save */
+const loadedMetadata = ref<Record<string, unknown>>({})
+
+const { weightUnit, weightToDisplay, weightFromDisplay } = useUnits()
+
+/** Carry bonus in the display unit; stored as lb */
+const carryBonusInput = computed<number | string | null>({
+  get: () => weightToDisplay(form.value.carry_bonus) ?? 0,
+  set: (v) => {
+    const n = Number(v)
+    form.value.carry_bonus = v === '' || v === null || !Number.isFinite(n)
+      ? 0
+      : (n < 0 ? -(weightFromDisplay(-n) ?? 0) : (weightFromDisplay(n) ?? 0))
+  },
 })
 
 // Map sync data (from LocationSelectWithMap)
@@ -600,7 +631,9 @@ async function loadPlayer(playerId: number) {
     location_id: data.location_id || null,
     birthday: data.metadata?.birthday || null,
     showBirthdayInCalendar,
+    carry_bonus: readCarryBonus(data.metadata),
   }
+  loadedMetadata.value = { ...(data.metadata ?? {}) }
 
   // Set birthday toggle based on existing data
   hasBirthday.value = !!data.metadata?.birthday
@@ -626,7 +659,9 @@ function resetForm() {
     location_id: null,
     birthday: null,
     showBirthdayInCalendar: true,
+    carry_bonus: 0,
   }
+  loadedMetadata.value = {}
   mapSyncData.value = null
   hasBirthday.value = false
   playerStore.reset()
@@ -648,6 +683,8 @@ async function save() {
     const birthdayToSave = hasBirthday.value ? form.value.birthday : null
 
     const metadata = {
+      // Keep keys set elsewhere (e.g. by the AI connector) — the server replaces metadata whole
+      ...loadedMetadata.value,
       player_name: form.value.player_name || null,
       inspiration: form.value.inspiration || 0,
       email: form.value.email || null,
@@ -656,6 +693,7 @@ async function save() {
       notes: form.value.notes || null,
       birthday: birthdayToSave,
       showBirthdayInCalendar: hasBirthday.value ? form.value.showBirthdayInCalendar : false,
+      carry_bonus: form.value.carry_bonus || 0,
     }
 
     let savedPlayerId: number

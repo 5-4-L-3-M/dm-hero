@@ -66,7 +66,7 @@
           <PlayerCard
             :player="player"
             :is-highlighted="highlightedId === player.id"
-            @view="viewPlayer"
+            @view="openInTab"
             @edit="editPlayer"
             @download="handleDownload"
             @archive="archiveEntity"
@@ -258,6 +258,12 @@ function openCreateDialog() {
   editingPlayerId.value = null
   editDialogInitialTab.value = undefined
   showEditDialog.value = true
+}
+
+// Eye button: open the entry as a tab in the side panel (stays open across pages)
+const entityTabs = useEntityTabsStore()
+function openInTab(entry: Player) {
+  entityTabs.open('player', entry.id, entry.name)
 }
 
 function viewPlayer(player: Player) {

@@ -87,19 +87,35 @@ export interface CarryThresholds {
   encumbered: number
   /** Above this: heavily encumbered (speed −20 ft, disadvantage). STR × 10 */
   heavy: number
-  /** Maximum carrying capacity. STR × 15 */
+  /** Maximum carrying capacity. STR × 15 + bonus */
   capacity: number
+  /** Extra capacity in lb from the player's carry_bonus (can be negative, 0 when unset) */
+  bonus: number
 }
 
-export function carryThresholds(strength: number | null): CarryThresholds | null {
+/** Per-player carrying capacity bonus (lb) from player metadata `carry_bonus`; 0 when unset. */
+export function readCarryBonus(metadata: unknown): number {
+  if (!metadata || typeof metadata !== 'object') return 0
+  const raw = (metadata as Record<string, unknown>).carry_bonus
+  if (raw === null || raw === undefined || raw === '') return 0
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : 0
+}
+
+/**
+ * Carry thresholds from Strength. The bonus only raises (or lowers) the
+ * maximum capacity; the encumbered/heavy lines stay at STR × 5 / STR × 10.
+ */
+export function carryThresholds(strength: number | null, bonus = 0): CarryThresholds | null {
   if (!strength || strength <= 0) return null
-  return { encumbered: strength * 5, heavy: strength * 10, capacity: strength * 15 }
+  const b = Number.isFinite(bonus) ? bonus : 0
+  return { encumbered: strength * 5, heavy: strength * 10, capacity: Math.max(0, strength * 15 + b), bonus: b }
 }
 
 export type LoadStatus = 'normal' | 'encumbered' | 'heavy' | 'over' | 'unknown'
 
-export function loadStatus(carried: number, strength: number | null): LoadStatus {
-  const t = carryThresholds(strength)
+export function loadStatus(carried: number, strength: number | null, bonus = 0): LoadStatus {
+  const t = carryThresholds(strength, bonus)
   if (!t) return 'unknown'
   if (carried > t.capacity) return 'over'
   if (carried > t.heavy) return 'heavy'

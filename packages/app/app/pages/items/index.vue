@@ -52,7 +52,7 @@
           <v-col v-for="item in itemsInOpenFolder" :key="item.id" cols="12" md="6" lg="4">
             <ItemCard
               :item="item"
-              @view="viewItem"
+              @view="openInTab"
               @edit="editItem"
               @download="(item: Item) => downloadImage(`/uploads/${item.image_url}`, item.name)"
               @archive="archiveEntity"
@@ -82,7 +82,7 @@
                 fallback-icon="mdi-sword"
                 class="flex-grow-1"
                 style="min-width: 0"
-                @open="viewItem(item)"
+                @open="openInTab(item)"
               />
               <v-btn
                 icon="mdi-folder-arrow-left-outline"
@@ -128,7 +128,7 @@
             <ItemCard
               :item="item"
               :is-highlighted="highlightedId === item.id"
-              @view="viewItem"
+              @view="openInTab"
               @edit="editItem"
               @download="(item) => downloadImage(`/uploads/${item.image_url}`, item.name)"
               @archive="archiveEntity"
@@ -516,6 +516,12 @@ const itemLocations = ref<Array<{ id: number, name: string, description?: string
 const itemFactions = ref<Array<{ id: number, name: string, description?: string | null, image_url?: string | null, relation_type?: string }>>([])
 const itemLore = ref<Array<{ id: number, name: string, description?: string | null, image_url?: string | null }>>([])
 const itemPlayers = ref<Array<{ id: number, name: string, description?: string | null, image_url?: string | null, relation_type?: string }>>([])
+
+// Eye button: open the entry as a tab in the side panel (stays open across pages)
+const entityTabs = useEntityTabsStore()
+function openInTab(entry: Item) {
+  entityTabs.open('item', entry.id, entry.name)
+}
 
 async function viewItem(item: Item) {
   viewingItem.value = item

@@ -25,6 +25,11 @@
       </div>
     </v-main>
 
+    <!-- Entry tabs: entities opened with the eye button, kept open across pages -->
+    <ClientOnly>
+      <SharedEntityTabsPanel />
+    </ClientOnly>
+
     <!-- Share dialog: can be opened from anywhere (share buttons on entity cards) -->
     <ClientOnly>
       <GameTableShareDialog />

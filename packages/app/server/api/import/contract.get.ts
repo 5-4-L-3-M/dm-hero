@@ -76,6 +76,10 @@ export default defineEventHandler(() => {
       Location: {
         // Locations carry free-form metadata; no constrained keys.
       },
+      // Players can't be imported, but update_entities edits them by id.
+      Player: {
+        carry_bonus: { type: 'number', note: 'extra carrying capacity in pounds (lb), added to STR × 15; can be negative; 0/unset = none. Edit with update_entities.' },
+      },
     },
 
     // Reference data (key + localized labels) so the AI can resolve names.

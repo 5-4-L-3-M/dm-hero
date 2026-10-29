@@ -58,7 +58,7 @@
               :npc="npc"
               :races="races"
               :classes="classes"
-              @view="viewNpc"
+              @view="openInTab"
               @edit="editNpc"
               @download="(npc: NPC) => downloadImage(`/uploads/${npc.image_url}`, npc.name)"
               @archive="archiveNpc"
@@ -87,7 +87,7 @@
                 fallback-icon="mdi-account"
                 class="flex-grow-1"
                 style="min-width: 0"
-                @open="viewNpc(npc)"
+                @open="openInTab(npc)"
               />
               <v-btn
                 icon="mdi-folder-arrow-left-outline"
@@ -145,7 +145,7 @@
               :is-highlighted="highlightedId === npc.id"
               :races="races"
               :classes="classes"
-              @view="viewNpc"
+              @view="openInTab"
               @edit="editNpc"
               @download="(npc: NPC) => downloadImage(`/uploads/${npc.image_url}`, npc.name)"
               @archive="archiveNpc"
@@ -617,6 +617,12 @@ function openNpcTab(npc: NPC, tab: string) {
   editingNpcId.value = npc.id
   editDialogInitialTab.value = tab
   showEditDialog.value = true
+}
+
+// Eye button: open the entry as a tab in the side panel (stays open across pages)
+const entityTabs = useEntityTabsStore()
+function openInTab(entry: NPC) {
+  entityTabs.open('npc', entry.id, entry.name)
 }
 
 // View NPC (read-only mode)

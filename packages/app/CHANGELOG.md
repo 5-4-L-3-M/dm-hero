@@ -1,5 +1,18 @@
 # @dm-hero/app
 
+## 1.6.6
+
+### Minor Changes
+
+- Entry tabs: the eye button on NPCs, places, items, factions, lore and players opens the entry as a tab in a side panel that stays open on every page. Click between tabs, close them with the ×, widen the panel, or hide it from the tab button in the top bar. Each tab shows the entry's details, documents and every connection — click a connection to open it as another tab. "Open full" still opens the full view with every tab. Quick-preview popups get an "Open as tab" button.
+- Locations page: a view switcher between a tidier list and drill-down cards. The list has slimmer rows (the eye stays, everything else moved into a ⋮ menu), expand/collapse all, and a filter by type. Cards show one level at a time with a breadcrumb trail; click a place to go inside it.
+- Carrying capacity bonus per player (in lb, can be negative), set in the player's details. It's added to Strength × 15, shown on the Inventory tab (e.g. "165 + 15 lb"), and the load bar's marks follow the real thresholds.
+- AI connector: can link two entries that already exist (e.g. "Sif worships the Matron of Ravens"); the preview lists the links by name and flags ones that already exist. Player carry bonus is part of the connector's contract.
+
+### Patch Changes
+
+- Saving a player's details no longer drops extra details set elsewhere (for example by the AI connector).
+
 ## 1.6.5
 
 ### Minor Changes

@@ -1075,7 +1075,19 @@
     },
     "incomingLoreTooltip": "Relation créée par l'entrée de lore",
     "image": "Image",
-    "parent": "Se trouve dans"
+    "parent": "Se trouve dans",
+    "view": {
+      "list": "Liste",
+      "cards": "Cartes",
+      "typeFilter": "Filtrer par type",
+      "expandAll": "Tout déplier",
+      "collapseAll": "Tout replier",
+      "allLocations": "Tous les lieux",
+      "inside": "{count} à l'intérieur",
+      "results": "Résultats : {count}",
+      "browseInside": "Voir l'intérieur",
+      "nothingInside": "Rien ici pour l'instant."
+    }
   },
   "items": {
     "title": "Objets",
@@ -1990,7 +2002,9 @@
       "misunderstands": "Comprend mal",
       "teaches": "Enseigne",
       "studies": "Étudie"
-    }
+    },
+    "carryBonus": "Bonus de capacité de charge ({unit})",
+    "carryBonusHint": "S'ajoute à Force × 15. Peut être négatif."
   },
   "calendar": {
     "title": "Calendrier",
@@ -2943,7 +2957,8 @@
     "addItem": "Ajouter un objet",
     "saveError": "Impossible d'enregistrer cette modification.",
     "partyLoad": "Charge du groupe",
-    "partyLoadHint": "Cliquez sur un personnage pour ouvrir son inventaire."
+    "partyLoadHint": "Cliquez sur un personnage pour ouvrir son inventaire.",
+    "capacityWithBonus": "Capacité de charge : {breakdown} (bonus inclus)"
   },
   "units": {
     "title": "Unités",
@@ -3002,6 +3017,18 @@
     "total": "Total"
   },
   "preview": {
-    "openFull": "Vue complète"
+    "openFull": "Vue complète",
+    "connections": "Liens",
+    "notFound": "Impossible de charger cette entrée."
+  },
+  "entityTabs": {
+    "openAsTab": "Ouvrir dans un onglet",
+    "closeTab": "Fermer l'onglet",
+    "closeAll": "Fermer tous les onglets",
+    "closeOthers": "Fermer les autres onglets",
+    "wider": "Plus large",
+    "narrower": "Plus étroit",
+    "hide": "Masquer le panneau d'onglets",
+    "show": "Afficher le panneau d'onglets"
   }
 }

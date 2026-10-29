@@ -164,7 +164,7 @@ const updateSchema = z.object({
   tags: z.array(z.string()).optional().describe('REPLACES the entity\'s whole tag set (lowercase a-z + hyphens).'),
 })
 
-const server = new McpServer({ name: 'dm-hero', version: '1.1.0' })
+const server = new McpServer({ name: 'dm-hero', version: '1.2.0' })
 
 server.registerTool('what_can_i_do', {
   description: 'Call this when the user asks what you can do with DM Hero, or at the start of a bigger job (e.g. "import this one-shot PDF"). Returns a plain-language overview of every capability, how to ask for it, and the rules you follow (preview → confirm). Repeat it to the user in THEIR language.',
@@ -173,7 +173,7 @@ server.registerTool('what_can_i_do', {
   overview: 'I can turn adventure material (PDFs, notes, your descriptions) into a complete DM Hero campaign – and maintain it afterwards. Everything I do goes through DM Hero\'s local API on this machine; nothing leaves your computer.',
   capabilities: [
     { area: 'Campaigns', canDo: 'list campaigns, create a new campaign', askLike: '"Put this into my Curse of Strahd campaign" / "Create a campaign called Frostmaw"' },
-    { area: 'Entities', canDo: 'create NPCs, locations, items, factions and lore entries – with race/class/type/rarity metadata, tags and folders; cross-link them in descriptions; link them with relations (owns, livesIn, knows, memberOf, …); edit or rename existing ones; archive or delete them', askLike: '"Create all NPCs and places from this PDF" / "Make Borin the owner of the Sword of Dawn" / "Archive everything from chapter 1"' },
+    { area: 'Entities', canDo: 'create NPCs, locations, items, factions and lore entries – with race/class/type/rarity metadata, tags and folders; cross-link them in descriptions; link them with relations (owns, livesIn, knows, memberOf, …) – including linking two entries that already exist; edit or rename existing ones; archive or delete them', askLike: '"Create all NPCs and places from this PDF" / "Make Borin the owner of the Sword of Dawn" / "Archive everything from chapter 1"' },
     { area: 'Images', canDo: 'set a portrait/image for any entity and a cover for a session – from a file on this computer or a URL', askLike: '"Use ~/Downloads/borin.png as Borin\'s portrait" / "Set this map as the session cover"' },
     { area: 'Documents', canDo: 'attach markdown documents (letters, handouts, backstories, stat blocks) or PDFs to an entity', askLike: '"Attach the letter from page 12 to the mayor"' },
     { area: 'Sessions', canDo: 'list sessions, create a session with number, date, in-game date, summary and notes; update summaries/notes afterwards', askLike: '"Summarize what happened tonight into session 4" / "Create session 1 for the one-shot with the intro text as notes"' },
@@ -230,10 +230,10 @@ server.registerTool('get_contract', {
 })
 
 server.registerTool('preview_import', {
-  description: 'Dry-run an import: validates the payload and returns what WOULD be created (resolved metadata keys, counts, new tags/folders, text links) WITHOUT writing anything, plus WARNINGS for entities that already exist with the same name (link those as existing:<id> instead of creating twins). Always preview before importing and show the user a short summary of what will be created; only import after they confirm.',
+  description: 'Dry-run an import: validates the payload and returns what WOULD be created (resolved metadata keys, counts, new tags/folders, text links, and a readable `links` list that flags links that already exist) WITHOUT writing anything, plus WARNINGS for entities that already exist with the same name (link those as existing:<id> instead of creating twins). To only LINK entities that already exist (e.g. "Sif worships the Matron of Ravens"), leave entities empty and pass relations with existing:<id> on both ends. Always preview before importing and show the user a short summary of what will be created; only import after they confirm.',
   inputSchema: {
     campaignId: z.number().int().positive(),
-    entities: z.array(entitySchema).min(1),
+    entities: z.array(entitySchema).optional().describe('New entities. Leave empty/omit to only link existing ones via relations.'),
     relations: z.array(relationSchema).optional(),
   },
 }, async (payload) => {
@@ -242,10 +242,10 @@ server.registerTool('preview_import', {
 })
 
 server.registerTool('import_entities', {
-  description: 'Commit an import: creates the entities + relations (+ tags/folders) in DM Hero and returns a summary with the new ids. Only call this after the user has confirmed a preview_import.',
+  description: 'Commit an import: creates the entities + relations (+ tags/folders) in DM Hero and returns a summary with the new ids. Also links entities that already exist: leave entities empty and pass relations with existing:<id> on both ends. Only call this after the user has confirmed a preview_import.',
   inputSchema: {
     campaignId: z.number().int().positive(),
-    entities: z.array(entitySchema).min(1),
+    entities: z.array(entitySchema).optional().describe('New entities. Leave empty/omit to only link existing ones via relations.'),
     relations: z.array(relationSchema).optional(),
   },
 }, async (payload) => {

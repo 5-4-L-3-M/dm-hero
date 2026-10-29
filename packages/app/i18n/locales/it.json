@@ -1075,7 +1075,19 @@
     },
     "incomingLoreTooltip": "Relazione creata dalla voce di lore",
     "image": "Immagine",
-    "parent": "Si trova in"
+    "parent": "Si trova in",
+    "view": {
+      "list": "Elenco",
+      "cards": "Riquadri",
+      "typeFilter": "Filtra per tipo",
+      "expandAll": "Espandi tutto",
+      "collapseAll": "Comprimi tutto",
+      "allLocations": "Tutti i luoghi",
+      "inside": "{count} all'interno",
+      "results": "Risultati: {count}",
+      "browseInside": "Guarda dentro",
+      "nothingInside": "Ancora niente qui."
+    }
   },
   "items": {
     "title": "Oggetti",
@@ -1990,7 +2002,9 @@
       "misunderstands": "Fraintende",
       "teaches": "Insegna",
       "studies": "Studia"
-    }
+    },
+    "carryBonus": "Bonus capacità di carico ({unit})",
+    "carryBonusHint": "Si aggiunge a Forza × 15. Può essere negativo."
   },
   "calendar": {
     "title": "Calendario",
@@ -2943,7 +2957,8 @@
     "addItem": "Aggiungi un oggetto",
     "saveError": "Impossibile salvare la modifica.",
     "partyLoad": "Carico del gruppo",
-    "partyLoadHint": "Clicca su un personaggio per aprire il suo inventario."
+    "partyLoadHint": "Clicca su un personaggio per aprire il suo inventario.",
+    "capacityWithBonus": "Capacità di carico: {breakdown} (bonus incluso)"
   },
   "units": {
     "title": "Unità",
@@ -3002,6 +3017,18 @@
     "total": "Totale"
   },
   "preview": {
-    "openFull": "Vista completa"
+    "openFull": "Vista completa",
+    "connections": "Collegamenti",
+    "notFound": "Impossibile caricare questa voce."
+  },
+  "entityTabs": {
+    "openAsTab": "Apri in una scheda",
+    "closeTab": "Chiudi scheda",
+    "closeAll": "Chiudi tutte le schede",
+    "closeOthers": "Chiudi le altre schede",
+    "wider": "Più largo",
+    "narrower": "Più stretto",
+    "hide": "Nascondi pannello schede",
+    "show": "Mostra pannello schede"
   }
 }
