@@ -61,6 +61,10 @@
             {{ $t('factions.factionRelations') }}
             <v-chip size="x-small" class="ml-2">{{ counts.relations }}</v-chip>
           </v-tab>
+          <v-tab value="agendas">
+            <v-icon start>mdi-chart-donut</v-icon>
+            {{ $t('story.agenda.title') }}
+          </v-tab>
         </v-tabs>
 
         <v-card-text class="flex-grow-1 overflow-y-auto">
@@ -287,6 +291,11 @@
                 @remove="removeFactionRelation"
               />
             </v-tabs-window-item>
+
+            <!-- Agendas: what the faction is working towards, with clocks -->
+            <v-tabs-window-item value="agendas">
+              <FactionAgendaList v-if="campaignStore.activeCampaignIdNumber" :campaign-id="campaignStore.activeCampaignIdNumber" :faction-id="faction.id" hide-title />
+            </v-tabs-window-item>
           </v-tabs-window>
 
           <!-- Create Form (no tabs) -->
@@ -410,6 +419,7 @@
 </template>
 
 <script setup lang="ts">
+import FactionAgendaList from '~/components/story/FactionAgendaList.vue'
 import type { Faction } from '~~/types/faction'
 import type { Lore } from '~~/types/lore'
 import { FACTION_TYPES, FACTION_ALIGNMENTS, FACTION_MEMBERSHIP_TYPES } from '~~/types/faction'

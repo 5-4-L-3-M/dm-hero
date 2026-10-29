@@ -1207,6 +1207,7 @@ function getEventTypeIcon(type: string): string {
     festival: 'mdi-firework',
     war: 'mdi-sword-cross',
     founding: 'mdi-castle',
+    world: 'mdi-earth',
   }
   return icons[type] || 'mdi-calendar'
 }
@@ -1221,6 +1222,7 @@ function getEventTypeColor(type: string): string {
     festival: 'orange',
     war: 'red',
     founding: 'purple',
+    world: 'teal',
   }
   return colors[type] || 'grey'
 }

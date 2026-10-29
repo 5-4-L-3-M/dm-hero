@@ -2947,6 +2947,114 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 67: Created shop_items and entity_coins')
     },
   },
+  {
+    version: 68,
+    name: 'story_board',
+    up: (db) => {
+      // Story Board: storylines (each with one of 6 theme colors), clusters of
+      // beats, the sparks shelf (beats without a cluster) and the next-session
+      // tray (beats with a tray_order).
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_lines (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          color INTEGER NOT NULL DEFAULT 1,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        )
+      `)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_clusters (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          storyline_id INTEGER,
+          title TEXT NOT NULL,
+          notes TEXT,
+          heat TEXT NOT NULL DEFAULT 'warm',
+          status TEXT NOT NULL DEFAULT 'active',
+          location_id INTEGER,
+          quest_id INTEGER,
+          collapsed INTEGER NOT NULL DEFAULT 0,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (storyline_id) REFERENCES story_lines(id) ON DELETE SET NULL,
+          FOREIGN KEY (location_id) REFERENCES entities(id) ON DELETE SET NULL,
+          FOREIGN KEY (quest_id) REFERENCES entities(id) ON DELETE SET NULL
+        )
+      `)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_beats (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          cluster_id INTEGER,
+          title TEXT NOT NULL,
+          body TEXT,
+          kind TEXT NOT NULL DEFAULT 'scene',
+          status TEXT NOT NULL DEFAULT 'idea',
+          location_id INTEGER,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          tray_order INTEGER,
+          played_session_id INTEGER,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (cluster_id) REFERENCES story_clusters(id) ON DELETE SET NULL,
+          FOREIGN KEY (location_id) REFERENCES entities(id) ON DELETE SET NULL,
+          FOREIGN KEY (played_session_id) REFERENCES sessions(id) ON DELETE SET NULL
+        )
+      `)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_beat_entities (
+          beat_id INTEGER NOT NULL,
+          entity_id INTEGER NOT NULL,
+          PRIMARY KEY (beat_id, entity_id),
+          FOREIGN KEY (beat_id) REFERENCES story_beats(id) ON DELETE CASCADE,
+          FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE
+        )
+      `)
+      // What a faction is working towards, with a progress clock (4/6/8 segments)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS faction_agendas (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          faction_id INTEGER NOT NULL,
+          goal TEXT NOT NULL,
+          next_step TEXT,
+          clock_size INTEGER NOT NULL DEFAULT 6,
+          clock_filled INTEGER NOT NULL DEFAULT 0,
+          status TEXT NOT NULL DEFAULT 'active',
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (faction_id) REFERENCES entities(id) ON DELETE CASCADE
+        )
+      `)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_board_settings (
+          campaign_id INTEGER PRIMARY KEY,
+          color_by TEXT NOT NULL DEFAULT 'storyline',
+          party_location_id INTEGER,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (party_location_id) REFERENCES entities(id) ON DELETE SET NULL
+        )
+      `)
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_story_lines_campaign ON story_lines(campaign_id, sort_order);
+        CREATE INDEX IF NOT EXISTS idx_story_clusters_campaign ON story_clusters(campaign_id, sort_order);
+        CREATE INDEX IF NOT EXISTS idx_story_beats_campaign ON story_beats(campaign_id, cluster_id, sort_order);
+        CREATE INDEX IF NOT EXISTS idx_story_beat_entities_entity ON story_beat_entities(entity_id);
+        CREATE INDEX IF NOT EXISTS idx_faction_agendas_faction ON faction_agendas(faction_id, sort_order);
+      `)
+
+      console.log('✅ Migration 68: Created story board tables')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

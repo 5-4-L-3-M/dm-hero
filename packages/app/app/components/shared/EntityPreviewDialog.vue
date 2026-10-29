@@ -56,7 +56,7 @@ import { isShopLocationType } from '~~/types/shop'
 import { ENTITY_FULL_DIALOGS, ENTITY_PREVIEW_CONFIG, entityPageLink } from '~/utils/entityPreview'
 import type { PreviewEntity } from './EntityPreviewBody.vue'
 
-export type EntityPreviewType = 'npc' | 'location' | 'item' | 'faction' | 'lore' | 'player'
+export type EntityPreviewType = 'npc' | 'location' | 'item' | 'faction' | 'lore' | 'player' | 'quest'
 
 interface Props {
   modelValue: boolean

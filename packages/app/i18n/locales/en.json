@@ -53,7 +53,8 @@
       "done": "Done",
       "saveFailed": "Could not save the navigation",
       "loadFailed": "Could not load the saved navigation – please try again in a moment."
-    }
+    },
+    "story": "Story Board"
   },
   "themes": {
     "dark": "Dark (Midnight Tavern)",
@@ -2087,7 +2088,8 @@
       "session": "Session",
       "festival": "Festival",
       "war": "War/Battle",
-      "founding": "Founding"
+      "founding": "Founding",
+      "world": "World event"
     },
     "defaultMonths": {
       "1": "Icemoon",
@@ -2574,7 +2576,11 @@
     "autoUpdateHint": "After installation via the installer, the app will automatically update whenever a new version is available.",
     "dontShowAgain": "Don't show again",
     "resetButton": "Show announcements again",
-    "resetSuccess": "Announcements will be shown on next start"
+    "resetSuccess": "Announcements will be shown on next start",
+    "v170": {
+      "title": "Version 1.7: the Story Board is here!",
+      "content": "<h3 style='margin-bottom: 12px'>New in version 1.7:</h3><ul><li><strong>Story Board</strong> - plan in folding clusters of beats, colored by storyline, heat, region or status (colors follow your theme). Catch loose ideas on the sparks shelf and drag them into a cluster when they fit</li><li><strong>Next session &amp; run sheet</strong> - put beats in the next-session tray, then run the session from a clean run sheet and tick beats off as played</li><li><strong>Party is at</strong> - set where the party is and see (or filter to) what's near them</li><li><strong>Quest board</strong> - rumors, active, completed, failed: drag a quest to move it along, tick objectives off in the side panel</li><li><strong>World tab</strong> - dated world events on your calendar, and faction agendas with progress clocks (also on each faction)</li><li><strong>Everything opens in the side panel</strong> - click any NPC, place, item or quest on the board and it opens beside it</li><li><strong>AI connector</strong> - can add sparks and beats, mark them played, manage quests, advance faction clocks and add world events</li></ul>"
+    }
   },
   "errors": {
     "CAMPAIGN_ID_REQUIRED": "Campaign ID is required",
@@ -3060,5 +3066,175 @@
   },
   "entityLink": {
     "open": "Open this entry"
+  },
+  "story": {
+    "title": "Story Board",
+    "subtitle": "Plan in clusters, catch ideas as sparks, run the session from the tray.",
+    "noCampaign": "Choose a campaign first",
+    "tabs": {
+      "board": "Board",
+      "run": "Run sheet",
+      "world": "World"
+    },
+    "colorBy": {
+      "label": "Color by",
+      "storyline": "Storyline",
+      "heat": "Heat",
+      "region": "Region",
+      "status": "Status"
+    },
+    "heat": {
+      "cold": "Cold",
+      "warm": "Warm",
+      "hot": "Hot"
+    },
+    "clusterStatus": {
+      "active": "Active",
+      "dormant": "Dormant",
+      "resolved": "Resolved"
+    },
+    "kind": {
+      "scene": "Scene",
+      "combat": "Combat",
+      "social": "Social",
+      "reveal": "Reveal",
+      "hook": "Hook",
+      "travel": "Travel"
+    },
+    "beatStatus": {
+      "idea": "Idea",
+      "ready": "Ready",
+      "played": "Played",
+      "cut": "Cut"
+    },
+    "hidePlayed": "Hide played",
+    "party": {
+      "label": "Party is at",
+      "near": "Near party",
+      "onlyNear": "Only near party",
+      "unknown": "not set"
+    },
+    "empty": {
+      "title": "No clusters yet",
+      "text": "A cluster is one thread of the story: a place, a plot, a mystery. Add one and drop beats into it."
+    },
+    "storyline": {
+      "label": "Storyline",
+      "manage": "Storylines",
+      "manageHint": "Each storyline gets a color from your theme. Clusters and quests use it when you color by storyline.",
+      "color": "Color",
+      "none": "No storylines yet.",
+      "newPlaceholder": "New storyline, e.g. The Drowned Crown"
+    },
+    "cluster": {
+      "new": "New cluster",
+      "edit": "Edit cluster",
+      "title": "Title",
+      "heat": "Heat",
+      "status": "Status",
+      "location": "Where it happens",
+      "locationHint": "Used for the region colors and the \"party is at\" filter",
+      "quest": "Quest",
+      "notes": "Notes",
+      "progress": "Played / total beats",
+      "collapse": "Fold",
+      "expand": "Unfold",
+      "dropHere": "Drop beats or sparks here",
+      "deleteTitle": "Delete cluster?",
+      "deleteText": "\"{name}\" will be deleted. Its beats can go back to the sparks shelf.",
+      "deleteKeepBeats": "Delete, keep beats",
+      "deleteWithBeats": "Delete with beats"
+    },
+    "beat": {
+      "new": "New beat",
+      "edit": "Edit beat",
+      "title": "What happens",
+      "kind": "Kind",
+      "status": "Status",
+      "body": "Details",
+      "bodyHint": "Formatting: \"## Heading\", \"- bullet\", \"**bold**\", \"Label: text\"",
+      "cluster": "Cluster",
+      "location": "Where",
+      "entities": "Who and what is involved",
+      "playedIn": "Played in session",
+      "quickAdd": "Add a beat…"
+    },
+    "sparks": {
+      "title": "Sparks",
+      "hint": "Loose ideas. Drag one into a cluster when it fits.",
+      "add": "Catch an idea…",
+      "empty": "No sparks"
+    },
+    "tray": {
+      "title": "Next session",
+      "add": "Add to next session",
+      "remove": "Remove from next session",
+      "inTray": "In the next session",
+      "empty": "Click the calendar icon on a beat to plan it for next session."
+    },
+    "run": {
+      "open": "Run sheet",
+      "logTo": "Log played beats to",
+      "played": "Played",
+      "skip": "Not now",
+      "emptyTitle": "Nothing planned yet",
+      "emptyText": "Add beats to the next session on the Board tab."
+    },
+    "world": {
+      "today": "Today in the world",
+      "timeline": "World timeline",
+      "showAll": "All calendar events",
+      "addEvent": "World event",
+      "editEvent": "Edit world event",
+      "empty": "No world events yet. Add what happens in the world, even when the party isn't there.",
+      "upcoming": "Coming up",
+      "past": "Already happened",
+      "eventTitle": "What happens",
+      "eventDescription": "Details",
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
+      "involved": "Who and what is involved"
+    },
+    "agenda": {
+      "title": "Faction agendas",
+      "add": "Agenda",
+      "edit": "Edit agenda",
+      "empty": "No agendas yet. What is each faction working towards?",
+      "faction": "Faction",
+      "goal": "Goal",
+      "goalPlaceholder": "e.g. Seize the harbor before winter",
+      "nextStep": "Next step",
+      "clockSize": "Clock segments",
+      "statusLabel": "Status",
+      "full": "Clock full!",
+      "status": {
+        "active": "Active",
+        "achieved": "Achieved",
+        "foiled": "Foiled"
+      }
+    }
+  },
+  "quests": {
+    "title": "Quests",
+    "subtitle": "From rumor to done. Drag a quest to change its status.",
+    "new": "New quest",
+    "edit": "Edit quest",
+    "name": "Name",
+    "status": "Status",
+    "giver": "Quest giver",
+    "location": "Where",
+    "reward": "Reward",
+    "description": "Description",
+    "objectives": "Objectives",
+    "addObjective": "Add an objective…",
+    "objectivesDone": "{done} of {total} objectives done",
+    "dropHere": "Drop a quest here",
+    "statuses": {
+      "rumor": "Rumors",
+      "active": "Active",
+      "completed": "Completed",
+      "failed": "Failed"
+    }
   }
 }

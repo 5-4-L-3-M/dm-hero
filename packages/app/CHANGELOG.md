@@ -1,5 +1,23 @@
 # @dm-hero/app
 
+## 1.7.0
+
+### Minor Changes
+
+- Story Board (new in the sidebar, near the top): plan in folding clusters of beats. Color the clusters by storyline, heat, region or status — storyline colors come from the active theme, and a legend says what each color means. Beats have a kind (scene, combat, social, reveal, hook, travel), a status, details with formatting, a place and linked entries; click any linked entry to open it in the side panel without leaving the board.
+- Sparks shelf: catch loose ideas on the right and drag them into a cluster when they fit. Clusters and beats reorder by drag & drop.
+- Next session tray and run sheet: plan beats for the next session with the calendar button, reorder them, then run the session from the Run sheet tab and mark beats played (logged to a session) or "not now".
+- "Party is at": set the party's location to highlight the clusters near them (the place, what's inside it and what it's inside), or show only those.
+- Quest board (new in the sidebar): rumors, active, completed, failed. Drag a quest between columns, filter by storyline, set giver, place, reward and objectives. Quests open in the side panel, where objectives can be ticked off.
+- World tab: dated world events on the in-game calendar (new "World event" type, also in the calendar), split into coming up / already happened around today's in-game date.
+- Faction agendas with progress clocks (4–12 segments, click to fill): on the World tab, in each faction's dialog (new Agendas tab) and in the faction side panel.
+- AI connector: read the Story Board, add sparks and beats, move them, plan them for the next session, mark them played, create clusters and storylines, list/create/update quests, manage faction agendas and add world events.
+- Story Board, quests and agendas are part of the campaign export and import.
+
+### Patch Changes
+
+- New sidebar entries slot in below their anchor in a saved sidebar layout instead of landing at the bottom.
+
 ## 1.6.7
 
 ### Minor Changes

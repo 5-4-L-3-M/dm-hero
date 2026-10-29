@@ -53,7 +53,8 @@
       "done": "Fertig",
       "saveFailed": "Navigation konnte nicht gespeichert werden",
       "loadFailed": "Die gespeicherte Navigation konnte nicht geladen werden – versuch es gleich noch einmal."
-    }
+    },
+    "story": "Story-Board"
   },
   "themes": {
     "dark": "Dunkel (Mitternachts-Taverne)",
@@ -2087,7 +2088,8 @@
       "session": "Session",
       "festival": "Festival",
       "war": "Krieg/Schlacht",
-      "founding": "Gründung"
+      "founding": "Gründung",
+      "world": "Weltereignis"
     },
     "defaultMonths": {
       "1": "Eismond",
@@ -2574,7 +2576,11 @@
     "autoUpdateHint": "Nach der Installation über den Installer wird die App automatisch aktualisiert, sobald eine neue Version verfügbar ist.",
     "dontShowAgain": "Nicht mehr anzeigen",
     "resetButton": "Neuigkeiten erneut anzeigen",
-    "resetSuccess": "Neuigkeiten werden beim nächsten Start wieder angezeigt"
+    "resetSuccess": "Neuigkeiten werden beim nächsten Start wieder angezeigt",
+    "v170": {
+      "title": "Version 1.7: Das Story-Board ist da!",
+      "content": "<h3 style='margin-bottom: 12px'>Neu in Version 1.7:</h3><ul><li><strong>Story-Board</strong> - plane in einklappbaren Clustern aus Beats, eingefärbt nach Handlungsstrang, Dringlichkeit, Region oder Status (die Farben passen zu deinem Theme). Lose Ideen landen im Funkenregal und wandern per Drag &amp; Drop in einen Cluster</li><li><strong>Nächste Sitzung &amp; Ablaufplan</strong> - lege Beats in die Ablage für die nächste Sitzung und leite die Sitzung aus einem aufgeräumten Ablaufplan</li><li><strong>Gruppe ist in</strong> - setze, wo die Gruppe ist, und sieh (oder filtere), was in der Nähe ist</li><li><strong>Quest-Board</strong> - Gerüchte, aktiv, erledigt, gescheitert: Quest ziehen, um sie weiterzuschieben, Ziele im Seitenpanel abhaken</li><li><strong>Welt-Tab</strong> - datierte Weltereignisse im Kalender und Fraktionspläne mit Fortschrittsuhren (auch bei jeder Fraktion)</li><li><strong>Alles öffnet im Seitenpanel</strong> - klick auf NSC, Ort, Gegenstand oder Quest auf dem Board, und es öffnet sich daneben</li><li><strong>KI-Connector</strong> - kann Funken und Beats anlegen, als gespielt markieren, Quests pflegen, Fraktionsuhren vorrücken und Weltereignisse eintragen</li></ul>"
+    }
   },
   "errors": {
     "CAMPAIGN_ID_REQUIRED": "Kampagnen-ID ist erforderlich",
@@ -3060,5 +3066,175 @@
   },
   "entityLink": {
     "open": "Eintrag öffnen"
+  },
+  "story": {
+    "title": "Story-Board",
+    "subtitle": "In Clustern planen, Ideen als Funken sammeln, die Sitzung aus der Ablage leiten.",
+    "noCampaign": "Wähle zuerst eine Kampagne",
+    "tabs": {
+      "board": "Board",
+      "run": "Ablaufplan",
+      "world": "Welt"
+    },
+    "colorBy": {
+      "label": "Farbe nach",
+      "storyline": "Handlungsstrang",
+      "heat": "Dringlichkeit",
+      "region": "Region",
+      "status": "Status"
+    },
+    "heat": {
+      "cold": "Kalt",
+      "warm": "Warm",
+      "hot": "Heiß"
+    },
+    "clusterStatus": {
+      "active": "Aktiv",
+      "dormant": "Ruhend",
+      "resolved": "Abgeschlossen"
+    },
+    "kind": {
+      "scene": "Szene",
+      "combat": "Kampf",
+      "social": "Sozial",
+      "reveal": "Enthüllung",
+      "hook": "Aufhänger",
+      "travel": "Reise"
+    },
+    "beatStatus": {
+      "idea": "Idee",
+      "ready": "Bereit",
+      "played": "Gespielt",
+      "cut": "Gestrichen"
+    },
+    "hidePlayed": "Gespielte ausblenden",
+    "party": {
+      "label": "Gruppe ist in",
+      "near": "Nahe der Gruppe",
+      "onlyNear": "Nur nahe der Gruppe",
+      "unknown": "nicht gesetzt"
+    },
+    "empty": {
+      "title": "Noch keine Cluster",
+      "text": "Ein Cluster ist ein Faden der Geschichte: ein Ort, ein Plot, ein Rätsel. Lege einen an und zieh Beats hinein."
+    },
+    "storyline": {
+      "label": "Handlungsstrang",
+      "manage": "Handlungsstränge",
+      "manageHint": "Jeder Handlungsstrang bekommt eine Farbe aus deinem Theme. Cluster und Quests nutzen sie bei „Farbe nach Handlungsstrang“.",
+      "color": "Farbe",
+      "none": "Noch keine Handlungsstränge.",
+      "newPlaceholder": "Neuer Handlungsstrang, z. B. Die versunkene Krone"
+    },
+    "cluster": {
+      "new": "Neuer Cluster",
+      "edit": "Cluster bearbeiten",
+      "title": "Titel",
+      "heat": "Dringlichkeit",
+      "status": "Status",
+      "location": "Wo es passiert",
+      "locationHint": "Für die Regionsfarben und den Filter „Gruppe ist in“",
+      "quest": "Quest",
+      "notes": "Notizen",
+      "progress": "Gespielte / alle Beats",
+      "collapse": "Einklappen",
+      "expand": "Ausklappen",
+      "dropHere": "Beats oder Funken hierher ziehen",
+      "deleteTitle": "Cluster löschen?",
+      "deleteText": "„{name}“ wird gelöscht. Seine Beats können zurück ins Funkenregal.",
+      "deleteKeepBeats": "Löschen, Beats behalten",
+      "deleteWithBeats": "Mit Beats löschen"
+    },
+    "beat": {
+      "new": "Neuer Beat",
+      "edit": "Beat bearbeiten",
+      "title": "Was passiert",
+      "kind": "Art",
+      "status": "Status",
+      "body": "Details",
+      "bodyHint": "Formatierung: „## Überschrift“, „- Punkt“, „**fett**“, „Label: Text“",
+      "cluster": "Cluster",
+      "location": "Wo",
+      "entities": "Wer und was beteiligt ist",
+      "playedIn": "Gespielt in Sitzung",
+      "quickAdd": "Beat hinzufügen…"
+    },
+    "sparks": {
+      "title": "Funken",
+      "hint": "Lose Ideen. Zieh eine in einen Cluster, wenn sie passt.",
+      "add": "Idee festhalten…",
+      "empty": "Keine Funken"
+    },
+    "tray": {
+      "title": "Nächste Sitzung",
+      "add": "Für die nächste Sitzung",
+      "remove": "Aus der nächsten Sitzung entfernen",
+      "inTray": "In der nächsten Sitzung",
+      "empty": "Klick auf das Kalender-Symbol eines Beats, um ihn für die nächste Sitzung einzuplanen."
+    },
+    "run": {
+      "open": "Ablaufplan",
+      "logTo": "Gespielte Beats eintragen in",
+      "played": "Gespielt",
+      "skip": "Nicht jetzt",
+      "emptyTitle": "Noch nichts geplant",
+      "emptyText": "Plane Beats im Board-Tab für die nächste Sitzung ein."
+    },
+    "world": {
+      "today": "Heute in der Welt",
+      "timeline": "Weltgeschehen",
+      "showAll": "Alle Kalenderereignisse",
+      "addEvent": "Weltereignis",
+      "editEvent": "Weltereignis bearbeiten",
+      "empty": "Noch keine Weltereignisse. Halte fest, was in der Welt passiert, auch wenn die Gruppe nicht dort ist.",
+      "upcoming": "Steht bevor",
+      "past": "Schon passiert",
+      "eventTitle": "Was passiert",
+      "eventDescription": "Details",
+      "day": "Tag",
+      "month": "Monat",
+      "year": "Jahr",
+      "involved": "Wer und was beteiligt ist"
+    },
+    "agenda": {
+      "title": "Fraktionspläne",
+      "add": "Plan",
+      "edit": "Plan bearbeiten",
+      "empty": "Noch keine Pläne. Worauf arbeitet jede Fraktion hin?",
+      "faction": "Fraktion",
+      "goal": "Ziel",
+      "goalPlaceholder": "z. B. Den Hafen vor dem Winter einnehmen",
+      "nextStep": "Nächster Schritt",
+      "clockSize": "Uhr-Segmente",
+      "statusLabel": "Status",
+      "full": "Uhr voll!",
+      "status": {
+        "active": "Aktiv",
+        "achieved": "Erreicht",
+        "foiled": "Vereitelt"
+      }
+    }
+  },
+  "quests": {
+    "title": "Quests",
+    "subtitle": "Vom Gerücht bis erledigt. Zieh eine Quest, um ihren Status zu ändern.",
+    "new": "Neue Quest",
+    "edit": "Quest bearbeiten",
+    "name": "Name",
+    "status": "Status",
+    "giver": "Auftraggeber",
+    "location": "Wo",
+    "reward": "Belohnung",
+    "description": "Beschreibung",
+    "objectives": "Ziele",
+    "addObjective": "Ziel hinzufügen…",
+    "objectivesDone": "{done} von {total} Zielen erledigt",
+    "dropHere": "Quest hierher ziehen",
+    "statuses": {
+      "rumor": "Gerüchte",
+      "active": "Aktiv",
+      "completed": "Erledigt",
+      "failed": "Gescheitert"
+    }
   }
 }

@@ -25,7 +25,7 @@ export function entityTabKey(tab: Pick<EntityTab, 'type' | 'id'>): string {
 /** Entity-type names from the database ("NPC", "Location", …) → tab type. */
 export function toPreviewType(entityType: string | null | undefined): EntityPreviewType | null {
   const t = (entityType ?? '').toLowerCase()
-  return (['npc', 'location', 'item', 'faction', 'lore', 'player'] as const).find(x => x === t) ?? null
+  return (['npc', 'location', 'item', 'faction', 'lore', 'player', 'quest'] as const).find(x => x === t) ?? null
 }
 
 interface Saved { tabs: EntityTab[], activeKey: string | null, open: boolean, wide: boolean }

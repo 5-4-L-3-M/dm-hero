@@ -134,6 +134,40 @@
             <strong>{{ $t('common.notes') }}:</strong>
             <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />
           </div>
+          <template v-if="campaignId && entityId">
+            <v-divider class="my-4" />
+            <FactionAgendaList :campaign-id="campaignId" :faction-id="entityId" />
+          </template>
+        </template>
+
+        <!-- Quest Details -->
+        <template v-if="type === 'quest'">
+          <div class="d-flex flex-wrap ga-1 mb-3">
+            <v-chip size="small" :color="QUEST_COLORS[quest.status]" variant="flat">
+              <v-icon start size="small">{{ QUEST_STATUS_ICONS[quest.status] }}</v-icon>{{ $t(`quests.statuses.${quest.status}`) }}
+            </v-chip>
+          </div>
+          <div class="text-body-medium mb-3">
+            <div v-if="entity.giver_name" class="mb-1">
+              <strong>{{ $t('quests.giver') }}:</strong>
+              <SharedEntityLink :id="Number(entity.giver_id)" :type="giverType" :name="String(entity.giver_name)" />
+            </div>
+            <div v-if="entity.location_name" class="mb-1">
+              <strong>{{ $t('quests.location') }}:</strong>
+              <SharedEntityLink :id="Number(entity.location_id)" type="Location" :name="String(entity.location_name)" />
+            </div>
+            <div v-if="entity.reward" class="mb-1">
+              <strong>{{ $t('quests.reward') }}:</strong> {{ entity.reward }}
+            </div>
+          </div>
+          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
+          <template v-if="quest.objectives.length">
+            <strong>{{ $t('quests.objectives') }}</strong>
+            <div v-for="(o, i) in quest.objectives" :key="i" class="d-flex align-center">
+              <v-checkbox-btn :model-value="o.done" density="compact" @update:model-value="toggleObjective(i, !!$event)" />
+              <span :class="{ 'text-decoration-line-through text-medium-emphasis': o.done }">{{ o.text }}</span>
+            </div>
+          </template>
         </template>
 
         <!-- Lore Details -->
@@ -247,6 +281,8 @@ import PlayerCharacterSummary from '~/components/players/PlayerCharacterSummary.
 import { isShopLocationType } from '~~/types/shop'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
+import FactionAgendaList from '~/components/story/FactionAgendaList.vue'
+import { QUEST_STATUS_ICONS, readQuestMetadata, type QuestObjective, type QuestStatus } from '~~/types/story'
 import type { EntityPreviewType } from './EntityPreviewDialog.vue'
 
 /**
@@ -307,6 +343,19 @@ const locationType = computed(() =>
   ((entity.value?.metadata as { type?: string } | null)?.type ?? (entity.value as { type?: string } | null)?.type) || null,
 )
 const showShopTab = computed(() => type.value === 'location' && isShopLocationType(locationType.value ?? undefined))
+
+const campaignId = computed(() => useCampaignStore().activeCampaignIdNumber)
+
+// Quests: status + objectives (tick them off right here)
+const QUEST_COLORS: Record<QuestStatus, string> = { rumor: 'warning', active: 'primary', completed: 'success', failed: 'error' }
+const quest = computed(() => readQuestMetadata(entity.value ?? {}))
+const giverType = computed(() => String(entity.value?.giver_type ?? 'NPC'))
+async function toggleObjective(index: number, done: boolean) {
+  if (!entity.value) return
+  const objectives: QuestObjective[] = quest.value.objectives.map((o, i) => (i === index ? { ...o, done } : o))
+  entity.value = { ...entity.value, objectives }
+  await $fetch(`/api/quests/${entity.value.id}`, { method: 'PATCH', body: { objectives } })
+}
 
 let loadToken = 0
 async function load() {
