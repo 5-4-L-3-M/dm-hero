@@ -1,5 +1,16 @@
 # @dm-hero/app
 
+## 1.7.3
+
+### Minor Changes
+
+- NPCs in the side panel show everything at a glance: status and type chips, race, class, gender, age (with human age), current location and factions (clickable), then the description and every connection.
+- The side panel's "Open full" button is now "Edit" (it always opened the editor).
+
+### Patch Changes
+
+- Fixed the app stalling while linking things or picking a location: the lists of places, NPCs, items and factions multiplied every connection against every other one, so a well-connected city took seconds to load — and while it did, everything else waited. Those lists now load in milliseconds.
+
 ## 1.7.2
 
 ### Minor Changes

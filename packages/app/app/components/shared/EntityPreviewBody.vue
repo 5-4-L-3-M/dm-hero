@@ -17,7 +17,7 @@
       <LocationShopTab v-if="showShopTab && previewTab === 'shop'" :location-id="entityId!" />
 
       <div v-else>
-        <!-- NPC Details -->
+        <!-- NPC Details: everything at a glance -->
         <template v-if="type === 'npc'">
           <v-img
             v-if="entity.image_url"
@@ -26,22 +26,39 @@
             max-height="420"
             class="mb-4 rounded preview-image"
           />
-          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
-          <v-divider class="my-4" />
-          <div class="text-body-medium">
-            <div v-if="entity.race" class="mb-2">
-              <strong>{{ $t('npcs.race') }}:</strong> {{ entity.race }}
-            </div>
-            <div v-if="Array.isArray(entity.class) ? entity.class.length > 0 : entity.class" class="mb-2">
-              <strong>{{ $t('npcs.class') }}:</strong> {{ Array.isArray(entity.class) ? entity.class.join(', ') : entity.class }}
-            </div>
-            <div v-if="entity.faction" class="mb-2">
-              <strong>{{ $t('npcs.faction') }}:</strong> {{ entity.faction }}
-            </div>
-            <div v-if="npcAge" class="mb-2">
-              <strong>{{ $t('npcs.age') }}:</strong> {{ npcAge }}
-            </div>
+
+          <div v-if="npcMeta.status || npcTypes.length" class="d-flex flex-wrap ga-1 mb-3">
+            <v-chip v-if="npcMeta.status" size="small" :color="npcMeta.status === 'dead' ? 'error' : npcMeta.status === 'alive' ? 'success' : 'warning'" variant="flat">
+              {{ $te(`npcs.statuses.${npcMeta.status}`) ? $t(`npcs.statuses.${npcMeta.status}`) : npcMeta.status }}
+            </v-chip>
+            <v-chip v-for="nt in npcTypes" :key="nt" size="small" variant="tonal">
+              {{ $te(`npcs.types.${nt}`) ? $t(`npcs.types.${nt}`) : nt }}
+            </v-chip>
           </div>
+
+          <div v-if="npcFacts.length || npcLocation || npcFactions.length" class="facts text-body-medium mb-4">
+            <template v-for="f in npcFacts" :key="f.key">
+              <v-icon size="small" class="text-medium-emphasis">{{ f.icon }}</v-icon>
+              <span class="text-medium-emphasis">{{ f.label }}</span>
+              <span>{{ f.value }}</span>
+            </template>
+            <template v-if="npcLocation">
+              <v-icon size="small" class="text-medium-emphasis">mdi-map-marker</v-icon>
+              <span class="text-medium-emphasis">{{ $t('entities.currentLocation') }}</span>
+              <SharedEntityLink :id="npcLocation.id" type="Location" :name="npcLocation.name" />
+            </template>
+            <template v-if="npcFactions.length">
+              <v-icon size="small" class="text-medium-emphasis">mdi-shield</v-icon>
+              <span class="text-medium-emphasis">{{ $t('npcs.faction') }}</span>
+              <span>
+                <template v-for="(fc, i) in npcFactions" :key="fc.relationId">
+                  <SharedEntityLink :id="fc.entityId" type="Faction" :name="fc.entityName" /><span v-if="fc.relationType" class="text-medium-emphasis"> ({{ relationLabel(fc.relationType) }})</span><span v-if="i < npcFactions.length - 1">, </span>
+                </template>
+              </span>
+            </template>
+          </div>
+
+          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
             <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />
@@ -372,7 +389,33 @@ const locationType = computed(() =>
 const showShopTab = computed(() => type.value === 'location' && isShopLocationType(locationType.value ?? undefined))
 
 const campaignId = computed(() => useCampaignStore().activeCampaignIdNumber)
-const { t } = useI18n()
+const { t, te } = useI18n()
+// NPC: race/class/gender/age/location/factions from metadata + connections
+const { raceName, classNames } = useReferenceNames()
+const npcMeta = computed(() => ((entity.value?.metadata ?? {}) as Record<string, unknown>))
+const npcTypes = computed(() => {
+  const v = npcMeta.value.type
+  return (Array.isArray(v) ? v : v ? [v] : []).filter((x): x is string => typeof x === 'string')
+})
+const npcFacts = computed(() => {
+  const m = npcMeta.value
+  const gender = typeof m.gender === 'string' && m.gender ? (te(`npcs.genders.${m.gender}`) ? t(`npcs.genders.${m.gender}`) : m.gender) : ''
+  return [
+    { key: 'race', icon: 'mdi-account-details', label: t('npcs.race'), value: raceName(m.race) },
+    { key: 'class', icon: 'mdi-sword-cross', label: t('npcs.class'), value: classNames(m.class).join(', ') },
+    { key: 'gender', icon: 'mdi-gender-male-female', label: t('npcs.gender'), value: gender },
+    { key: 'age', icon: 'mdi-cake-variant', label: t('npcs.age'), value: npcAge.value },
+  ].filter(f => f.value)
+})
+const npcLocation = ref<{ id: number, name: string } | null>(null)
+watch(() => (type.value === 'npc' ? Number(entity.value?.location_id) || null : null), async (id) => {
+  npcLocation.value = null
+  if (!id) return
+  const loc = await $fetch<{ id: number, name: string }>(`/api/locations/${id}`).catch(() => null)
+  if (loc && Number(entity.value?.location_id) === id) npcLocation.value = { id, name: loc.name }
+}, { immediate: true })
+const npcFactions = computed(() => (type.value === 'npc' ? connections.value.filter(c => c.entityType === 'Faction') : []))
+
 const npcAge = computed(() => {
   const m = (entity.value?.metadata ?? entity.value ?? {}) as { age?: unknown, age_human?: unknown }
   return ageText(m.age ?? entity.value?.age, m.age_human ?? entity.value?.age_human, t('npcs.humanWord'))
@@ -455,6 +498,7 @@ defineExpose({ reload: load })
 </script>
 
 <style scoped>
+.facts,
 .quest-facts {
   display: grid;
   grid-template-columns: auto auto 1fr;

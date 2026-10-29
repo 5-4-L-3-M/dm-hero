@@ -237,14 +237,10 @@ export default defineEventHandler(async (event) => {
           GROUP_CONCAT(DISTINCT npc_out.name || '|' || npc_in.name) as linked_npc_names
         FROM entities_fts fts
         INNER JOIN entities e ON fts.rowid = e.id
-        LEFT JOIN entity_relations faction_rel ON faction_rel.from_entity_id = e.id
-        LEFT JOIN entities faction ON faction.id = faction_rel.to_entity_id AND faction.deleted_at IS NULL AND faction.type_id = (SELECT id FROM entity_types WHERE name = 'Faction')
-        LEFT JOIN entity_relations lore_rel ON lore_rel.from_entity_id = e.id
-        LEFT JOIN entities lore ON lore.id = lore_rel.to_entity_id AND lore.deleted_at IS NULL AND lore.type_id = (SELECT id FROM entity_types WHERE name = 'Lore')
-        LEFT JOIN entity_relations npc_rel_out ON npc_rel_out.from_entity_id = e.id
-        LEFT JOIN entities npc_out ON npc_out.id = npc_rel_out.to_entity_id AND npc_out.deleted_at IS NULL AND npc_out.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')
-        LEFT JOIN entity_relations npc_rel_in ON npc_rel_in.to_entity_id = e.id
-        LEFT JOIN entities npc_in ON npc_in.id = npc_rel_in.from_entity_id AND npc_in.deleted_at IS NULL AND npc_in.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')
+        LEFT JOIN (entity_relations faction_rel JOIN entities faction ON faction.id = faction_rel.to_entity_id AND faction.deleted_at IS NULL AND faction.type_id = (SELECT id FROM entity_types WHERE name = 'Faction')) ON faction_rel.from_entity_id = e.id
+        LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.to_entity_id AND lore.deleted_at IS NULL AND lore.type_id = (SELECT id FROM entity_types WHERE name = 'Lore')) ON lore_rel.from_entity_id = e.id
+        LEFT JOIN (entity_relations npc_rel_out JOIN entities npc_out ON npc_out.id = npc_rel_out.to_entity_id AND npc_out.deleted_at IS NULL AND npc_out.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')) ON npc_rel_out.from_entity_id = e.id
+        LEFT JOIN (entity_relations npc_rel_in JOIN entities npc_in ON npc_in.id = npc_rel_in.from_entity_id AND npc_in.deleted_at IS NULL AND npc_in.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')) ON npc_rel_in.to_entity_id = e.id
         WHERE entities_fts MATCH ?
           AND e.type_id = ?
           AND e.campaign_id = ?
@@ -280,14 +276,10 @@ export default defineEventHandler(async (event) => {
             GROUP_CONCAT(DISTINCT npc_out.name || '|' || npc_in.name) as linked_npc_names
           FROM entities_fts fts
           INNER JOIN entities e ON fts.rowid = e.id
-          LEFT JOIN entity_relations faction_rel ON faction_rel.from_entity_id = e.id
-          LEFT JOIN entities faction ON faction.id = faction_rel.to_entity_id AND faction.deleted_at IS NULL AND faction.type_id = (SELECT id FROM entity_types WHERE name = 'Faction')
-          LEFT JOIN entity_relations lore_rel ON lore_rel.from_entity_id = e.id
-          LEFT JOIN entities lore ON lore.id = lore_rel.to_entity_id AND lore.deleted_at IS NULL AND lore.type_id = (SELECT id FROM entity_types WHERE name = 'Lore')
-          LEFT JOIN entity_relations npc_rel_out ON npc_rel_out.from_entity_id = e.id
-          LEFT JOIN entities npc_out ON npc_out.id = npc_rel_out.to_entity_id AND npc_out.deleted_at IS NULL AND npc_out.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')
-          LEFT JOIN entity_relations npc_rel_in ON npc_rel_in.to_entity_id = e.id
-          LEFT JOIN entities npc_in ON npc_in.id = npc_rel_in.from_entity_id AND npc_in.deleted_at IS NULL AND npc_in.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')
+          LEFT JOIN (entity_relations faction_rel JOIN entities faction ON faction.id = faction_rel.to_entity_id AND faction.deleted_at IS NULL AND faction.type_id = (SELECT id FROM entity_types WHERE name = 'Faction')) ON faction_rel.from_entity_id = e.id
+          LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.to_entity_id AND lore.deleted_at IS NULL AND lore.type_id = (SELECT id FROM entity_types WHERE name = 'Lore')) ON lore_rel.from_entity_id = e.id
+          LEFT JOIN (entity_relations npc_rel_out JOIN entities npc_out ON npc_out.id = npc_rel_out.to_entity_id AND npc_out.deleted_at IS NULL AND npc_out.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')) ON npc_rel_out.from_entity_id = e.id
+          LEFT JOIN (entity_relations npc_rel_in JOIN entities npc_in ON npc_in.id = npc_rel_in.from_entity_id AND npc_in.deleted_at IS NULL AND npc_in.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')) ON npc_rel_in.to_entity_id = e.id
           WHERE entities_fts MATCH ?
             AND e.type_id = ?
             AND e.campaign_id = ?
@@ -330,14 +322,10 @@ export default defineEventHandler(async (event) => {
             GROUP_CONCAT(DISTINCT lore.name) as linked_lore_names,
             GROUP_CONCAT(DISTINCT npc_out.name || '|' || npc_in.name) as linked_npc_names
           FROM entities e
-          LEFT JOIN entity_relations faction_rel ON faction_rel.from_entity_id = e.id
-          LEFT JOIN entities faction ON faction.id = faction_rel.to_entity_id AND faction.deleted_at IS NULL AND faction.type_id = (SELECT id FROM entity_types WHERE name = 'Faction')
-          LEFT JOIN entity_relations lore_rel ON lore_rel.from_entity_id = e.id
-          LEFT JOIN entities lore ON lore.id = lore_rel.to_entity_id AND lore.deleted_at IS NULL AND lore.type_id = (SELECT id FROM entity_types WHERE name = 'Lore')
-          LEFT JOIN entity_relations npc_rel_out ON npc_rel_out.from_entity_id = e.id
-          LEFT JOIN entities npc_out ON npc_out.id = npc_rel_out.to_entity_id AND npc_out.deleted_at IS NULL AND npc_out.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')
-          LEFT JOIN entity_relations npc_rel_in ON npc_rel_in.to_entity_id = e.id
-          LEFT JOIN entities npc_in ON npc_in.id = npc_rel_in.from_entity_id AND npc_in.deleted_at IS NULL AND npc_in.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')
+          LEFT JOIN (entity_relations faction_rel JOIN entities faction ON faction.id = faction_rel.to_entity_id AND faction.deleted_at IS NULL AND faction.type_id = (SELECT id FROM entity_types WHERE name = 'Faction')) ON faction_rel.from_entity_id = e.id
+          LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.to_entity_id AND lore.deleted_at IS NULL AND lore.type_id = (SELECT id FROM entity_types WHERE name = 'Lore')) ON lore_rel.from_entity_id = e.id
+          LEFT JOIN (entity_relations npc_rel_out JOIN entities npc_out ON npc_out.id = npc_rel_out.to_entity_id AND npc_out.deleted_at IS NULL AND npc_out.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')) ON npc_rel_out.from_entity_id = e.id
+          LEFT JOIN (entity_relations npc_rel_in JOIN entities npc_in ON npc_in.id = npc_rel_in.from_entity_id AND npc_in.deleted_at IS NULL AND npc_in.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')) ON npc_rel_in.to_entity_id = e.id
           WHERE e.type_id = ?
             AND e.campaign_id = ?
             AND e.deleted_at IS NULL

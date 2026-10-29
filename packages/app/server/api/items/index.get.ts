@@ -236,12 +236,10 @@ export default defineEventHandler(async (event) => {
             GROUP_CONCAT(DISTINCT owner_npc.name) as owner_names,
             GROUP_CONCAT(DISTINCT lore.name) as linked_lore_names
           FROM entities e
-          LEFT JOIN entity_relations owner_rel ON owner_rel.to_entity_id = e.id
-          LEFT JOIN entities owner_npc ON owner_npc.id = owner_rel.from_entity_id
+          LEFT JOIN (entity_relations owner_rel JOIN entities owner_npc ON owner_npc.id = owner_rel.from_entity_id) ON owner_rel.to_entity_id = e.id
             AND owner_npc.deleted_at IS NULL
             AND owner_npc.type_id = ?
-          LEFT JOIN entity_relations lore_rel ON lore_rel.from_entity_id = e.id
-          LEFT JOIN entities lore ON lore.id = lore_rel.to_entity_id
+          LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.to_entity_id) ON lore_rel.from_entity_id = e.id
             AND lore.deleted_at IS NULL
             AND lore.type_id = ?
           WHERE e.id IN (${placeholders})
@@ -308,12 +306,10 @@ export default defineEventHandler(async (event) => {
               GROUP_CONCAT(DISTINCT owner_npc.name) as owner_names,
               GROUP_CONCAT(DISTINCT lore.name) as linked_lore_names
             FROM entities e
-            LEFT JOIN entity_relations owner_rel ON owner_rel.to_entity_id = e.id
-            LEFT JOIN entities owner_npc ON owner_npc.id = owner_rel.from_entity_id
+            LEFT JOIN (entity_relations owner_rel JOIN entities owner_npc ON owner_npc.id = owner_rel.from_entity_id) ON owner_rel.to_entity_id = e.id
               AND owner_npc.deleted_at IS NULL
               AND owner_npc.type_id = ?
-            LEFT JOIN entity_relations lore_rel ON lore_rel.from_entity_id = e.id
-            LEFT JOIN entities lore ON lore.id = lore_rel.to_entity_id
+            LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.to_entity_id) ON lore_rel.from_entity_id = e.id
               AND lore.deleted_at IS NULL
               AND lore.type_id = ?
             WHERE e.id IN (${placeholders})
@@ -358,10 +354,8 @@ export default defineEventHandler(async (event) => {
             GROUP_CONCAT(DISTINCT owner_npc.name) as owner_names,
             GROUP_CONCAT(DISTINCT lore.name) as linked_lore_names
           FROM entities e
-          LEFT JOIN entity_relations owner_rel ON owner_rel.to_entity_id = e.id
-          LEFT JOIN entities owner_npc ON owner_npc.id = owner_rel.from_entity_id AND owner_npc.deleted_at IS NULL AND owner_npc.type_id = ?
-          LEFT JOIN entity_relations lore_rel ON lore_rel.from_entity_id = e.id
-          LEFT JOIN entities lore ON lore.id = lore_rel.to_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?
+          LEFT JOIN (entity_relations owner_rel JOIN entities owner_npc ON owner_npc.id = owner_rel.from_entity_id AND owner_npc.deleted_at IS NULL AND owner_npc.type_id = ?) ON owner_rel.to_entity_id = e.id
+          LEFT JOIN (entity_relations lore_rel JOIN entities lore ON lore.id = lore_rel.to_entity_id AND lore.deleted_at IS NULL AND lore.type_id = ?) ON lore_rel.from_entity_id = e.id
           WHERE e.type_id = ?
             AND e.campaign_id = ?
             AND e.deleted_at IS NULL
@@ -825,8 +819,7 @@ export default defineEventHandler(async (event) => {
         e.folder_id,
         GROUP_CONCAT(DISTINCT owner_npc.name) as owner_names
       FROM entities e
-      LEFT JOIN entity_relations owner_rel ON owner_rel.to_entity_id = e.id
-      LEFT JOIN entities owner_npc ON owner_npc.id = owner_rel.from_entity_id AND owner_npc.deleted_at IS NULL AND owner_npc.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')
+      LEFT JOIN (entity_relations owner_rel JOIN entities owner_npc ON owner_npc.id = owner_rel.from_entity_id AND owner_npc.deleted_at IS NULL AND owner_npc.type_id = (SELECT id FROM entity_types WHERE name = 'NPC')) ON owner_rel.to_entity_id = e.id
       WHERE e.type_id = ?
         AND e.campaign_id = ?
         AND e.deleted_at IS NULL
