@@ -3244,5 +3244,20 @@
     "relationTypes": {
       "involved": "Beteiligt"
     }
+  },
+  "formattingGuide": {
+    "title": "Textformatierung",
+    "intro": "Beschreibungen und Notizen sind einfacher Text. Diese Muster werden im Seitenpanel, in Vorschauen und im Ablaufplan formatiert angezeigt.",
+    "youType": "Du tippst",
+    "becomes": "Wird zu",
+    "note": "Eine Zeile mit Doppelpunkt ist nur dann eine Überschrift, wenn sie allein steht, unter 60 Zeichen hat und kein . ! oder ? enthält — ein Label sind 1–3 Wörter vor dem Doppelpunkt, normale Sätze mit Doppelpunkt bleiben Sätze.",
+    "rules": {
+      "mdHeading": "Überschrift",
+      "colonHeading": "Überschrift (kurze Zeile mit Doppelpunkt am Ende)",
+      "capsHeading": "Überschrift (nur Großbuchstaben)",
+      "label": "Fettes Label, dann der Text",
+      "bullet": "Aufzählungspunkt (auch •, ▸ oder 1.)",
+      "bold": "Fett, überall in einer Zeile"
+    }
   }
 }

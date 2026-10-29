@@ -3244,5 +3244,20 @@
     "relationTypes": {
       "involved": "Involved"
     }
+  },
+  "formattingGuide": {
+    "title": "Text formatting",
+    "intro": "Descriptions and notes are plain text. These patterns are shown formatted in the side panel, previews and the run sheet.",
+    "youType": "You type",
+    "becomes": "Shows as",
+    "note": "A colon line is a heading only if it's alone on its line, under 60 characters and has no . ! or ? — a label is 1–3 words before the colon, so normal sentences with a colon stay sentences.",
+    "rules": {
+      "mdHeading": "Heading",
+      "colonHeading": "Heading (short line ending in a colon)",
+      "capsHeading": "Heading (all capitals)",
+      "label": "Bold label, then the text",
+      "bullet": "Bullet (also •, ▸ or 1.)",
+      "bold": "Bold anywhere in a line"
+    }
   }
 }

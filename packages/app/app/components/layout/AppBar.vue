@@ -22,6 +22,9 @@
       <GameTableHeaderChip />
     </ClientOnly>
 
+    <!-- How to format description text (headings, labels, bullets) -->
+    <FormattingGuide />
+
     <!-- Language Switcher with Flags -->
     <v-menu>
       <template #activator="{ props: menuProps }">
@@ -71,6 +74,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { SUPPORTED_LOCALES } from '~~/types/locale'
+import FormattingGuide from './FormattingGuide.vue'
 import packageJson from '../../../package.json'
 
 interface WindowControlsOverlay extends EventTarget {
