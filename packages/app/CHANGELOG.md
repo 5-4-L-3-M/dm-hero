@@ -1,5 +1,17 @@
 # @dm-hero/app
 
+## 1.6.7
+
+### Minor Changes
+
+- Clickable names: items in inventories, characters and other entries in relation lists, NPC faction badges and shop items open the entry. Inside a dialog it opens as a quick preview on top (with "Open as tab" and "Open full"); anywhere else it opens as a tab in the side panel.
+- Player character details: race, classes with levels and subclasses (multiclass), alignment, background, patron god, homeland, phobia, age, height, weight, and AC / HP / speed / initiative / proficiency / passive perception. Set them in the player's details; cards, the player view and the side panel show them like the top of a character sheet. The AI connector can fill them in.
+- Formatted text in the side panel and quick preview: short "Label:" lines and ALL-CAPS lines become headings, "Label: text" lines get a bold label, lines starting with - • ▸ become bullets, and **bold** / # headings work too.
+
+### Patch Changes
+
+- The NPC view's empty relations message is no longer in German.
+
 ## 1.6.6
 
 ### Minor Changes

@@ -67,7 +67,7 @@
           <v-icon v-else icon="mdi-account" color="primary" class="mr-3" />
         </template>
 
-        <v-list-item-title>{{ npc.name }}</v-list-item-title>
+        <v-list-item-title><SharedEntityLink :id="linkedEntityId(npc)" type="npc" :name="npc.name" /></v-list-item-title>
 
         <v-list-item-subtitle>
           <v-chip v-if="showMembershipType && npc.relation_type" size="small" class="mr-1" color="primary" variant="tonal">
@@ -153,6 +153,8 @@
 </template>
 
 <script setup lang="ts">
+import { linkedEntityId } from '~/utils/linkedEntity'
+
 const { t } = useI18n()
 const entitiesStore = useEntitiesStore()
 const campaignStore = useCampaignStore()
@@ -163,6 +165,10 @@ const { markDirty } = useTabDirtyState('npcs', t('npcs.title'))
 
 interface LinkedNpc {
   id: number
+  entity_id?: number | null
+  from_entity_id?: number | null
+  to_entity_id?: number | null
+  direction?: 'outgoing' | 'incoming'
   name: string
   description?: string | null
   image_url?: string | null

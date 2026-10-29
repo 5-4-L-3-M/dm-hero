@@ -142,6 +142,7 @@
                             size="small"
                             variant="tonal"
                             color="secondary"
+                            @click="peek.show('faction', faction.id)"
                           >
                             {{ faction.name }}
                             <span class="text-body-small ml-1 opacity-70">({{ translateMembershipType(faction.relationType) }})</span>
@@ -184,7 +185,7 @@
                 <v-progress-circular indeterminate color="primary" />
               </div>
               <div v-else-if="relations.length === 0" class="text-center py-8 text-medium-emphasis">
-                {{ $t('npcs.npcRelations') }} - Keine Daten
+                {{ $t('common.noResults') }}
               </div>
               <v-list v-else lines="two">
                 <v-list-item
@@ -324,6 +325,8 @@ import EntityImageGalleryView from '~/components/shared/EntityImageGalleryView.v
 import SharedEntityStatsTab from '~/components/shared/EntityStatsTab.vue'
 import { getNpcTypeIcon, getNpcStatusIcon, getNpcStatusColor } from '~/utils/npc-icons'
 import { toArray } from '~/utils/array'
+
+const peek = useEntityPeekStore()
 
 interface Props {
   show: boolean

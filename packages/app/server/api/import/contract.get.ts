@@ -79,6 +79,23 @@ export default defineEventHandler(() => {
       // Players can't be imported, but update_entities edits them by id.
       Player: {
         carry_bonus: { type: 'number', note: 'extra carrying capacity in pounds (lb), added to STR × 15; can be negative; 0/unset = none. Edit with update_entities.' },
+        // Character sheet header shown on player cards. Plain text unless noted; null clears a field.
+        race: { type: 'string', note: 'free text, e.g. "Dragonborn (Copper)"' },
+        classes: { type: 'array', note: 'one entry per class: [{ name: "Pirate", level: 3, subclass: "Buccaneer" }, { name: "Warlock", level: 1 }]; total level is the sum' },
+        background: { type: 'string' },
+        alignment: { type: 'string', note: 'e.g. "Chaotic Neutral"' },
+        age: { type: 'string', note: 'free text, e.g. "115 (looks ~58)"' },
+        height: { type: 'string', note: 'e.g. "6\' 10\\""' },
+        weight: { type: 'string', note: 'e.g. "280 lb"' },
+        patron: { type: 'string', note: 'patron god' },
+        homeland: { type: 'string' },
+        phobia: { type: 'string' },
+        ac: { type: 'number' },
+        hp: { type: 'number', note: 'max HP' },
+        speed: { type: 'string', note: 'e.g. "30 ft"' },
+        initiative: { type: 'string', note: 'e.g. "+3"' },
+        proficiency: { type: 'string', note: 'proficiency bonus, e.g. "+2"' },
+        passive_perception: { type: 'number' },
       },
     },
 

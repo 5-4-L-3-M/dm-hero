@@ -29,7 +29,8 @@
 
         <!-- Title -->
         <v-list-item-title class="font-weight-medium">
-          {{ entity.name }}
+          <template v-if="clickable">{{ entity.name }}</template>
+          <SharedEntityLink v-else :id="otherEntityId(entity)" :type="entityType" :name="entity.name" />
           <!-- Rarity Chip (for Items) -->
           <v-chip v-if="entity.rarity" size="x-small" :color="getRarityColor(entity.rarity)" class="ml-2">
             {{ $t(`items.rarities.${entity.rarity}`) }}
@@ -71,6 +72,8 @@
 </template>
 
 <script setup lang="ts">
+import { linkedEntityId } from '~/utils/linkedEntity'
+
 interface Entity {
   id: number
   name: string
@@ -112,6 +115,12 @@ defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+/** Rows straight from the relations API carry both ends; others are the entry itself. */
+function otherEntityId(entity: Entity): number | null {
+  const row = entity as Entity & { from_entity_id?: number, to_entity_id?: number, direction?: string }
+  return row.from_entity_id !== undefined || row.to_entity_id !== undefined ? linkedEntityId(row) : entity.id
+}
 
 // Helper functions
 function getIcon(entity?: Entity): string {

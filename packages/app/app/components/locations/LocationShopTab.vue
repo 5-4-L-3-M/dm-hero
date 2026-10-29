@@ -25,7 +25,7 @@
           <td>
             <div class="py-2">
               <div class="d-flex align-center flex-wrap ga-2">
-                <span class="font-weight-medium">{{ row.name }}</span>
+                <span class="font-weight-medium"><SharedEntityLink v-if="row.item_id" :id="row.item_id" type="item" :name="row.name" /><template v-else>{{ row.name }}</template></span>
                 <v-chip v-if="row.category" size="x-small" label variant="tonal" :color="CATEGORY_COLORS[row.category]">
                   {{ $t(`shop.categories.${row.category}`) }}
                 </v-chip>

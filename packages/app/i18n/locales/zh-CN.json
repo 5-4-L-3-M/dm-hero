@@ -2004,7 +2004,34 @@
       "studies": "研究"
     },
     "carryBonus": "负重上限加成（{unit}）",
-    "carryBonusHint": "加到力量 × 15 上，可以为负数。"
+    "carryBonusHint": "加到力量 × 15 上，可以为负数。",
+    "character": {
+      "title": "角色",
+      "race": "种族",
+      "racePlaceholder": "龙裔（铜）",
+      "alignment": "阵营",
+      "classes": "职业",
+      "class": "职业",
+      "level": "等级",
+      "subclass": "子职业",
+      "addClass": "添加职业",
+      "background": "背景",
+      "patron": "守护神",
+      "homeland": "家乡",
+      "phobia": "恐惧症",
+      "age": "年龄",
+      "agePlaceholder": "115（看起来约58）",
+      "height": "身高",
+      "weight": "体重",
+      "combat": "一览",
+      "acShort": "AC",
+      "hpShort": "HP",
+      "speedShort": "速度",
+      "initiativeShort": "先攻",
+      "proficiencyShort": "熟练",
+      "passivePerceptionShort": "被动察觉",
+      "levelShort": "{level}级"
+    }
   },
   "calendar": {
     "title": "日历",
@@ -3030,5 +3057,8 @@
     "narrower": "变窄",
     "hide": "隐藏标签面板",
     "show": "显示标签面板"
+  },
+  "entityLink": {
+    "open": "打开此条目"
   }
 }

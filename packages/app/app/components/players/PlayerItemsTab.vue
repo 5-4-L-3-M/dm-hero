@@ -13,7 +13,7 @@
             <v-icon :icon="getItemTypeIcon(item.metadata?.type)" />
           </v-avatar>
         </template>
-        <v-list-item-title>{{ item.name }}</v-list-item-title>
+        <v-list-item-title><SharedEntityLink :id="item.id" type="item" :name="item.name" /></v-list-item-title>
         <v-list-item-subtitle>
           <v-chip size="small" class="mr-1" color="primary" variant="tonal">
             {{ $t(`players.itemRelationTypes.${item.relation_type}`, item.relation_type) }}

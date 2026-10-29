@@ -43,7 +43,7 @@
             <v-icon icon="mdi-book-open-variant" />
           </v-avatar>
         </template>
-        <v-list-item-title>{{ lore.name }}</v-list-item-title>
+        <v-list-item-title><SharedEntityLink :id="linkedEntityId(lore)" type="lore" :name="lore.name" /></v-list-item-title>
         <v-list-item-subtitle v-if="lore.description">
           {{ lore.description.substring(0, 100) }}{{ lore.description.length > 100 ? '...' : '' }}
         </v-list-item-subtitle>
@@ -76,6 +76,8 @@
 </template>
 
 <script setup lang="ts">
+import { linkedEntityId } from '~/utils/linkedEntity'
+
 const { t } = useI18n()
 const entitiesStore = useEntitiesStore()
 const campaignStore = useCampaignStore()
@@ -86,6 +88,9 @@ const { markDirty } = useTabDirtyState('lore', t('lore.title'))
 
 interface LinkedLore {
   id: number
+  entity_id?: number | null
+  from_entity_id?: number | null
+  to_entity_id?: number | null
   name: string
   description?: string | null
   image_url?: string | null

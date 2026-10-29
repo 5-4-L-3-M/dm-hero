@@ -2004,7 +2004,34 @@
       "studies": "Studiert"
     },
     "carryBonus": "Tragkraft-Bonus ({unit})",
-    "carryBonusHint": "Wird zu Stärke × 15 addiert. Darf negativ sein."
+    "carryBonusHint": "Wird zu Stärke × 15 addiert. Darf negativ sein.",
+    "character": {
+      "title": "Charakter",
+      "race": "Volk",
+      "racePlaceholder": "Drachenblütiger (Kupfer)",
+      "alignment": "Gesinnung",
+      "classes": "Klassen",
+      "class": "Klasse",
+      "level": "Stufe",
+      "subclass": "Unterklasse",
+      "addClass": "Klasse hinzufügen",
+      "background": "Hintergrund",
+      "patron": "Schutzgott",
+      "homeland": "Heimat",
+      "phobia": "Phobie",
+      "age": "Alter",
+      "agePlaceholder": "115 (wirkt ~58)",
+      "height": "Größe",
+      "weight": "Gewicht",
+      "combat": "Auf einen Blick",
+      "acShort": "RK",
+      "hpShort": "TP",
+      "speedShort": "Tempo",
+      "initiativeShort": "Ini",
+      "proficiencyShort": "ÜB",
+      "passivePerceptionShort": "PW",
+      "levelShort": "St. {level}"
+    }
   },
   "calendar": {
     "title": "Kalender",
@@ -3030,5 +3057,8 @@
     "narrower": "Schmaler",
     "hide": "Tab-Leiste ausblenden",
     "show": "Tab-Leiste einblenden"
+  },
+  "entityLink": {
+    "open": "Eintrag öffnen"
   }
 }

@@ -15,7 +15,7 @@
           <v-icon icon="mdi-map-marker" color="primary" />
         </template>
         <v-list-item-title>
-          {{ relation.to_entity_name }}
+          <SharedEntityLink :id="relation.to_entity_id" type="location" :name="relation.to_entity_name" />
         </v-list-item-title>
         <v-list-item-subtitle>
           <v-chip size="small" class="mr-1">

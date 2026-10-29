@@ -68,7 +68,7 @@
                   <v-icon v-else :icon="getItemTypeIcon(row.item_type)" size="20" />
                 </v-avatar>
                 <div class="min-width-0">
-                  <div class="font-weight-medium">{{ row.name }}</div>
+                  <div class="font-weight-medium"><SharedEntityLink :id="row.item_id" type="item" :name="row.name" /></div>
                   <div v-if="row.text" class="text-body-small text-medium-emphasis text-truncate" style="max-width: 220px">
                     {{ row.text }}
                   </div>

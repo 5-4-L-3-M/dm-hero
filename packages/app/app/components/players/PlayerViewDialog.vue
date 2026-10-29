@@ -94,10 +94,13 @@
           <!-- Overview Tab -->
           <v-window-item value="overview">
             <div class="pa-4">
+              <!-- Character sheet header: race, class, stats -->
+              <PlayerCharacterSummary :metadata="player.metadata" class="mb-6" />
+
               <!-- Description -->
               <div v-if="player.description" class="mb-6">
                 <h3 class="text-title-medium font-weight-bold mb-2">{{ $t('players.description') }}</h3>
-                <p class="text-body-medium" style="white-space: pre-wrap">{{ player.description }}</p>
+                <SharedFormattedText :text="player.description" class="text-body-medium" />
               </div>
 
               <!-- Contact Info -->
@@ -273,6 +276,7 @@
 <script setup lang="ts">
 import type { Player } from '~~/types/player'
 import EntityRelationsList from '~/components/shared/EntityRelationsList.vue'
+import PlayerCharacterSummary from '~/components/players/PlayerCharacterSummary.vue'
 import EntityDocumentsView from '~/components/shared/EntityDocumentsView.vue'
 import EntityImageGalleryView from '~/components/shared/EntityImageGalleryView.vue'
 import PlayerInventoryTab from '~/components/players/PlayerInventoryTab.vue'

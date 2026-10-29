@@ -21,7 +21,11 @@
           <v-icon icon="mdi-account" color="primary" />
         </template>
         <v-list-item-title>
-          {{ relation.related_npc_name || relation.to_entity_name }}
+          <SharedEntityLink
+            :id="relation.related_npc_id || relation.to_entity_id"
+            :type="relation.related_npc_type || relation.to_entity_type || 'NPC'"
+            :name="relation.related_npc_name || relation.to_entity_name"
+          />
         </v-list-item-title>
         <v-list-item-subtitle>
           <v-chip size="small" class="mr-1" color="primary" variant="tonal">

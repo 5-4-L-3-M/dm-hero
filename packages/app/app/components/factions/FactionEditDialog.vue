@@ -522,6 +522,8 @@ interface FactionItem {
   quantity?: number | null
   relation_type?: string | null
   direction?: 'outgoing' | 'incoming'
+  from_entity_id?: number
+  to_entity_id?: number
 }
 
 const factionMembers = ref<FactionMember[]>([])
@@ -793,7 +795,7 @@ async function loadRelations(factionId: number) {
     factionMembers.value = members
     factionLocations.value = locations
     // Map items with relation_id and quantity from notes
-    factionItems.value = items.map((item: { id: number, name: string, description: string | null, image_url: string | null, relation_type?: string | null, notes?: { quantity?: number } | null, direction?: 'outgoing' | 'incoming' }) => ({
+    factionItems.value = items.map((item: { id: number, name: string, description: string | null, image_url: string | null, relation_type?: string | null, notes?: { quantity?: number } | null, direction?: 'outgoing' | 'incoming', from_entity_id?: number, to_entity_id?: number }) => ({
       id: item.id, // This is actually relation_id from the API
       relation_id: item.id,
       name: item.name,
@@ -802,6 +804,8 @@ async function loadRelations(factionId: number) {
       relation_type: item.relation_type,
       quantity: item.notes?.quantity ?? null,
       direction: item.direction,
+      from_entity_id: item.from_entity_id,
+      to_entity_id: item.to_entity_id,
     }))
     linkedLore.value = lore
     factionRelations.value = relations
