@@ -13,7 +13,7 @@
             <v-icon icon="mdi-book-open-variant" />
           </v-avatar>
         </template>
-        <v-list-item-title>{{ lore.name }}</v-list-item-title>
+        <v-list-item-title><SharedEntityLink :id="lore.id" type="lore" :name="lore.name" /></v-list-item-title>
         <v-list-item-subtitle>
           <v-chip size="small" class="mr-1" color="primary" variant="tonal">
             {{ $t(`players.loreRelationTypes.${lore.relation_type}`, lore.relation_type) }}

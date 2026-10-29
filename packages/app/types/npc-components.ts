@@ -9,6 +9,7 @@
 export interface NpcItem {
   id: number // Relation ID
   relation_id: number // Same as id (legacy)
+  entity_id?: number | null // The item itself
   name: string
   description?: string | null
   relation_type: string

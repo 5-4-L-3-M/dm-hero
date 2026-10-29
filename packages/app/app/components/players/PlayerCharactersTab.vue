@@ -13,7 +13,7 @@
             <v-icon icon="mdi-account" />
           </v-avatar>
         </template>
-        <v-list-item-title>{{ npc.name }}</v-list-item-title>
+        <v-list-item-title><SharedEntityLink :id="npc.id" type="npc" :name="npc.name" /></v-list-item-title>
         <v-list-item-subtitle>
           <v-chip size="small" class="mr-1" color="primary" variant="tonal">
             {{ $t(`players.relationTypes.${npc.relation_type}`, npc.relation_type) }}

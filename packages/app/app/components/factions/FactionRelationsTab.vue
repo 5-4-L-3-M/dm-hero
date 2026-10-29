@@ -15,7 +15,7 @@
           <v-icon v-else icon="mdi-account-group" color="primary" />
         </template>
         <v-list-item-title>
-          {{ relation.related_faction_name }}
+          <SharedEntityLink :id="relation.related_faction_id" type="faction" :name="relation.related_faction_name" />
         </v-list-item-title>
         <v-list-item-subtitle>
           <v-chip size="small" class="mr-1" color="primary" variant="tonal">

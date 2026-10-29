@@ -30,6 +30,15 @@
       <SharedEntityTabsPanel />
     </ClientOnly>
 
+    <!-- Quick preview for clickable entry names inside dialogs -->
+    <ClientOnly>
+      <SharedEntityPreviewDialog
+        v-model="entityPeek.open"
+        :entity-type="entityPeek.type"
+        :entity-id="entityPeek.id"
+      />
+    </ClientOnly>
+
     <!-- Share dialog: can be opened from anywhere (share buttons on entity cards) -->
     <ClientOnly>
       <GameTableShareDialog />
@@ -109,6 +118,7 @@ const filteredSearchResults = computed(() =>
 const campaignStore = useCampaignStore()
 const snackbarStore = useSnackbarStore()
 const notesStore = useNotesStore()
+const entityPeek = useEntityPeekStore()
 
 // Active campaign from store (not cookie - store is the source of truth)
 const activeCampaignName = computed(() => campaignStore.currentCampaign?.name || null)

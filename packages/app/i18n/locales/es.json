@@ -2004,7 +2004,34 @@
       "studies": "Estudia"
     },
     "carryBonus": "Bonificación de capacidad de carga ({unit})",
-    "carryBonusHint": "Se suma a Fuerza × 15. Puede ser negativa."
+    "carryBonusHint": "Se suma a Fuerza × 15. Puede ser negativa.",
+    "character": {
+      "title": "Personaje",
+      "race": "Raza",
+      "racePlaceholder": "Dracónido (cobre)",
+      "alignment": "Alineamiento",
+      "classes": "Clases",
+      "class": "Clase",
+      "level": "Nivel",
+      "subclass": "Subclase",
+      "addClass": "Añadir clase",
+      "background": "Trasfondo",
+      "patron": "Dios patrón",
+      "homeland": "Tierra natal",
+      "phobia": "Fobia",
+      "age": "Edad",
+      "agePlaceholder": "115 (aparenta ~58)",
+      "height": "Altura",
+      "weight": "Peso",
+      "combat": "De un vistazo",
+      "acShort": "CA",
+      "hpShort": "PG",
+      "speedShort": "Vel",
+      "initiativeShort": "Ini",
+      "proficiencyShort": "Comp",
+      "passivePerceptionShort": "PP",
+      "levelShort": "Nv {level}"
+    }
   },
   "calendar": {
     "title": "Calendario",
@@ -3030,5 +3057,8 @@
     "narrower": "Más estrecho",
     "hide": "Ocultar panel de pestañas",
     "show": "Mostrar panel de pestañas"
+  },
+  "entityLink": {
+    "open": "Abrir esta entrada"
   }
 }

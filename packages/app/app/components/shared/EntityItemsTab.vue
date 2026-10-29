@@ -80,7 +80,7 @@
         </template>
 
         <v-list-item-title>
-          {{ item.name }}
+          <SharedEntityLink :id="linkedEntityId(item)" type="item" :name="item.name" />
           <v-chip v-if="showEquipped && item.equipped" size="x-small" color="success" class="ml-2">
             {{ $t('common.equipped') }}
           </v-chip>
@@ -180,6 +180,8 @@
 </template>
 
 <script setup lang="ts">
+import { linkedEntityId } from '~/utils/linkedEntity'
+
 const { t } = useI18n()
 
 // Register with parent dialog's dirty state management
@@ -187,6 +189,10 @@ const { markDirty } = useTabDirtyState('items', t('npcs.items'))
 
 interface LinkedItem {
   id: number
+  entity_id?: number | null
+  from_entity_id?: number | null
+  to_entity_id?: number | null
+  direction?: 'outgoing' | 'incoming'
   name: string
   description?: string | null
   image_url?: string | null

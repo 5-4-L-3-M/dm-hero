@@ -2004,7 +2004,34 @@
       "studies": "Étudie"
     },
     "carryBonus": "Bonus de capacité de charge ({unit})",
-    "carryBonusHint": "S'ajoute à Force × 15. Peut être négatif."
+    "carryBonusHint": "S'ajoute à Force × 15. Peut être négatif.",
+    "character": {
+      "title": "Personnage",
+      "race": "Espèce",
+      "racePlaceholder": "Drakéide (cuivre)",
+      "alignment": "Alignement",
+      "classes": "Classes",
+      "class": "Classe",
+      "level": "Niveau",
+      "subclass": "Sous-classe",
+      "addClass": "Ajouter une classe",
+      "background": "Historique",
+      "patron": "Dieu protecteur",
+      "homeland": "Terre natale",
+      "phobia": "Phobie",
+      "age": "Âge",
+      "agePlaceholder": "115 (paraît ~58)",
+      "height": "Taille",
+      "weight": "Poids",
+      "combat": "En un coup d'œil",
+      "acShort": "CA",
+      "hpShort": "PV",
+      "speedShort": "Vit",
+      "initiativeShort": "Init",
+      "proficiencyShort": "Maît",
+      "passivePerceptionShort": "PP",
+      "levelShort": "Niv {level}"
+    }
   },
   "calendar": {
     "title": "Calendrier",
@@ -3030,5 +3057,8 @@
     "narrower": "Plus étroit",
     "hide": "Masquer le panneau d'onglets",
     "show": "Afficher le panneau d'onglets"
+  },
+  "entityLink": {
+    "open": "Ouvrir cette entrée"
   }
 }

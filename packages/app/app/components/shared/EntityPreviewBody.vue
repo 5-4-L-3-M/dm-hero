@@ -26,9 +26,7 @@
             max-height="420"
             class="mb-4 rounded preview-image"
           />
-          <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
-            {{ entity.description }}
-          </div>
+          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <v-divider class="my-4" />
           <div class="text-body-medium">
             <div v-if="entity.race" class="mb-2">
@@ -43,7 +41,7 @@
           </div>
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
-            <div class="text-body-medium mt-2" style="white-space: pre-wrap">{{ entity.notes }}</div>
+            <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />
           </div>
         </template>
 
@@ -56,9 +54,7 @@
             max-height="420"
             class="mb-4 rounded preview-image"
           />
-          <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
-            {{ entity.description }}
-          </div>
+          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <v-divider class="my-4" />
           <div class="text-body-medium">
             <div v-if="locationType" class="mb-2">
@@ -70,7 +66,7 @@
           </div>
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
-            <div class="text-body-medium mt-2" style="white-space: pre-wrap">{{ entity.notes }}</div>
+            <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />
           </div>
         </template>
 
@@ -93,9 +89,7 @@
               {{ $t(`items.rarities.${entity.rarity}`) }}
             </v-chip>
           </div>
-          <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
-            {{ entity.description }}
-          </div>
+          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <v-divider class="my-4" />
           <div class="d-flex flex-wrap ga-2 mb-3">
             <v-chip v-if="entity.type" variant="tonal">
@@ -109,7 +103,7 @@
           </div>
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
-            <div class="text-body-medium mt-2" style="white-space: pre-wrap">{{ entity.notes }}</div>
+            <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />
           </div>
         </template>
 
@@ -122,9 +116,7 @@
             max-height="420"
             class="mb-4 rounded preview-image"
           />
-          <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
-            {{ entity.description }}
-          </div>
+          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <v-divider class="my-4" />
           <div class="text-body-medium">
             <div v-if="entity.leader" class="mb-2">
@@ -136,11 +128,11 @@
           </div>
           <div v-if="entity.goals" class="mt-4">
             <strong>{{ $t('factions.goals') }}:</strong>
-            <div class="text-body-medium mt-2" style="white-space: pre-wrap">{{ entity.goals }}</div>
+            <SharedFormattedText :text="String(entity.goals)" class="text-body-medium mt-2" />
           </div>
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
-            <div class="text-body-medium mt-2" style="white-space: pre-wrap">{{ entity.notes }}</div>
+            <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />
           </div>
         </template>
 
@@ -153,9 +145,7 @@
             max-height="420"
             class="mb-4 rounded preview-image"
           />
-          <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
-            {{ entity.description }}
-          </div>
+          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <v-divider class="my-4" />
           <div class="text-body-medium">
             <div v-if="entity.type" class="mb-2">
@@ -168,7 +158,7 @@
           </div>
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
-            <div class="text-body-medium mt-2" style="white-space: pre-wrap">{{ entity.notes }}</div>
+            <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />
           </div>
         </template>
 
@@ -181,9 +171,8 @@
             max-height="420"
             class="mb-4 rounded preview-image"
           />
-          <div v-if="entity.description" class="text-body-large mb-4" style="white-space: pre-wrap">
-            {{ entity.description }}
-          </div>
+          <PlayerCharacterSummary :metadata="entity.metadata" class="mb-4" />
+          <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <v-divider class="my-4" />
           <div class="text-body-medium">
             <div v-if="entity.player_name" class="mb-2">
@@ -198,7 +187,7 @@
           </div>
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
-            <div class="text-body-medium mt-2" style="white-space: pre-wrap">{{ entity.notes }}</div>
+            <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />
           </div>
         </template>
 
@@ -254,6 +243,7 @@
 
 <script setup lang="ts">
 import LocationShopTab from '~/components/locations/LocationShopTab.vue'
+import PlayerCharacterSummary from '~/components/players/PlayerCharacterSummary.vue'
 import { isShopLocationType } from '~~/types/shop'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'

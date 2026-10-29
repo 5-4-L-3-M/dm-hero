@@ -2004,7 +2004,34 @@
       "studies": "Studies"
     },
     "carryBonus": "Carrying capacity bonus ({unit})",
-    "carryBonusHint": "Added to Strength × 15. Can be negative."
+    "carryBonusHint": "Added to Strength × 15. Can be negative.",
+    "character": {
+      "title": "Character",
+      "race": "Race",
+      "racePlaceholder": "Dragonborn (Copper)",
+      "alignment": "Alignment",
+      "classes": "Classes",
+      "class": "Class",
+      "level": "Level",
+      "subclass": "Subclass",
+      "addClass": "Add a class",
+      "background": "Background",
+      "patron": "Patron god",
+      "homeland": "Homeland",
+      "phobia": "Phobia",
+      "age": "Age",
+      "agePlaceholder": "115 (looks ~58)",
+      "height": "Height",
+      "weight": "Weight",
+      "combat": "At a glance",
+      "acShort": "AC",
+      "hpShort": "HP",
+      "speedShort": "Speed",
+      "initiativeShort": "Init",
+      "proficiencyShort": "Prof",
+      "passivePerceptionShort": "PP",
+      "levelShort": "Lvl {level}"
+    }
   },
   "calendar": {
     "title": "Calendar",
@@ -3030,5 +3057,8 @@
     "narrower": "Narrower panel",
     "hide": "Hide tabs panel",
     "show": "Show tabs panel"
+  },
+  "entityLink": {
+    "open": "Open this entry"
   }
 }

@@ -966,6 +966,9 @@ async function loadRelations(npcId: number) {
     // Load items and map notes to direct properties
     const itemsData = await $fetch<Array<{
       id: number
+      from_entity_id: number
+      to_entity_id: number
+      direction?: 'outgoing' | 'incoming'
       relation_type: string
       notes: { quantity?: number, equipped?: boolean } | null
       name: string
@@ -976,6 +979,7 @@ async function loadRelations(npcId: number) {
     npcItems.value = itemsData.map(item => ({
       id: item.id,
       relation_id: item.id,
+      entity_id: item.direction === 'outgoing' ? item.to_entity_id : item.from_entity_id,
       name: item.name,
       description: item.description,
       relation_type: item.relation_type,

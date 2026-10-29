@@ -20,7 +20,7 @@
           </v-avatar>
         </template>
         <v-list-item-title>
-          {{ relation.to_entity_name }}
+          <SharedEntityLink :id="relation.to_entity_id" type="faction" :name="relation.to_entity_name" />
         </v-list-item-title>
         <v-list-item-subtitle>
           <v-chip v-if="relation.relation_type" size="small" class="mr-1">

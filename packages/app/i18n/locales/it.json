@@ -2004,7 +2004,34 @@
       "studies": "Studia"
     },
     "carryBonus": "Bonus capacità di carico ({unit})",
-    "carryBonusHint": "Si aggiunge a Forza × 15. Può essere negativo."
+    "carryBonusHint": "Si aggiunge a Forza × 15. Può essere negativo.",
+    "character": {
+      "title": "Personaggio",
+      "race": "Razza",
+      "racePlaceholder": "Dragonide (rame)",
+      "alignment": "Allineamento",
+      "classes": "Classi",
+      "class": "Classe",
+      "level": "Livello",
+      "subclass": "Sottoclasse",
+      "addClass": "Aggiungi classe",
+      "background": "Background",
+      "patron": "Dio patrono",
+      "homeland": "Terra natale",
+      "phobia": "Fobia",
+      "age": "Età",
+      "agePlaceholder": "115 (sembra ~58)",
+      "height": "Altezza",
+      "weight": "Peso",
+      "combat": "In breve",
+      "acShort": "CA",
+      "hpShort": "PF",
+      "speedShort": "Vel",
+      "initiativeShort": "Iniz",
+      "proficiencyShort": "Comp",
+      "passivePerceptionShort": "PP",
+      "levelShort": "Liv {level}"
+    }
   },
   "calendar": {
     "title": "Calendario",
@@ -3030,5 +3057,8 @@
     "narrower": "Più stretto",
     "hide": "Nascondi pannello schede",
     "show": "Mostra pannello schede"
+  },
+  "entityLink": {
+    "open": "Apri questa voce"
   }
 }

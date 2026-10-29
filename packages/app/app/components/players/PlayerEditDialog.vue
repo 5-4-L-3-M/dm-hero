@@ -110,6 +110,8 @@
               class="mb-3"
             />
 
+            <PlayerCharacterFields v-model="form.character" />
+
             <!-- Character Birthday -->
             <v-card variant="outlined" class="mb-3 pa-3">
               <div class="d-flex align-center mb-2">
@@ -438,7 +440,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Player } from '~~/types/player'
+import { characterInfoToMetadata, emptyCharacterInfo, readCharacterInfo, type Player } from '~~/types/player'
+import PlayerCharacterFields from '~/components/players/PlayerCharacterFields.vue'
 import { readCarryBonus } from '~~/types/inventory'
 import EntityImageUpload from '../shared/EntityImageUpload.vue'
 import EntityImageGallery from '../shared/EntityImageGallery.vue'
@@ -508,6 +511,7 @@ const form = ref({
   showBirthdayInCalendar: true,
   /** Carrying capacity bonus, always stored in lb */
   carry_bonus: 0,
+  character: emptyCharacterInfo(),
 })
 
 /** Metadata as loaded — keys this form doesn't know about are kept on save */
@@ -632,6 +636,7 @@ async function loadPlayer(playerId: number) {
     birthday: data.metadata?.birthday || null,
     showBirthdayInCalendar,
     carry_bonus: readCarryBonus(data.metadata),
+    character: readCharacterInfo(data.metadata),
   }
   loadedMetadata.value = { ...(data.metadata ?? {}) }
 
@@ -660,6 +665,7 @@ function resetForm() {
     birthday: null,
     showBirthdayInCalendar: true,
     carry_bonus: 0,
+    character: emptyCharacterInfo(),
   }
   loadedMetadata.value = {}
   mapSyncData.value = null
@@ -694,6 +700,7 @@ async function save() {
       birthday: birthdayToSave,
       showBirthdayInCalendar: hasBirthday.value ? form.value.showBirthdayInCalendar : false,
       carry_bonus: form.value.carry_bonus || 0,
+      ...characterInfoToMetadata(form.value.character),
     }
 
     let savedPlayerId: number

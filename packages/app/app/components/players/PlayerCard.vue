@@ -59,9 +59,12 @@
       </div>
     </div>
 
-    <!-- Description (Fixed 3 lines) -->
-    <v-card-text class="pt-0 pb-3" style="flex-grow: 0">
-      <div class="player-description">
+    <!-- Character details (race, class, stats) when set, then the description -->
+    <v-card-text v-if="hasCharacter" class="pt-0 pb-2" style="flex-grow: 0">
+      <PlayerCharacterSummary :metadata="player.metadata" compact />
+    </v-card-text>
+    <v-card-text v-if="player.description || !hasCharacter" class="pt-0 pb-3" style="flex-grow: 0">
+      <div class="player-description" :class="{ 'player-description--short': hasCharacter }">
         <p v-if="player.description" class="text-body-medium text-medium-emphasis mb-0">
           {{ player.description }}
         </p>
@@ -387,7 +390,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Player } from '~~/types/player'
+import { hasCharacterInfo, readCharacterInfo, type Player } from '~~/types/player'
+import PlayerCharacterSummary from '~/components/players/PlayerCharacterSummary.vue'
 import ImagePreviewDialog from '~/components/shared/ImagePreviewDialog.vue'
 import QuickLinkContextMenu from '~/components/shared/QuickLinkContextMenu.vue'
 import QuickLinkEntitySelectDialog from '~/components/shared/QuickLinkEntitySelectDialog.vue'
@@ -400,6 +404,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   isHighlighted: false,
 })
+
+const hasCharacter = computed(() => hasCharacterInfo(readCharacterInfo(props.player.metadata)))
 
 const emit = defineEmits<{
   'view': [player: Player]
@@ -471,6 +477,11 @@ const previewSubtitle = computed(() => {
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-height: 60px;
+}
+.player-description--short {
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  min-height: 0;
 }
 
 .highlighted-card {
