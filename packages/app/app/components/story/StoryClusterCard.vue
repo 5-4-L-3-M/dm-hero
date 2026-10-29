@@ -94,8 +94,10 @@ defineEmits<{
 const HEAT_ICONS: Record<ClusterHeat, string> = { cold: 'mdi-snowflake', warm: 'mdi-weather-sunny', hot: 'mdi-fire' }
 
 const store = useStoryBoardStore()
-const storyline = computed(() => store.storylines.find(s => s.id === props.cluster.storyline_id) ?? null)
-const beats = computed(() => store.beatsOf(props.cluster.id))
+// The board's drag list may hold an older copy; always show the store's current one
+const cluster = computed(() => store.clusters.find(c => c.id === props.cluster.id) ?? props.cluster)
+const storyline = computed(() => store.storylines.find(s => s.id === cluster.value.storyline_id) ?? null)
+const beats = computed(() => store.beatsOf(cluster.value.id))
 const visibleBeats = computed(() => (props.hidePlayed ? beats.value.filter(b => b.status !== 'played' && b.status !== 'cut') : beats.value))
 const playedCount = computed(() => beats.value.filter(b => b.status === 'played').length)
 
@@ -104,7 +106,7 @@ async function addBeat() {
   const title = newBeat.value.trim()
   if (!title) return
   newBeat.value = ''
-  await store.addBeat({ title, cluster_id: props.cluster.id })
+  await store.addBeat({ title, cluster_id: cluster.value.id })
 }
 </script>
 

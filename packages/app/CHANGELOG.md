@@ -1,5 +1,19 @@
 # @dm-hero/app
 
+## 1.7.1
+
+### Minor Changes
+
+- Quests: link the NPCs, places, items and factions involved ("Who and what is involved"). They show up as connections both ways, so the quest also appears on each of their pages. The AI connector can set them too.
+- The quest side panel shows everything: status, storyline, giver, place, reward, who's involved, description, and objectives with a progress bar you can tick off.
+
+### Patch Changes
+
+- Story Board clusters fold and unfold reliably (they could get stuck folded).
+- "Color by status" uses three colors that differ in every theme (Active and Dormant matched in Nocturne).
+- Quest objectives in the edit dialog use the full row width.
+- An open quest side panel updates when the quest is saved elsewhere.
+
 ## 1.7.0
 
 ### Minor Changes
