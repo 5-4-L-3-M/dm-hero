@@ -38,6 +38,9 @@
             <div v-if="entity.faction" class="mb-2">
               <strong>{{ $t('npcs.faction') }}:</strong> {{ entity.faction }}
             </div>
+            <div v-if="npcAge" class="mb-2">
+              <strong>{{ $t('npcs.age') }}:</strong> {{ npcAge }}
+            </div>
           </div>
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
@@ -305,6 +308,7 @@ import { isShopLocationType } from '~~/types/shop'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
 import FactionAgendaList from '~/components/story/FactionAgendaList.vue'
+import { ageText } from '~~/types/age'
 import { QUEST_STATUS_ICONS, readQuestMetadata, type LinkedEntity, type QuestObjective, type QuestStatus } from '~~/types/story'
 import type { EntityPreviewType } from './EntityPreviewDialog.vue'
 
@@ -368,6 +372,11 @@ const locationType = computed(() =>
 const showShopTab = computed(() => type.value === 'location' && isShopLocationType(locationType.value ?? undefined))
 
 const campaignId = computed(() => useCampaignStore().activeCampaignIdNumber)
+const { t } = useI18n()
+const npcAge = computed(() => {
+  const m = (entity.value?.metadata ?? entity.value ?? {}) as { age?: unknown, age_human?: unknown }
+  return ageText(m.age ?? entity.value?.age, m.age_human ?? entity.value?.age_human, t('npcs.humanWord'))
+})
 
 // Quests: status + objectives (tick them off right here)
 const QUEST_COLORS: Record<QuestStatus, string> = { rumor: 'warning', active: 'primary', completed: 'success', failed: 'error' }

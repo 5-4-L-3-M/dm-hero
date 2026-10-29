@@ -33,6 +33,7 @@
 
 <script setup lang="ts">
 import { classLine, hasCharacterInfo, readCharacterInfo, totalLevel } from '~~/types/player'
+import { ageText } from '~~/types/age'
 
 /**
  * A player character's details laid out like the top of a character sheet:
@@ -79,7 +80,7 @@ const tags = computed(() => {
 const physical = computed(() => {
   const i = info.value
   return [
-    { key: 'age', label: t('players.character.age'), value: i.age },
+    { key: 'age', label: t('players.character.age'), value: ageText(i.age, i.age_human, t('npcs.humanWord')) },
     { key: 'height', label: t('players.character.height'), value: i.height },
     { key: 'weight', label: t('players.character.weight'), value: i.weight },
   ].filter(x => x.value)

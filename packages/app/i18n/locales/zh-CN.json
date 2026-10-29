@@ -572,7 +572,10 @@
     "noMemberships": "无派系成员资格",
     "noMembershipsText": "该NPC尚未属于任何派系。",
     "noLore": "暂无关联的传说",
-    "image": "图片"
+    "image": "图片",
+    "ageHuman": "Human age",
+    "ageHumanHint": "Their age in human years",
+    "humanWord": "human"
   },
   "factions": {
     "title": "阵营",
@@ -1777,7 +1780,8 @@
     "newLocation": "新地点",
     "newFaction": "新派系",
     "newLore": "新知识",
-    "newPlayer": "新玩家"
+    "newPlayer": "新玩家",
+    "createNamed": "Create \"{name}\" as new {type}"
   },
   "settings": {
     "title": "设置",

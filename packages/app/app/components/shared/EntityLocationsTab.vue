@@ -59,6 +59,7 @@
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-autocomplete
+            v-model:search="quickSearch"
             v-model="localLocationId"
             :items="availableLocations"
             item-title="name"
@@ -76,6 +77,9 @@
                 <v-list-item-title>{{ $t('quickCreate.newLocation') }}</v-list-item-title>
               </v-list-item>
               <v-divider class="my-1" />
+            </template>
+            <template #no-data>
+              <SharedCreateFromSearch :search="quickSearch" type="Location" @created="handleQuickCreated" />
             </template>
           </v-autocomplete>
 
@@ -215,6 +219,8 @@ const editForm = ref({
 
 // Quick Create state
 const showQuickCreate = ref(false)
+// Typed a name that matches nothing → "Create …" right in the list
+const quickSearch = ref('')
 
 const relationTypeSuggestions = computed(() =>
   NPC_LOCATION_RELATION_TYPES.map(type => ({

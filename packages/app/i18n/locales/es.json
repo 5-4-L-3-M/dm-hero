@@ -572,7 +572,10 @@
     "noMemberships": "Sin pertenencia a facciones",
     "noMembershipsText": "Este PNJ aún no es miembro de ninguna facción.",
     "noLore": "Aún no hay lore vinculado",
-    "image": "Imagen"
+    "image": "Imagen",
+    "ageHuman": "Human age",
+    "ageHumanHint": "Their age in human years",
+    "humanWord": "human"
   },
   "factions": {
     "title": "Facciones",
@@ -1777,7 +1780,8 @@
     "newLocation": "Nuevo lugar",
     "newFaction": "Nueva facción",
     "newLore": "Nuevo lore",
-    "newPlayer": "Nuevo jugador"
+    "newPlayer": "Nuevo jugador",
+    "createNamed": "Create \"{name}\" as new {type}"
   },
   "settings": {
     "title": "Ajustes",

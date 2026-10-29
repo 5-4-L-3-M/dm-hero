@@ -72,6 +72,8 @@
           <span v-if="npc.metadata?.race">{{ getRaceDisplayName(npc.metadata.race) }}</span>
           <span v-if="npc.metadata?.race && toArray(npc.metadata?.class).length"> • </span>
           <span v-if="toArray(npc.metadata?.class).length">{{ getClassesDisplay(npc.metadata?.class) }}</span>
+          <span v-if="npcAge && (npc.metadata?.race || toArray(npc.metadata?.class).length)"> • </span>
+          <span v-if="npcAge">{{ $t('npcs.age') }} {{ npcAge }}</span>
         </div>
       </div>
     </div>
@@ -490,6 +492,7 @@
 </template>
 
 <script setup lang="ts">
+import { ageText } from '~~/types/age'
 import type { NPC } from '~~/types/npc'
 import ImagePreviewDialog from '~/components/shared/ImagePreviewDialog.vue'
 import QuickLinkContextMenu from '~/components/shared/QuickLinkContextMenu.vue'
@@ -612,6 +615,8 @@ const previewSubtitle = computed(() => {
 })
 
 // Helper functions for display names
+const npcAge = computed(() => ageText(props.npc.metadata?.age, props.npc.metadata?.age_human, t('npcs.humanWord')))
+
 function getRaceDisplayName(raceName: string): string {
   const race = props.races.find(r => r.name === raceName)
   if (!race) return raceName

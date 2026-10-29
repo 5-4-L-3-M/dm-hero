@@ -83,13 +83,16 @@
       <v-col cols="12" sm="6">
         <v-text-field v-model="model.phobia" :label="$t('players.character.phobia')" prepend-inner-icon="mdi-alert-octagon-outline" variant="outlined" density="comfortable" hide-details />
       </v-col>
-      <v-col cols="4">
-        <v-text-field v-model="model.age" :label="$t('players.character.age')" :placeholder="$t('players.character.agePlaceholder')" variant="outlined" density="comfortable" hide-details />
+      <v-col cols="6" sm="3">
+        <v-text-field v-model="model.age" :label="$t('players.character.age')" placeholder="102" variant="outlined" density="comfortable" hide-details />
       </v-col>
-      <v-col cols="4">
+      <v-col cols="6" sm="3">
+        <v-text-field v-model="model.age_human" :label="$t('npcs.ageHuman')" placeholder="27" variant="outlined" density="comfortable" hide-details />
+      </v-col>
+      <v-col cols="6" sm="3">
         <v-text-field v-model="model.height" :label="$t('players.character.height')" placeholder="5' 10&quot;" variant="outlined" density="comfortable" hide-details />
       </v-col>
-      <v-col cols="4">
+      <v-col cols="6" sm="3">
         <v-text-field v-model="model.weight" :label="$t('players.character.weight')" placeholder="180 lb" variant="outlined" density="comfortable" hide-details />
       </v-col>
     </v-row>

@@ -572,7 +572,10 @@
     "noMemberships": "Nessuna appartenenza a fazioni",
     "noMembershipsText": "Questo PNG non è ancora membro di nessuna fazione.",
     "noLore": "Nessuna lore collegata ancora",
-    "image": "Immagine"
+    "image": "Immagine",
+    "ageHuman": "Human age",
+    "ageHumanHint": "Their age in human years",
+    "humanWord": "human"
   },
   "factions": {
     "title": "Fazioni",
@@ -1777,7 +1780,8 @@
     "newLocation": "Nuovo luogo",
     "newFaction": "Nuova fazione",
     "newLore": "Nuova lore",
-    "newPlayer": "Nuovo giocatore"
+    "newPlayer": "Nuovo giocatore",
+    "createNamed": "Create \"{name}\" as new {type}"
   },
   "settings": {
     "title": "Impostazioni",

@@ -572,7 +572,10 @@
     "noMemberships": "Keine Fraktionsmitgliedschaften",
     "noMembershipsText": "Dieser NPC ist noch kein Mitglied einer Fraktion.",
     "noLore": "Kein verknüpftes Wissen vorhanden",
-    "image": "Bild"
+    "image": "Bild",
+    "ageHuman": "Menschenalter",
+    "ageHumanHint": "Ihr Alter in Menschenjahren",
+    "humanWord": "Mensch"
   },
   "factions": {
     "title": "Fraktionen",
@@ -1777,7 +1780,8 @@
     "newLocation": "Neuer Ort",
     "newFaction": "Neue Fraktion",
     "newLore": "Neues Wissen",
-    "newPlayer": "Neuer Spieler"
+    "newPlayer": "Neuer Spieler",
+    "createNamed": "\"{name}\" als neue(n) {type} anlegen"
   },
   "settings": {
     "title": "Einstellungen",

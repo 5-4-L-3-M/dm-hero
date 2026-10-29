@@ -19,6 +19,7 @@
         <v-row dense>
           <v-col cols="12" sm="6">
             <v-autocomplete
+              v-model:search="quickGiverSearch"
               v-model="form.giver_id"
               :items="givers"
               item-title="name"
@@ -28,10 +29,15 @@
               variant="outlined"
               density="comfortable"
               clearable
-            />
+            >
+              <template #no-data>
+                <SharedCreateFromSearch :search="quickGiverSearch" type="NPC" @created="quickGiverCreated" />
+              </template>
+            </v-autocomplete>
           </v-col>
           <v-col cols="12" sm="6">
             <v-autocomplete
+              v-model:search="quickLocationSearch"
               v-model="form.location_id"
               :items="store.locations"
               item-title="name"
@@ -41,7 +47,11 @@
               variant="outlined"
               density="comfortable"
               clearable
-            />
+            >
+              <template #no-data>
+                <SharedCreateFromSearch :search="quickLocationSearch" type="Location" @created="quickLocationCreated" />
+              </template>
+            </v-autocomplete>
           </v-col>
           <v-col cols="12" sm="6">
             <v-select
@@ -59,6 +69,7 @@
         </v-row>
 
         <v-autocomplete
+          v-model:search="quickInvolvedSearch"
           v-model="form.involved_ids"
           :items="involvable"
           item-title="name"
@@ -74,6 +85,9 @@
         >
           <template #item="{ props: itemProps, item }">
             <v-list-item v-bind="itemProps" :prepend-icon="iconFor(item.type)" :subtitle="item.type" />
+          </template>
+          <template #no-data>
+            <SharedCreateFromSearch :search="quickInvolvedSearch" type="NPC" @created="quickInvolvedCreated" />
           </template>
         </v-autocomplete>
 
@@ -182,5 +196,23 @@ async function remove() {
   await store.deleteQuest(props.questId)
   emit('deleted', props.questId)
   emit('update:show', false)
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickGiverSearch = ref('')
+function quickGiverCreated(e: { id: number, name: string }) {
+  form.value.giver_id = e.id
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickLocationSearch = ref('')
+function quickLocationCreated(e: { id: number, name: string }) {
+  form.value.location_id = e.id
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickInvolvedSearch = ref('')
+function quickInvolvedCreated(e: { id: number, name: string }) {
+  form.value.involved_ids.push(e.id)
 }
 </script>

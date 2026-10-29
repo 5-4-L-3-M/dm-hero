@@ -34,6 +34,7 @@
         </v-btn-toggle>
 
         <v-autocomplete
+          v-model:search="quickLocationSearch"
           v-model="form.location_id"
           :items="store.locations"
           item-title="name"
@@ -46,7 +47,11 @@
           density="comfortable"
           clearable
           class="mb-3"
-        />
+        >
+          <template #no-data>
+            <SharedCreateFromSearch :search="quickLocationSearch" type="Location" @created="quickLocationCreated" />
+          </template>
+        </v-autocomplete>
         <v-autocomplete
           v-model="form.quest_id"
           :items="store.quests"
@@ -104,6 +109,12 @@ async function save() {
   finally {
     saving.value = false
   }
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickLocationSearch = ref('')
+function quickLocationCreated(e: { id: number, name: string }) {
+  form.value.location_id = e.id
 }
 </script>
 

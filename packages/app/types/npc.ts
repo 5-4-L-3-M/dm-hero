@@ -170,6 +170,8 @@ export interface NpcMetadata {
   type?: NpcType | NpcType[]
   status?: NpcStatus
   age?: number
+  /** Human-equivalent age (free text, e.g. "27" or "~30") */
+  age_human?: string | number
   gender?: string
   [key: string]: unknown // Index signature for convertMetadataToKeys compatibility
 }

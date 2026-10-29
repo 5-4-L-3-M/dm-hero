@@ -95,6 +95,8 @@ export interface PlayerCharacterInfo {
   background: string
   alignment: string
   age: string
+  /** Human-equivalent age, e.g. "27" for a 102-year-old elf */
+  age_human: string
   height: string
   weight: string
   patron: string
@@ -109,7 +111,7 @@ export interface PlayerCharacterInfo {
 }
 
 export const PLAYER_CHARACTER_TEXT_KEYS = [
-  'race', 'background', 'alignment', 'age', 'height', 'weight', 'patron', 'homeland', 'phobia', 'speed', 'initiative', 'proficiency',
+  'race', 'background', 'alignment', 'age', 'age_human', 'height', 'weight', 'patron', 'homeland', 'phobia', 'speed', 'initiative', 'proficiency',
 ] as const
 export const PLAYER_CHARACTER_NUMBER_KEYS = ['ac', 'hp', 'passive_perception'] as const
 
@@ -132,7 +134,7 @@ function asNumber(v: unknown): number | null {
 
 export function emptyCharacterInfo(): PlayerCharacterInfo {
   return {
-    race: '', classes: [], background: '', alignment: '', age: '', height: '', weight: '',
+    race: '', classes: [], background: '', alignment: '', age: '', age_human: '', height: '', weight: '',
     patron: '', homeland: '', phobia: '', ac: null, hp: null, speed: '', initiative: '', proficiency: '', passive_perception: null,
   }
 }

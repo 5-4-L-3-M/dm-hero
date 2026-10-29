@@ -160,6 +160,7 @@
       <!-- Add item -->
       <div class="d-flex align-center flex-wrap ga-2 mt-4">
         <v-autocomplete
+          v-model:search="quickItemSearch"
           v-model="addItemId"
           :items="availableItems"
           item-title="name"
@@ -171,7 +172,11 @@
           clearable
           class="flex-grow-1"
           style="min-width: 220px"
-        />
+        >
+          <template #no-data>
+            <SharedCreateFromSearch :search="quickItemSearch" type="Item" @created="quickItemCreated" />
+          </template>
+        </v-autocomplete>
         <v-text-field
           v-model.number="addQuantity"
           type="number"
@@ -385,6 +390,12 @@ async function addItem() {
 }
 
 defineExpose({ reload: () => Promise.all([load(), purseRef.value?.reload()]) })
+
+// Typed a name that matches nothing → create it right from the list
+const quickItemSearch = ref('')
+function quickItemCreated(e: { id: number, name: string }) {
+  addItemId.value = e.id
+}
 </script>
 
 <style scoped>

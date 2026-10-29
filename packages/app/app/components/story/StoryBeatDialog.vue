@@ -44,6 +44,7 @@
           </v-col>
           <v-col cols="12" sm="6">
             <v-autocomplete
+              v-model:search="quickLocationSearch"
               v-model="form.location_id"
               :items="store.locations"
               item-title="name"
@@ -54,10 +55,15 @@
               density="comfortable"
               clearable
               hide-details
-            />
+            >
+              <template #no-data>
+                <SharedCreateFromSearch :search="quickLocationSearch" type="Location" @created="quickLocationCreated" />
+              </template>
+            </v-autocomplete>
           </v-col>
           <v-col cols="12">
             <v-autocomplete
+              v-model:search="quickEntitiesSearch"
               v-model="form.entity_ids"
               :items="linkable"
               item-title="name"
@@ -72,6 +78,9 @@
             >
               <template #item="{ props: itemProps, item }">
                 <v-list-item v-bind="itemProps" :prepend-icon="iconFor(item.type)" :subtitle="item.type" />
+              </template>
+              <template #no-data>
+                <SharedCreateFromSearch :search="quickEntitiesSearch" type="NPC" @created="quickEntitiesCreated" />
               </template>
             </v-autocomplete>
           </v-col>
@@ -169,5 +178,17 @@ async function remove() {
   if (!props.beat) return
   await store.deleteBeat(props.beat.id)
   emit('update:modelValue', false)
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickLocationSearch = ref('')
+function quickLocationCreated(e: { id: number, name: string }) {
+  form.value.location_id = e.id
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickEntitiesSearch = ref('')
+function quickEntitiesCreated(e: { id: number, name: string }) {
+  form.value.entity_ids.push(e.id)
 }
 </script>

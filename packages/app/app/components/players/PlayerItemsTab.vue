@@ -91,6 +91,7 @@
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-autocomplete
+            v-model:search="quickItemSearch"
             v-model="selectedItemId"
             :items="availableItems"
             item-title="name"
@@ -99,7 +100,11 @@
             variant="outlined"
             clearable
             class="mb-3"
-          />
+          >
+            <template #no-data>
+              <SharedCreateFromSearch :search="quickItemSearch" type="Item" @created="quickItemCreated" />
+            </template>
+          </v-autocomplete>
 
           <v-combobox
             v-model="selectedRelationType"
@@ -391,5 +396,12 @@ async function saveEdit() {
   finally {
     saving.value = false
   }
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickItemSearch = ref('')
+function quickItemCreated(e: { id: number, name: string }) {
+  availableItems.value.push({ id: e.id, name: e.name })
+  selectedItemId.value = e.id
 }
 </script>

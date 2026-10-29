@@ -572,7 +572,10 @@
     "noMemberships": "No Faction Memberships",
     "noMembershipsText": "This NPC is not a member of any faction yet.",
     "noLore": "No linked lore yet",
-    "image": "Image"
+    "image": "Image",
+    "ageHuman": "Human age",
+    "ageHumanHint": "Their age in human years",
+    "humanWord": "human"
   },
   "factions": {
     "title": "Factions",
@@ -1777,7 +1780,8 @@
     "newLocation": "New Location",
     "newFaction": "New Faction",
     "newLore": "New Lore",
-    "newPlayer": "New Player"
+    "newPlayer": "New Player",
+    "createNamed": "Create \"{name}\" as new {type}"
   },
   "settings": {
     "title": "Settings",

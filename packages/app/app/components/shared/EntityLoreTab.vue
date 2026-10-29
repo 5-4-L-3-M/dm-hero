@@ -4,6 +4,7 @@
     <v-card variant="outlined" class="mb-4">
       <v-card-text>
         <v-autocomplete
+          v-model:search="quickSearch"
           v-model="localLoreId"
           :items="availableLore"
           item-title="name"
@@ -23,6 +24,9 @@
               <v-list-item-title>{{ $t('quickCreate.newLore') }}</v-list-item-title>
             </v-list-item>
             <v-divider class="my-1" />
+          </template>
+          <template #no-data>
+            <SharedCreateFromSearch :search="quickSearch" type="Lore" @created="handleQuickCreated" />
           </template>
         </v-autocomplete>
         <v-btn color="primary" block :disabled="!localLoreId" @click="handleAdd">
@@ -119,6 +123,8 @@ const localLoreId = ref<number | null>(null)
 
 // Quick Create state
 const showQuickCreate = ref(false)
+// Typed a name that matches nothing → "Create …" right in the list
+const quickSearch = ref('')
 
 // Track dirty state
 const isDirty = computed(() => !!localLoreId.value)
