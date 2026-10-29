@@ -58,6 +58,25 @@
           </v-col>
         </v-row>
 
+        <v-autocomplete
+          v-model="form.involved_ids"
+          :items="involvable"
+          item-title="name"
+          item-value="id"
+          :label="$t('quests.involved')"
+          prepend-inner-icon="mdi-account-multiple"
+          multiple
+          chips
+          closable-chips
+          variant="outlined"
+          density="comfortable"
+          class="mb-2"
+        >
+          <template #item="{ props: itemProps, item }">
+            <v-list-item v-bind="itemProps" :prepend-icon="iconFor(item.type)" :subtitle="item.type" />
+          </template>
+        </v-autocomplete>
+
         <v-textarea
           v-model="form.description"
           :label="$t('quests.description')"
@@ -71,8 +90,8 @@
 
         <div class="text-body-small text-medium-emphasis mb-1">{{ $t('quests.objectives') }}</div>
         <div v-for="(o, i) in form.objectives" :key="i" class="d-flex align-center ga-1">
-          <v-checkbox-btn v-model="o.done" density="compact" />
-          <v-text-field v-model="o.text" variant="underlined" density="compact" hide-details />
+          <v-checkbox-btn v-model="o.done" density="compact" class="flex-grow-0" />
+          <v-text-field v-model="o.text" variant="underlined" density="compact" hide-details class="flex-grow-1" />
           <v-btn icon="mdi-close" variant="text" size="small" :aria-label="$t('common.delete')" @click="form.objectives.splice(i, 1)" />
         </div>
         <v-text-field
@@ -97,22 +116,29 @@
 
 <script setup lang="ts">
 import { QUEST_STATUSES, QUEST_STATUS_ICONS, type Quest, type QuestObjective, type QuestStatus } from '~~/types/story'
+import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
+import { toPreviewType } from '~/stores/entityTabs'
 
-/** Create or edit a quest: status, who gave it, where, reward and objectives. */
+/** Create or edit a quest: status, who gave it, where, who's involved, reward and objectives. */
 const props = defineProps<{ show: boolean, questId?: number | null, initialStatus?: QuestStatus }>()
 const emit = defineEmits<{ 'update:show': [value: boolean], 'saved': [quest: Quest], 'deleted': [id: number] }>()
 
 const store = useStoryBoardStore()
 const campaignStore = useCampaignStore()
 
-interface Form { name: string, description: string, status: QuestStatus, giver_id: number | null, location_id: number | null, storyline_id: number | null, reward: string, objectives: QuestObjective[] }
-const blank = (): Form => ({ name: '', description: '', status: props.initialStatus ?? 'rumor', giver_id: null, location_id: null, storyline_id: null, reward: '', objectives: [] })
+interface Form { name: string, description: string, status: QuestStatus, giver_id: number | null, location_id: number | null, storyline_id: number | null, reward: string, objectives: QuestObjective[], involved_ids: number[] }
+const blank = (): Form => ({ name: '', description: '', status: props.initialStatus ?? 'rumor', giver_id: null, location_id: null, storyline_id: null, reward: '', objectives: [], involved_ids: [] })
 const form = ref<Form>(blank())
 const loading = ref(false)
 const saving = ref(false)
 const newObjective = ref('')
 
 const givers = computed(() => store.entities.filter(e => ['NPC', 'Faction', 'Player'].includes(e.type)))
+const involvable = computed(() => store.entities.filter(e => e.id !== props.questId))
+function iconFor(type: string) {
+  const p = toPreviewType(type)
+  return p ? ENTITY_PREVIEW_CONFIG[p].icon : 'mdi-link'
+}
 
 watch(() => props.show, async (open) => {
   if (!open) return
@@ -123,7 +149,7 @@ watch(() => props.show, async (open) => {
     await store.load(campaignStore.activeCampaignIdNumber)
     if (props.questId) {
       const q = await $fetch<Quest>(`/api/quests/${props.questId}`)
-      form.value = { name: q.name, description: q.description ?? '', status: q.status, giver_id: q.giver_id, location_id: q.location_id, storyline_id: q.storyline_id, reward: q.reward ?? '', objectives: q.objectives.map(o => ({ ...o })) }
+      form.value = { name: q.name, description: q.description ?? '', status: q.status, giver_id: q.giver_id, location_id: q.location_id, storyline_id: q.storyline_id, reward: q.reward ?? '', objectives: q.objectives.map(o => ({ ...o })), involved_ids: (q.involved ?? []).map(e => e.id) }
     }
   }
   finally {

@@ -186,7 +186,8 @@ function isNear(c: StoryCluster) {
   if (c.location_id && store.nearby.has(c.location_id)) return true
   return store.beatsOf(c.id).some(b => b.location_id && store.nearby.has(b.location_id))
 }
-const visibleClusters = computed(() => (onlyNear.value && store.settings.party_location_id ? store.clusters.filter(isNear) : store.clusters))
+// Always a fresh array, so the drag list redraws when a cluster changes (fold, rename, …)
+const visibleClusters = computed(() => store.clusters.filter(c => !(onlyNear.value && store.settings.party_location_id) || isNear(c)))
 
 // --- drag & drop -------------------------------------------------------
 const clusterList = ref<StoryCluster[]>([])

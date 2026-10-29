@@ -1,8 +1,8 @@
 import { getDb } from '../../utils/db'
-import { loadQuest, questTypeId, requireCampaign } from '../../utils/storyBoard'
+import { loadQuest, questTypeId, requireCampaign, setQuestInvolved } from '../../utils/storyBoard'
 import { questMetadataFromBody } from '../../utils/questInput'
 
-/** POST /api/quests { campaignId, name, description?, status?, giver_id?, location_id?, storyline_id?, reward?, objectives? } */
+/** POST /api/quests { campaignId, name, description?, status?, giver_id?, location_id?, storyline_id?, reward?, objectives?, involved_ids? } */
 export default defineEventHandler(async (event) => {
   const db = getDb()
   const body = await readBody<Record<string, unknown>>(event)
@@ -12,5 +12,7 @@ export default defineEventHandler(async (event) => {
   const { metadata, locationId } = questMetadataFromBody(db, campaignId, body, null)
   const r = db.prepare('INSERT INTO entities (type_id, campaign_id, name, description, location_id, metadata) VALUES (?, ?, ?, ?, ?, ?)')
     .run(questTypeId(db), campaignId, name, typeof body.description === 'string' && body.description.trim() ? body.description : null, locationId, JSON.stringify(metadata))
-  return loadQuest(db, Number(r.lastInsertRowid))
+  const id = Number(r.lastInsertRowid)
+  setQuestInvolved(db, campaignId, id, body.involved_ids)
+  return loadQuest(db, id)
 })

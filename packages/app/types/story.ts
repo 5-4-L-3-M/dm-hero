@@ -10,6 +10,8 @@ export const COLOR_BY = ['storyline', 'heat', 'region', 'status'] as const
 export const QUEST_STATUSES = ['rumor', 'active', 'completed', 'failed'] as const
 export const AGENDA_STATUSES = ['active', 'achieved', 'foiled'] as const
 export const CLOCK_SIZES = [4, 6, 8, 10, 12] as const
+/** Relation type linking a quest to the entries involved in it */
+export const QUEST_INVOLVED_RELATION = 'involved'
 
 export type BeatKind = typeof BEAT_KINDS[number]
 export type BeatStatus = typeof BEAT_STATUSES[number]
@@ -103,6 +105,7 @@ export interface Quest {
   giver_id: number | null
   giver_name: string | null
   giver_type: string | null
+  involved: LinkedEntity[] // entries linked to the quest (relation type "involved")
   location_id: number | null
   location_name: string | null
   storyline_id: number | null
@@ -152,7 +155,8 @@ export function nextStoryColor(used: number[]): number {
 }
 
 const HEAT_COLORS: Record<ClusterHeat, string> = { cold: 'info', warm: 'warning', hot: 'error' }
-const STATUS_COLORS: Record<ClusterStatus, string> = { active: 'success', dormant: 'secondary', resolved: 'info' }
+// success / warning / info differ in every theme (secondary can equal success, e.g. Nocturne)
+const STATUS_COLORS: Record<ClusterStatus, string> = { active: 'success', dormant: 'warning', resolved: 'info' }
 export const NO_COLOR = 'surface-variant'
 
 /**

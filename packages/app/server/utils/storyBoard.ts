@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3'
 import {
-  BEAT_KINDS, BEAT_STATUSES, COLOR_BY, oneOf, readQuestMetadata,
+  BEAT_KINDS, BEAT_STATUSES, COLOR_BY, QUEST_INVOLVED_RELATION, oneOf, readQuestMetadata,
   type FactionAgenda, type LinkedEntity, type Quest, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
 } from '../../types/story'
 
@@ -133,6 +133,13 @@ export function loadQuests(db: Database.Database, campaignId: number, id?: numbe
     ORDER BY e.name COLLATE NOCASE
   `).all(...(id ? [questTypeId(db), campaignId, id] : [questTypeId(db), campaignId])) as Array<{ id: number, name: string, description: string | null, metadata: string | null, location_id: number | null, location_name: string | null, updated_at: string }>
   const giverName = db.prepare('SELECT e.name, et.name AS type FROM entities e JOIN entity_types et ON et.id = e.type_id WHERE e.id = ? AND e.deleted_at IS NULL')
+  const involved = db.prepare(`
+    SELECT e.id, e.name, et.name AS type FROM entity_relations r
+    JOIN entities e ON e.id = r.to_entity_id AND e.deleted_at IS NULL
+    JOIN entity_types et ON et.id = e.type_id
+    WHERE r.from_entity_id = ? AND r.relation_type = ?
+    ORDER BY e.name COLLATE NOCASE
+  `)
   return rows.map((r) => {
     const m = readQuestMetadata(r.metadata)
     const giver = m.giver_id ? giverName.get(m.giver_id) as { name: string, type: string } | undefined : undefined
@@ -144,6 +151,7 @@ export function loadQuests(db: Database.Database, campaignId: number, id?: numbe
       giver_id: giver ? m.giver_id : null,
       giver_name: giver?.name ?? null,
       giver_type: giver?.type ?? null,
+      involved: involved.all(r.id, QUEST_INVOLVED_RELATION) as LinkedEntity[],
       location_id: r.location_name ? r.location_id : null,
       location_name: r.location_name,
       updated_at: r.updated_at,
@@ -173,4 +181,15 @@ export function loadAgendas(db: Database.Database, campaignId: number, factionId
 export function nextSortOrder(db: Database.Database, sql: string, ...params: unknown[]): number {
   const row = db.prepare(sql).get(...params) as { m: number | null } | undefined
   return (row?.m ?? -1) + 1
+}
+
+/** Replace the entries linked to a quest as "involved" (this campaign's only, not the quest itself). */
+export function setQuestInvolved(db: Database.Database, campaignId: number, questId: number, ids: unknown) {
+  if (!Array.isArray(ids)) return
+  db.prepare('DELETE FROM entity_relations WHERE from_entity_id = ? AND relation_type = ?').run(questId, QUEST_INVOLVED_RELATION)
+  const insert = db.prepare('INSERT OR IGNORE INTO entity_relations (from_entity_id, to_entity_id, relation_type) VALUES (?, ?, ?)')
+  for (const id of ids) {
+    const ok = entityInCampaign(db, campaignId, id)
+    if (ok && ok !== questId) insert.run(questId, ok, QUEST_INVOLVED_RELATION)
+  }
 }
