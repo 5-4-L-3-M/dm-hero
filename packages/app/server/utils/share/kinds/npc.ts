@@ -14,6 +14,7 @@ const NPC_FIELD_POLICY = {
   type: 'share',
   status: 'share',
   age: 'share',
+  age_human: 'share',
   gender: 'share',
   location: 'share',
   faction: 'share',
@@ -31,6 +32,7 @@ export const npcShareKind = defineEntityShareKind<typeof NPC_FIELD_POLICY, NpcMe
       case 'status': return localize('npcs.statuses', list(meta.status))
       case 'gender': return localize('npcs.genders', list(meta.gender))
       case 'age': return meta.age != null ? String(meta.age) : null
+      case 'age_human': return meta.age_human != null && String(meta.age_human).trim() ? String(meta.age_human) : null
       case 'location':
         return sharedEntityName(db, tableId, row.location_id) ?? (typeof meta.location === 'string' && meta.location.trim() ? meta.location : null)
       case 'faction': {

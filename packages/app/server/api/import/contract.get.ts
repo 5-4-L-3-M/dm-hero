@@ -61,6 +61,7 @@ export default defineEventHandler(() => {
         status: { type: 'string', oneOf: NPC_STATUSES },
         gender: { type: 'string' },
         age: { type: 'number' },
+        age_human: { type: 'string', note: 'human-equivalent age, e.g. "27" for a 102-year-old elf' },
       },
       Item: {
         type: { type: 'string', oneOf: itemTypes.map(t => t.name) },
@@ -91,7 +92,8 @@ export default defineEventHandler(() => {
         classes: { type: 'array', note: 'one entry per class: [{ name: "Pirate", level: 3, subclass: "Buccaneer" }, { name: "Warlock", level: 1 }]; total level is the sum' },
         background: { type: 'string' },
         alignment: { type: 'string', note: 'e.g. "Chaotic Neutral"' },
-        age: { type: 'string', note: 'free text, e.g. "115 (looks ~58)"' },
+        age: { type: 'string', note: 'real age, e.g. "115"' },
+        age_human: { type: 'string', note: 'human-equivalent age, e.g. "~58"' },
         height: { type: 'string', note: 'e.g. "6\' 10\\""' },
         weight: { type: 'string', note: 'e.g. "280 lb"' },
         patron: { type: 'string', note: 'patron god' },

@@ -93,6 +93,7 @@
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-autocomplete
+            v-model:search="quickSearch"
             v-model="localFactionId"
             :items="availableFactions"
             item-title="name"
@@ -110,6 +111,9 @@
                 <v-list-item-title>{{ $t('quickCreate.newFaction') }}</v-list-item-title>
               </v-list-item>
               <v-divider class="my-1" />
+            </template>
+            <template #no-data>
+              <SharedCreateFromSearch :search="quickSearch" type="Faction" @created="handleQuickCreated" />
             </template>
           </v-autocomplete>
 
@@ -205,6 +209,8 @@ const localNotes = ref('')
 
 // Quick Create state
 const showQuickCreate = ref(false)
+// Typed a name that matches nothing → "Create …" right in the list
+const quickSearch = ref('')
 
 // Edit dialog state
 const editDialog = ref(false)

@@ -91,6 +91,7 @@
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-autocomplete
+            v-model:search="quickLoreSearch"
             v-model="selectedLoreId"
             :items="availableLore"
             item-title="name"
@@ -99,7 +100,11 @@
             variant="outlined"
             clearable
             class="mb-3"
-          />
+          >
+            <template #no-data>
+              <SharedCreateFromSearch :search="quickLoreSearch" type="Lore" @created="quickLoreCreated" />
+            </template>
+          </v-autocomplete>
 
           <v-combobox
             v-model="selectedRelationType"
@@ -370,5 +375,12 @@ async function saveEdit() {
   finally {
     saving.value = false
   }
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickLoreSearch = ref('')
+function quickLoreCreated(e: { id: number, name: string }) {
+  availableLore.value.push({ id: e.id, name: e.name })
+  selectedLoreId.value = e.id
 }
 </script>

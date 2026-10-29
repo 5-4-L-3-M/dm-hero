@@ -142,21 +142,27 @@
               <!-- Race & Class -->
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-select
+                  <v-autocomplete
                     :key="`race-${locale}`"
                     v-model="form.metadata.race"
+                    v-model:search="raceSearch"
                     :items="raceItems"
                     :label="$t('npcs.race')"
                     variant="outlined"
                     clearable
                     item-title="title"
                     item-value="value"
-                  />
+                  >
+                    <template #no-data>
+                      <SharedCreateFromSearch :search="raceSearch" type="races" @created="onRaceCreated" />
+                    </template>
+                  </v-autocomplete>
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-select
+                  <v-autocomplete
                     :key="`class-${locale}`"
                     v-model="form.metadata.class"
+                    v-model:search="classSearch"
                     :items="classItems"
                     :label="$t('npcs.class')"
                     variant="outlined"
@@ -165,19 +171,32 @@
                     chips
                     item-title="title"
                     item-value="value"
-                  />
+                  >
+                    <template #no-data>
+                      <SharedCreateFromSearch :search="classSearch" type="classes" @created="onClassCreated" />
+                    </template>
+                  </v-autocomplete>
                 </v-col>
               </v-row>
 
               <!-- Age & Gender -->
               <v-row>
-                <v-col cols="12" md="6">
+                <v-col cols="6" md="3">
                   <v-text-field
                     v-model.number="form.metadata.age"
                     :label="$t('npcs.age')"
                     variant="outlined"
                     type="number"
                     min="0"
+                    clearable
+                  />
+                </v-col>
+                <v-col cols="6" md="3">
+                  <v-text-field
+                    v-model="form.metadata.age_human"
+                    :label="$t('npcs.ageHuman')"
+                    :hint="$t('npcs.ageHumanHint')"
+                    variant="outlined"
                     clearable
                   />
                 </v-col>
@@ -395,21 +414,27 @@
             <!-- Race & Class -->
             <v-row>
               <v-col cols="12" md="6">
-                <v-select
+                <v-autocomplete
                   :key="`race-${locale}`"
                   v-model="form.metadata.race"
+                  v-model:search="raceSearch"
                   :items="raceItems"
                   :label="$t('npcs.race')"
                   variant="outlined"
                   clearable
                   item-title="title"
                   item-value="value"
-                />
+                >
+                  <template #no-data>
+                    <SharedCreateFromSearch :search="raceSearch" type="races" @created="onRaceCreated" />
+                  </template>
+                </v-autocomplete>
               </v-col>
               <v-col cols="12" md="6">
-                <v-select
+                <v-autocomplete
                   :key="`class-${locale}`"
                   v-model="form.metadata.class"
+                  v-model:search="classSearch"
                   :items="classItems"
                   :label="$t('npcs.class')"
                   variant="outlined"
@@ -418,19 +443,32 @@
                   chips
                   item-title="title"
                   item-value="value"
-                />
+                >
+                  <template #no-data>
+                    <SharedCreateFromSearch :search="classSearch" type="classes" @created="onClassCreated" />
+                  </template>
+                </v-autocomplete>
               </v-col>
             </v-row>
 
             <!-- Age & Gender -->
             <v-row>
-              <v-col cols="12" md="6">
+              <v-col cols="6" md="3">
                 <v-text-field
                   v-model.number="form.metadata.age"
                   :label="$t('npcs.age')"
                   variant="outlined"
                   type="number"
                   min="0"
+                  clearable
+                />
+              </v-col>
+              <v-col cols="6" md="3">
+                <v-text-field
+                  v-model="form.metadata.age_human"
+                  :label="$t('npcs.ageHuman')"
+                  :hint="$t('npcs.ageHumanHint')"
+                  variant="outlined"
                   clearable
                 />
               </v-col>
@@ -622,6 +660,7 @@ const form = ref({
     race: undefined as string | undefined,
     class: [] as string[],
     age: undefined as number | undefined,
+    age_human: undefined as string | number | undefined,
     gender: undefined as string | undefined,
     type: [] as NpcType[],
     status: undefined as NpcStatus | undefined,
@@ -636,6 +675,7 @@ const originalImageData = ref({
   race: undefined as string | undefined,
   class: [] as string[],
   age: undefined as number | undefined,
+  age_human: undefined as string | number | undefined,
   gender: undefined as string | undefined,
 })
 
@@ -830,6 +870,20 @@ async function loadData(npcId: number | null | undefined) {
   }
 }
 
+// Typing a race or class that doesn't exist yet creates it in Reference Data
+const raceSearch = ref('')
+const classSearch = ref('')
+async function onRaceCreated(e: { key?: string }) {
+  await loadReferenceData()
+  if (e.key) form.value.metadata.race = e.key
+}
+async function onClassCreated(e: { key?: string }) {
+  await loadReferenceData()
+  if (!e.key) return
+  const current = Array.isArray(form.value.metadata.class) ? form.value.metadata.class : (form.value.metadata.class ? [form.value.metadata.class] : [])
+  form.value.metadata.class = [...current.filter(c => c !== e.key), e.key]
+}
+
 async function loadReferenceData() {
   try {
     const [racesData, classesData] = await Promise.all([
@@ -883,6 +937,7 @@ async function loadNpc(npcId: number) {
         race: data.metadata?.race as string | undefined,
         class: toArray(data.metadata?.class),
         age: data.metadata?.age as number | undefined,
+        age_human: data.metadata?.age_human as string | number | undefined,
         gender: data.metadata?.gender as string | undefined,
         type: toArray(data.metadata?.type) as NpcType[],
         status: data.metadata?.status as NpcStatus | undefined,
@@ -897,6 +952,7 @@ async function loadNpc(npcId: number) {
       race: data.metadata?.race as string | undefined,
       class: toArray(data.metadata?.class),
       age: data.metadata?.age as number | undefined,
+      age_human: data.metadata?.age_human as string | number | undefined,
       gender: data.metadata?.gender as string | undefined,
     }
 
@@ -1017,6 +1073,7 @@ function resetForm() {
       race: undefined,
       class: [] as string[],
       age: undefined,
+      age_human: undefined,
       gender: undefined,
       type: [] as NpcType[],
       status: undefined as NpcStatus | undefined,

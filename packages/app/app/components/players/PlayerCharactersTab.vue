@@ -91,6 +91,7 @@
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-autocomplete
+            v-model:search="quickNpcSearch"
             v-model="selectedNpcId"
             :items="availableNpcs"
             item-title="name"
@@ -99,7 +100,11 @@
             variant="outlined"
             clearable
             class="mb-3"
-          />
+          >
+            <template #no-data>
+              <SharedCreateFromSearch :search="quickNpcSearch" type="NPC" @created="quickNpcCreated" />
+            </template>
+          </v-autocomplete>
 
           <v-combobox
             v-model="selectedRelationType"
@@ -375,5 +380,12 @@ async function saveEdit() {
   finally {
     saving.value = false
   }
+}
+
+// Typed a name that matches nothing → create it right from the list
+const quickNpcSearch = ref('')
+function quickNpcCreated(e: { id: number, name: string }) {
+  availableNpcs.value.push({ id: e.id, name: e.name })
+  selectedNpcId.value = e.id
 }
 </script>

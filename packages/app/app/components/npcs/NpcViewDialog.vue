@@ -158,7 +158,7 @@
                       <v-icon class="mr-3">mdi-calendar</v-icon>
                       <div>
                         <div class="text-body-small text-medium-emphasis">{{ $t('npcs.age') }}</div>
-                        <div class="font-weight-medium">{{ npc.metadata.age }}</div>
+                        <div class="font-weight-medium">{{ ageText(npc.metadata.age, npc.metadata.age_human, $t('npcs.humanWord')) }}</div>
                       </div>
                     </div>
                   </v-card>
@@ -318,6 +318,7 @@
 </template>
 
 <script setup lang="ts">
+import { ageText } from '~~/types/age'
 import type { NPC } from '~~/types/npc'
 import EntityRelationsList from '~/components/shared/EntityRelationsList.vue'
 import EntityDocumentsView from '~/components/shared/EntityDocumentsView.vue'

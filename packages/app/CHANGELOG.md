@@ -1,5 +1,18 @@
 # @dm-hero/app
 
+## 1.7.2
+
+### Minor Changes
+
+- Human-equivalent age for NPCs and player characters ("Human age"), next to the real age. Shown as "Age 102 (human 27)" on NPC cards, the NPC view, the side panel and the player character header. Can be shared at the game table like the age.
+- Type to create: in the pickers for items, NPCs, places, factions and lore (inventories, links, quests, Story Board beats and clusters), typing a name that doesn't exist offers "Create "…" as new …" — one click makes the page and selects it.
+- NPC race and class pickers can be typed into; a race or class that doesn't exist yet is added to Reference Data.
+- Text formatting guide: a button in the top bar (next to the language) shows how plain text turns into headings, bold labels, bullets and bold, with live examples.
+
+### Patch Changes
+
+- Card grids (NPCs, places, items, factions, lore, players) fit the space the page actually has: with the side panel open or a small window they drop to two or one across instead of squeezing names letter by letter.
+
 ## 1.7.1
 
 ### Minor Changes

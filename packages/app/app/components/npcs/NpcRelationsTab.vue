@@ -98,6 +98,7 @@
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-autocomplete
+            v-model:search="quickSearch"
             v-model="localNpcId"
             :items="availableNpcs || []"
             item-title="name"
@@ -115,6 +116,9 @@
                 <v-list-item-title>{{ $t('quickCreate.newNpc') }}</v-list-item-title>
               </v-list-item>
               <v-divider class="my-1" />
+            </template>
+            <template #no-data>
+              <SharedCreateFromSearch :search="quickSearch" type="NPC" @created="handleQuickCreated" />
             </template>
           </v-autocomplete>
 
@@ -221,6 +225,8 @@ const saving = ref(false)
 
 // Quick Create state
 const showQuickCreate = ref(false)
+// Typed a name that matches nothing → "Create …" right in the list
+const quickSearch = ref('')
 
 // Track dirty state: form has data or edit dialog is open
 const isDirty = computed(() => {
