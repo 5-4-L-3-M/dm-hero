@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :model-value="modelValue" max-width="620" scrollable @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog :model-value="modelValue" v-bind="dockAttrs" scrollable @click:outside="dockOutside" @update:model-value="v => dockAccept(v) && $emit('update:modelValue', v)">
     <v-card>
       <v-card-title>{{ cluster ? $t('story.cluster.edit') : $t('story.cluster.new') }}</v-card-title>
       <v-card-text>
@@ -64,6 +64,31 @@
           clearable
           class="mb-3"
         />
+        <v-autocomplete
+          v-model:search="quickEntitiesSearch"
+          v-model="form.entity_ids"
+          :items="store.entities"
+          item-title="name"
+          item-value="id"
+          :label="$t('story.cluster.involved')"
+          :hint="$t('story.cluster.involvedHint')"
+          persistent-hint
+          prepend-inner-icon="mdi-account-multiple"
+          multiple
+          chips
+          closable-chips
+          variant="outlined"
+          density="comfortable"
+          class="mb-3"
+          @update:model-value="quickEntitiesSearch = ''"
+        >
+          <template #item="{ props: itemProps, item }">
+            <v-list-item v-bind="itemProps" :subtitle="item.type" />
+          </template>
+          <template #no-data>
+            <SharedCreateFromSearch :search="quickEntitiesSearch" type="NPC" @created="quickEntitiesCreated" />
+          </template>
+        </v-autocomplete>
         <v-textarea v-model="form.notes" :label="$t('story.cluster.notes')" variant="outlined" rows="2" auto-grow />
       </v-card-text>
       <v-card-actions>
@@ -83,17 +108,18 @@ const props = defineProps<{ modelValue: boolean, cluster: StoryCluster | null }>
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
 const store = useStoryBoardStore()
+const { dockAttrs, dockOutside, dockAccept } = useDockedDialog(620)
 
-interface Form { title: string, storyline_id: number | null, heat: ClusterHeat, status: ClusterStatus, location_id: number | null, quest_id: number | null, notes: string }
-const form = ref<Form>({ title: '', storyline_id: null, heat: 'warm', status: 'active', location_id: null, quest_id: null, notes: '' })
+interface Form { title: string, storyline_id: number | null, heat: ClusterHeat, status: ClusterStatus, location_id: number | null, quest_id: number | null, notes: string, entity_ids: number[] }
+const form = ref<Form>({ title: '', storyline_id: null, heat: 'warm', status: 'active', location_id: null, quest_id: null, notes: '', entity_ids: [] })
 const saving = ref(false)
 
 watch(() => props.modelValue, (open) => {
   if (!open) return
   const c = props.cluster
   form.value = c
-    ? { title: c.title, storyline_id: c.storyline_id, heat: c.heat, status: c.status, location_id: c.location_id, quest_id: c.quest_id, notes: c.notes ?? '' }
-    : { title: '', storyline_id: store.storylines[0]?.id ?? null, heat: 'warm', status: 'active', location_id: null, quest_id: null, notes: '' }
+    ? { title: c.title, storyline_id: c.storyline_id, heat: c.heat, status: c.status, location_id: c.location_id, quest_id: c.quest_id, notes: c.notes ?? '', entity_ids: (c.entities ?? []).map(e => e.id) }
+    : { title: '', storyline_id: store.storylines[0]?.id ?? null, heat: 'warm', status: 'active', location_id: null, quest_id: null, notes: '', entity_ids: [] }
 }, { immediate: true })
 
 const storylineOptions = computed(() => store.storylines.map(s => ({ title: s.name, value: s.id, color: s.color })))
@@ -115,6 +141,11 @@ async function save() {
 const quickLocationSearch = ref('')
 function quickLocationCreated(e: { id: number, name: string }) {
   form.value.location_id = e.id
+}
+
+const quickEntitiesSearch = ref('')
+function quickEntitiesCreated(e: { id: number, name: string }) {
+  form.value.entity_ids.push(e.id)
 }
 </script>
 

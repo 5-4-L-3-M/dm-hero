@@ -1,8 +1,8 @@
 import { getDb } from '../../../utils/db'
-import { entityInCampaign, loadBoard, nextSortOrder, requireCampaign, storylineInCampaign } from '../../../utils/storyBoard'
+import { entityInCampaign, loadBoard, nextSortOrder, requireCampaign, setClusterEntities, storylineInCampaign } from '../../../utils/storyBoard'
 import { CLUSTER_HEATS, CLUSTER_STATUSES, oneOf } from '../../../../types/story'
 
-/** POST /api/story/clusters { campaignId, title, storyline_id?, heat?, status?, notes?, location_id?, quest_id? } */
+/** POST /api/story/clusters { campaignId, title, storyline_id?, heat?, status?, notes?, location_id?, quest_id?, entity_ids? } */
 export default defineEventHandler(async (event) => {
   const db = getDb()
   const body = await readBody<Record<string, unknown>>(event)
@@ -24,5 +24,6 @@ export default defineEventHandler(async (event) => {
     entityInCampaign(db, campaignId, body.quest_id, 'Quest'),
     order,
   )
+  setClusterEntities(db, campaignId, Number(r.lastInsertRowid), body.entity_ids)
   return loadBoard(db, campaignId).clusters.find(c => c.id === Number(r.lastInsertRowid))
 })

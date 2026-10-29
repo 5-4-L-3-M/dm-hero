@@ -123,7 +123,9 @@ describe('story board API', () => {
     // Settings
     await story('PATCH', 'settings', { campaignId, color_by: 'region', party_location_id: harbor })
     b = await board()
-    expect(b.settings).toEqual({ color_by: 'region', party_location_id: harbor })
+    expect(b.settings).toEqual({ color_by: 'region', party_location_id: harbor, group_by: 'storyline', compact: false })
+    await story('PATCH', 'settings', { campaignId, group_by: 'heat', compact: true })
+    expect((await board()).settings).toMatchObject({ group_by: 'heat', compact: true, color_by: 'region' })
 
     // Deleting the cluster sends its beats back to the sparks shelf
     await story('DELETE', `clusters/${cluster.id}`, undefined, {})
@@ -134,6 +136,21 @@ describe('story board API', () => {
     // Deleting a storyline keeps nothing broken
     await story('DELETE', `storylines/${line.id}`)
     expect((await board()).storylines.map(s => s.name)).toEqual(['Court Intrigue'])
+  })
+
+  it('new beats in a cluster start with the cluster\'s entries and its quest\'s involved ones', async () => {
+    const npc = entity('NPC', 'Harbormaster')
+    const ship = entity('Location', 'The Seawind')
+    const rival = entity('NPC', 'Smuggler Queen')
+    const quest = await quests<Quest>('POST', '', { campaignId, name: 'Missing ship', involved_ids: [rival] })
+    const cluster = await story<StoryCluster>('POST', 'clusters', { campaignId, title: 'Smugglers', entity_ids: [npc, ship], quest_id: quest.id })
+    expect(cluster.entities.map(e => e.name)).toEqual(['Harbormaster', 'The Seawind'])
+    const quick = await story<StoryBeat>('POST', 'beats', { campaignId, title: 'Quick add', cluster_id: cluster.id })
+    expect(quick.entities.map(e => e.name).sort()).toEqual(['Harbormaster', 'Smuggler Queen', 'The Seawind'])
+    const explicit = await story<StoryBeat>('POST', 'beats', { campaignId, title: 'Picked by hand', cluster_id: cluster.id, entity_ids: [npc] })
+    expect(explicit.entities.map(e => e.name)).toEqual(['Harbormaster'])
+    const spark = await story<StoryBeat>('POST', 'beats', { campaignId, title: 'Loose' })
+    expect(spark.entities).toEqual([])
   })
 
   it('rejects other campaigns\' entries and unknown campaigns', async () => {

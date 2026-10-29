@@ -40,3 +40,12 @@
     --v-col-is-grow: ;
   }
 }
+
+/*
+ * Docked dialogs (useDockedDialog) have no dark backdrop so the side panel
+ * stays usable — give them a clear edge and shadow so they still stand out.
+ */
+.docked-dialog > .v-card {
+  border: 1px solid rgba(var(--v-theme-primary), 0.45);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55) !important;
+}

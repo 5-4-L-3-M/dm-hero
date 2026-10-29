@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type {
-  ColorBy, LinkedEntity, Quest, StoryBeat, StoryBoard, StoryCluster, StoryLine,
+  LinkedEntity, Quest, StoryBeat, StoryBoard, StoryBoardSettings, StoryCluster, StoryLine,
 } from '~~/types/story'
 import { nearbyLocationIds } from '~~/types/story'
 
@@ -26,7 +26,7 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     storylines: s => s.board?.storylines ?? [],
     clusters: s => s.board?.clusters ?? [],
     beats: s => s.board?.beats ?? [],
-    settings: s => s.board?.settings ?? { color_by: 'storyline' as ColorBy, party_location_id: null },
+    settings: (s): StoryBoardSettings => s.board?.settings ?? { color_by: 'storyline', party_location_id: null, group_by: 'storyline', compact: false },
     sparks(): StoryBeat[] {
       return this.beats.filter(b => b.cluster_id === null)
     },

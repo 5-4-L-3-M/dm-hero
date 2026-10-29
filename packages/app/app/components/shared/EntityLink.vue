@@ -36,7 +36,9 @@ const previewType = computed(() => toPreviewType(props.type))
 
 function openEntity(event: Event) {
   if (!previewType.value || !props.id) return
-  const insideDialog = !!(event.currentTarget as HTMLElement | null)?.closest('.v-overlay__content')
+  const el = event.currentTarget as HTMLElement | null
+  // Docked dialogs sit beside the side panel, so open there instead of a popup
+  const insideDialog = !!el?.closest('.v-overlay__content') && !el?.closest('.docked-dialog')
   if (insideDialog) peek.show(previewType.value, props.id)
   else tabs.open(previewType.value, props.id, props.name ?? '')
 }

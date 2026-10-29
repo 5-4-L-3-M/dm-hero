@@ -67,12 +67,13 @@ export function exportStoryBoard(
     WHERE et.name = 'Quest' AND e.campaign_id = ? AND e.deleted_at IS NULL
   `).all(campaignId) as Array<{ id: number, metadata: string | null }>
 
-  const settings = db.prepare('SELECT color_by, party_location_id FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null } | undefined
+  const settings = db.prepare('SELECT color_by, party_location_id, group_by, compact FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number } | undefined
+  const clusterLinks = db.prepare('SELECT ce.cluster_id, ce.entity_id FROM story_cluster_entities ce JOIN story_clusters c ON c.id = ce.cluster_id WHERE c.campaign_id = ?').all(campaignId) as Array<{ cluster_id: number, entity_id: number }>
 
   if (!lines.length && !clusters.length && !beats.length && !agendas.length && !quests.length && !settings) return undefined
 
   return {
-    settings: settings ? { color_by: settings.color_by, party_location: ref(entityRef, settings.party_location_id) } : undefined,
+    settings: settings ? { color_by: settings.color_by, party_location: ref(entityRef, settings.party_location_id), group_by: settings.group_by, compact: !!settings.compact } : undefined,
     storylines: lines.map(l => ({ ref: lineRef.get(l.id)!, name: l.name, color: l.color, sort_order: l.sort_order })),
     clusters: clusters.map(c => ({
       ref: clusterRef.get(c.id)!,
@@ -85,6 +86,7 @@ export function exportStoryBoard(
       quest: ref(entityRef, c.quest_id),
       collapsed: !!c.collapsed,
       sort_order: c.sort_order,
+      entities: clusterLinks.filter(l => l.cluster_id === c.id).map(l => entityRef.get(l.entity_id)).filter((x): x is string => !!x),
     })),
     beats: beats.map(b => ({
       cluster: b.cluster_id ? clusterRef.get(b.cluster_id) ?? null : null,
@@ -121,9 +123,10 @@ export function importStoryBoard(
 
   if (data.settings) {
     db.prepare(`
-      INSERT INTO story_board_settings (campaign_id, color_by, party_location_id) VALUES (?, ?, ?)
-      ON CONFLICT(campaign_id) DO UPDATE SET color_by = excluded.color_by, party_location_id = excluded.party_location_id
-    `).run(campaignId, data.settings.color_by || 'storyline', id(entityId, data.settings.party_location))
+      INSERT INTO story_board_settings (campaign_id, color_by, party_location_id, group_by, compact) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(campaign_id) DO UPDATE SET color_by = excluded.color_by, party_location_id = excluded.party_location_id,
+        group_by = excluded.group_by, compact = excluded.compact
+    `).run(campaignId, data.settings.color_by || 'storyline', id(entityId, data.settings.party_location), data.settings.group_by || 'storyline', data.settings.compact ? 1 : 0)
   }
 
   const lineId = new Map<string, number>()
@@ -140,6 +143,10 @@ export function importStoryBoard(
   for (const c of data.clusters ?? []) {
     const r = insertCluster.run(campaignId, id(lineId, c.storyline), c.title, c.notes ?? null, c.heat || 'warm', c.status || 'active', id(entityId, c.location), id(entityId, c.quest), c.collapsed ? 1 : 0, c.sort_order || 0)
     clusterId.set(c.ref, Number(r.lastInsertRowid))
+    for (const e of c.entities ?? []) {
+      const eid = entityId.get(e)
+      if (eid) db.prepare('INSERT OR IGNORE INTO story_cluster_entities (cluster_id, entity_id) VALUES (?, ?)').run(Number(r.lastInsertRowid), eid)
+    }
   }
 
   const insertBeat = db.prepare(`

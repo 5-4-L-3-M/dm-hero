@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :model-value="modelValue" max-width="720" scrollable @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog :model-value="modelValue" v-bind="dockAttrs" scrollable @click:outside="dockOutside" @update:model-value="v => dockAccept(v) && $emit('update:modelValue', v)">
     <v-card>
       <v-card-title class="d-flex align-center">
         <v-icon class="mr-2">{{ BEAT_KIND_ICONS[form.kind] }}</v-icon>
@@ -122,6 +122,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
 const { t } = useI18n()
 const store = useStoryBoardStore()
+const { dockAttrs, dockOutside, dockAccept } = useDockedDialog(720)
 
 interface Form {
   title: string
@@ -139,16 +140,32 @@ const form = ref<Form>(empty())
 const saving = ref(false)
 const sessions = ref<{ id: number, session_number: number | null, title: string }[]>([])
 
+/** A new beat starts with its cluster's entries plus its quest's involved ones. */
+function clusterDefaults(clusterId: number | null): number[] {
+  const c = clusterId ? store.clusters.find(x => x.id === clusterId) : null
+  if (!c) return []
+  const quest = c.quest_id ? store.quests.find(q => q.id === c.quest_id) : null
+  return [...new Set([...(c.entities ?? []).map(e => e.id), ...(quest?.involved ?? []).map(e => e.id)])]
+}
+
 watch(() => props.modelValue, async (open) => {
   if (!open) return
   const b = props.beat
   form.value = b
     ? { title: b.title, body: b.body ?? '', kind: b.kind, status: b.status, cluster_id: b.cluster_id, location_id: b.location_id, entity_ids: b.entities.map(e => e.id), in_tray: b.tray_order !== null, played_session_id: b.played_session_id }
-    : empty()
+    : { ...empty(), entity_ids: clusterDefaults(props.defaultClusterId ?? null) }
   if (store.campaignId) {
     sessions.value = await $fetch<typeof sessions.value>('/api/sessions', { query: { campaignId: store.campaignId } }).catch(() => [])
   }
 }, { immediate: true })
+
+// New beat moved to another cluster → swap that cluster's defaults, keep anything added by hand
+watch(() => form.value.cluster_id, (now, before) => {
+  if (props.beat || !props.modelValue) return
+  const old = new Set(clusterDefaults(before ?? null))
+  const kept = form.value.entity_ids.filter(id => !old.has(id))
+  form.value.entity_ids = [...new Set([...kept, ...clusterDefaults(now)])]
+})
 
 const clusterOptions = computed(() => [
   { title: t('story.sparks.title'), value: null },
