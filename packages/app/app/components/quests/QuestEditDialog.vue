@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :model-value="show" max-width="720" scrollable @update:model-value="$emit('update:show', $event)">
+  <v-dialog :model-value="show" v-bind="dockAttrs" scrollable @click:outside="dockOutside" @update:model-value="v => dockAccept(v) && $emit('update:show', v)">
     <v-card>
       <v-card-title class="d-flex align-center">
         <v-icon class="mr-2" color="brown">mdi-script-text</v-icon>
@@ -139,6 +139,7 @@ const props = defineProps<{ show: boolean, questId?: number | null, initialStatu
 const emit = defineEmits<{ 'update:show': [value: boolean], 'saved': [quest: Quest], 'deleted': [id: number] }>()
 
 const store = useStoryBoardStore()
+const { dockAttrs, dockOutside, dockAccept } = useDockedDialog(720)
 const campaignStore = useCampaignStore()
 
 interface Form { name: string, description: string, status: QuestStatus, giver_id: number | null, location_id: number | null, storyline_id: number | null, reward: string, objectives: QuestObjective[], involved_ids: number[] }

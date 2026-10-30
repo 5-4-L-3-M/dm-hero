@@ -1,5 +1,21 @@
 # @dm-hero/app
 
+## 1.8.0
+
+### Minor Changes
+
+- Story Board lanes: clusters sit in lanes by storyline, heat, region or status (or one lane for all). Drag a cluster into another lane to change its storyline / heat / place / status. Lanes fold, and cards pack tightly with no gaps.
+- Compact switch: clusters show only their title and progress, so you can see and rearrange the whole board at once.
+- Filter the board by storylines (click the storyline chips; "No storyline" included). Remembered per campaign.
+- Next session is now a band across the top of the board: numbered, drag to reorder, click to edit, Run sheet button right there.
+- Sparks look like a sticky-note shelf so they're easy to tell apart from planned beats.
+- Clusters have "Who and what is involved". New beats in that cluster start with those entries plus the quest's involved ones; add or remove per beat. Also settable from the MCP (create_story_cluster entityIds).
+- Beat, cluster and quest dialogs leave the side panel usable: no dark backdrop, they move left when the panel is open, and links inside them open in the panel.
+
+### Patch Changes
+
+- Quest board: dragging a quest to a new spot in its column sticks instead of snapping back.
+
 ## 1.7.4
 
 ### Minor Changes

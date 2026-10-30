@@ -1,10 +1,11 @@
 import { getDb } from '../../../utils/db'
-import { clusterInCampaign, entityInCampaign, loadBeat, nextSortOrder, requireCampaign, setBeatEntities } from '../../../utils/storyBoard'
+import { clusterDefaultEntityIds, clusterInCampaign, entityInCampaign, loadBeat, nextSortOrder, requireCampaign, setBeatEntities } from '../../../utils/storyBoard'
 import { BEAT_KINDS, BEAT_STATUSES, oneOf } from '../../../../types/story'
 
 /**
  * POST /api/story/beats { campaignId, title, body?, kind?, status?, cluster_id?, location_id?, entity_ids?, in_tray? }
- * No cluster_id → the beat lands on the sparks shelf.
+ * No cluster_id → the beat lands on the sparks shelf. Without entity_ids a beat in a
+ * cluster starts with the cluster's entries (and its quest's involved entries).
  */
 export default defineEventHandler(async (event) => {
   const db = getDb()
@@ -31,7 +32,9 @@ export default defineEventHandler(async (event) => {
       tray,
     )
     const beatId = Number(r.lastInsertRowid)
-    setBeatEntities(db, campaignId, beatId, body.entity_ids)
+    // No entries sent (quick add) → start with the cluster's entries and its quest's involved ones
+    const ids = Array.isArray(body.entity_ids) ? body.entity_ids : (clusterId ? clusterDefaultEntityIds(db, clusterId) : [])
+    setBeatEntities(db, campaignId, beatId, ids)
     return beatId
   })()
   return loadBeat(db, id)

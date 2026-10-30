@@ -798,8 +798,9 @@ server.registerTool('create_story_cluster', {
     notes: z.string().optional(),
     locationId: z.number().int().positive().optional(),
     questId: z.number().int().positive().optional(),
+    entityIds: z.array(z.number().int().positive()).optional().describe('Entries involved in the whole cluster; new beats in it start with these'),
   },
-}, async ({ campaignId, title, storyline, heat, status, notes, locationId, questId }) => {
+}, async ({ campaignId, title, storyline, heat, status, notes, locationId, questId, entityIds }) => {
   let storylineId: number | undefined
   if (storyline) {
     const b = await callApi(`/api/story/board?campaignId=${campaignId}`)
@@ -814,7 +815,7 @@ server.registerTool('create_story_cluster', {
   }
   const r = await callApi('/api/story/clusters', {
     method: 'POST',
-    body: JSON.stringify({ campaignId, title, storyline_id: storylineId, heat, status, notes, location_id: locationId, quest_id: questId }),
+    body: JSON.stringify({ campaignId, title, storyline_id: storylineId, heat, status, notes, location_id: locationId, quest_id: questId, entity_ids: entityIds }),
   })
   return asText(r.body)
 })

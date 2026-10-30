@@ -97,7 +97,9 @@ function rebuild() {
     (!q || x.name.toLowerCase().includes(q) || (x.description ?? '').toLowerCase().includes(q))
     && (!storylineFilter.value || x.storyline_id === storylineFilter.value),
   )
-  columns.value = QUEST_STATUSES.map(status => ({ status, color: COLUMN_COLORS[status], items: filtered.filter(x => x.status === status) }))
+  // Saved order first (drag & drop), then name — the store's list isn't re-sorted after a save
+  const ordered = [...filtered].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+  columns.value = QUEST_STATUSES.map(status => ({ status, color: COLUMN_COLORS[status], items: ordered.filter(x => x.status === status) }))
 }
 watch(() => [store.quests, search.value, storylineFilter.value], rebuild, { deep: true })
 
@@ -107,9 +109,13 @@ onMounted(() => store.loadQuests().then(rebuild))
 async function onChange(status: QuestStatus, e: { added?: unknown, moved?: unknown }) {
   if (!e.added && !e.moved) return
   const col = columns.value.find(c => c.status === status)!
-  await Promise.all(col.items.map((quest, i) =>
-    quest.status !== status || quest.sort_order !== i ? store.saveQuest(quest.id, { status, sort_order: i }) : null,
-  ))
+  // Apply the new order to the store first, so a redraw mid-save can't jump cards back
+  const changed = col.items
+    .map((quest, i) => ({ quest: store.quests.find(q => q.id === quest.id), i }))
+    .filter(({ quest, i }) => quest && (quest.status !== status || quest.sort_order !== i))
+  for (const { quest, i } of changed) Object.assign(quest!, { status, sort_order: i })
+  rebuild()
+  await Promise.all(changed.map(({ quest, i }) => store.saveQuest(quest!.id, { status, sort_order: i })))
 }
 
 const dialogOpen = ref(false)

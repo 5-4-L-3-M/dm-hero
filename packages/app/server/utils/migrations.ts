@@ -3055,6 +3055,26 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 68: Created story board tables')
     },
   },
+  {
+    version: 69,
+    name: 'story_board_lanes',
+    up: (db) => {
+      // Entries linked to a whole cluster — new beats in it start with them
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_cluster_entities (
+          cluster_id INTEGER NOT NULL,
+          entity_id INTEGER NOT NULL,
+          PRIMARY KEY (cluster_id, entity_id),
+          FOREIGN KEY (cluster_id) REFERENCES story_clusters(id) ON DELETE CASCADE,
+          FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE
+        )
+      `)
+      // How the board is laid out: lanes grouped by a parameter, compact cards
+      db.exec("ALTER TABLE story_board_settings ADD COLUMN group_by TEXT NOT NULL DEFAULT 'storyline'")
+      db.exec('ALTER TABLE story_board_settings ADD COLUMN compact INTEGER NOT NULL DEFAULT 0')
+      console.log('✅ Migration 69: Story board lanes and cluster entries')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

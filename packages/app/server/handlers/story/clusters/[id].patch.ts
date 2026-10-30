@@ -1,5 +1,5 @@
 import { getDb } from '../../../utils/db'
-import { entityInCampaign, loadBoard, requireRow, storylineInCampaign } from '../../../utils/storyBoard'
+import { entityInCampaign, loadBoard, requireRow, setClusterEntities, storylineInCampaign } from '../../../utils/storyBoard'
 import { CLUSTER_HEATS, CLUSTER_STATUSES, oneOf } from '../../../../types/story'
 
 /** PATCH /api/story/clusters/:id — only the fields sent change. */
@@ -25,5 +25,6 @@ export default defineEventHandler(async (event) => {
     has('sort_order') ? Number(body.sort_order) || 0 : c.sort_order,
     row.id,
   )
+  if (has('entity_ids')) setClusterEntities(db, row.campaign_id, row.id, body.entity_ids)
   return loadBoard(db, row.campaign_id).clusters.find(x => x.id === row.id)
 })

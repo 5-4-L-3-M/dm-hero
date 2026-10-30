@@ -550,7 +550,7 @@ export interface ExportPinboardItem {
 // Entity links use export ids ("entity:1"), sessions "session:1"; storylines
 // and clusters are referenced by their position-free local ref ("line:1").
 export interface ExportStoryBoard {
-  settings?: { color_by: string, party_location?: string | null }
+  settings?: { color_by: string, party_location?: string | null, group_by?: string, compact?: boolean }
   storylines: Array<{ ref: string, name: string, color: number, sort_order: number }>
   clusters: Array<{
     ref: string
@@ -563,6 +563,7 @@ export interface ExportStoryBoard {
     quest?: string | null
     collapsed: boolean
     sort_order: number
+    entities?: string[]
   }>
   beats: Array<{
     cluster?: string | null

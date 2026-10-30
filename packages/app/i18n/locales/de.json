@@ -3089,7 +3089,8 @@
       "storyline": "Handlungsstrang",
       "heat": "Dringlichkeit",
       "region": "Region",
-      "status": "Status"
+      "status": "Status",
+      "legend": "Farben:"
     },
     "heat": {
       "cold": "Kalt",
@@ -3132,7 +3133,8 @@
       "manageHint": "Jeder Handlungsstrang bekommt eine Farbe aus deinem Theme. Cluster und Quests nutzen sie bei „Farbe nach Handlungsstrang“.",
       "color": "Farbe",
       "none": "Noch keine Handlungsstränge.",
-      "newPlaceholder": "Neuer Handlungsstrang, z. B. Die versunkene Krone"
+      "newPlaceholder": "Neuer Handlungsstrang, z. B. Die versunkene Krone",
+      "noneShort": "Kein Handlungsstrang"
     },
     "cluster": {
       "new": "Neuer Cluster",
@@ -3151,7 +3153,9 @@
       "deleteTitle": "Cluster löschen?",
       "deleteText": "„{name}“ wird gelöscht. Seine Beats können zurück ins Funkenregal.",
       "deleteKeepBeats": "Löschen, Beats behalten",
-      "deleteWithBeats": "Mit Beats löschen"
+      "deleteWithBeats": "Mit Beats löschen",
+      "involved": "Wer und was beteiligt ist",
+      "involvedHint": "Neue Beats in diesem Cluster starten mit diesen, plus den Beteiligten der Quest. Pro Beat anpassbar."
     },
     "beat": {
       "new": "Neuer Beat",
@@ -3221,6 +3225,24 @@
         "achieved": "Erreicht",
         "foiled": "Vereitelt"
       }
+    },
+    "groupBy": {
+      "label": "Bahnen",
+      "storyline": "Handlungsstrang",
+      "heat": "Hitze",
+      "region": "Region",
+      "status": "Status",
+      "none": "Keine"
+    },
+    "compact": "Kompakt",
+    "filter": {
+      "storylines": "Handlungsstränge zeigen",
+      "all": "Alle zeigen"
+    },
+    "lane": {
+      "dropHere": "Cluster hierher ziehen",
+      "noPlace": "Kein Ort",
+      "all": "Alle Cluster"
     }
   },
   "quests": {

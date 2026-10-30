@@ -3089,7 +3089,8 @@
       "storyline": "Storyline",
       "heat": "Heat",
       "region": "Region",
-      "status": "Status"
+      "status": "Status",
+      "legend": "Colors:"
     },
     "heat": {
       "cold": "Cold",
@@ -3132,7 +3133,8 @@
       "manageHint": "Each storyline gets a color from your theme. Clusters and quests use it when you color by storyline.",
       "color": "Color",
       "none": "No storylines yet.",
-      "newPlaceholder": "New storyline, e.g. The Drowned Crown"
+      "newPlaceholder": "New storyline, e.g. The Drowned Crown",
+      "noneShort": "No storyline"
     },
     "cluster": {
       "new": "New cluster",
@@ -3151,7 +3153,9 @@
       "deleteTitle": "Delete cluster?",
       "deleteText": "\"{name}\" will be deleted. Its beats can go back to the sparks shelf.",
       "deleteKeepBeats": "Delete, keep beats",
-      "deleteWithBeats": "Delete with beats"
+      "deleteWithBeats": "Delete with beats",
+      "involved": "Who and what is involved",
+      "involvedHint": "New beats in this cluster start with these, plus the quest's involved entries. Add or remove per beat."
     },
     "beat": {
       "new": "New beat",
@@ -3221,6 +3225,24 @@
         "achieved": "Achieved",
         "foiled": "Foiled"
       }
+    },
+    "groupBy": {
+      "label": "Lanes",
+      "storyline": "Storyline",
+      "heat": "Heat",
+      "region": "Region",
+      "status": "Status",
+      "none": "None"
+    },
+    "compact": "Compact",
+    "filter": {
+      "storylines": "Show storylines",
+      "all": "Show all"
+    },
+    "lane": {
+      "dropHere": "Drag a cluster here",
+      "noPlace": "No place",
+      "all": "All clusters"
     }
   },
   "quests": {

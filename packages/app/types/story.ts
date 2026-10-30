@@ -7,6 +7,8 @@ export const BEAT_STATUSES = ['idea', 'ready', 'played', 'cut'] as const
 export const CLUSTER_HEATS = ['cold', 'warm', 'hot'] as const
 export const CLUSTER_STATUSES = ['active', 'dormant', 'resolved'] as const
 export const COLOR_BY = ['storyline', 'heat', 'region', 'status'] as const
+/** Board lanes: one row per value of this (or one lane for everything) */
+export const GROUP_BY = ['storyline', 'heat', 'region', 'status', 'none'] as const
 export const QUEST_STATUSES = ['rumor', 'active', 'completed', 'failed'] as const
 export const AGENDA_STATUSES = ['active', 'achieved', 'foiled'] as const
 export const CLOCK_SIZES = [4, 6, 8, 10, 12] as const
@@ -18,6 +20,7 @@ export type BeatStatus = typeof BEAT_STATUSES[number]
 export type ClusterHeat = typeof CLUSTER_HEATS[number]
 export type ClusterStatus = typeof CLUSTER_STATUSES[number]
 export type ColorBy = typeof COLOR_BY[number]
+export type GroupBy = typeof GROUP_BY[number]
 export type QuestStatus = typeof QUEST_STATUSES[number]
 export type AgendaStatus = typeof AGENDA_STATUSES[number]
 
@@ -61,6 +64,8 @@ export interface StoryCluster {
   location_name: string | null
   quest_id: number | null
   quest_name: string | null
+  /** Entries linked to the whole cluster; new beats start with these (+ the quest's involved entries) */
+  entities: LinkedEntity[]
   collapsed: boolean
   sort_order: number
 }
@@ -83,6 +88,8 @@ export interface StoryBeat {
 export interface StoryBoardSettings {
   color_by: ColorBy
   party_location_id: number | null
+  group_by: GroupBy
+  compact: boolean
 }
 
 export interface StoryBoard {

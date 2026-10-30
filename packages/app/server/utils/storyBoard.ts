@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3'
 import {
-  BEAT_KINDS, BEAT_STATUSES, COLOR_BY, QUEST_INVOLVED_RELATION, oneOf, readQuestMetadata,
+  BEAT_KINDS, BEAT_STATUSES, COLOR_BY, GROUP_BY, QUEST_INVOLVED_RELATION, oneOf, readQuestMetadata,
   type FactionAgenda, type LinkedEntity, type Quest, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
 } from '../../types/story'
 
@@ -56,10 +56,12 @@ export function setBeatEntities(db: Database.Database, campaignId: number, beatI
 }
 
 export function getSettings(db: Database.Database, campaignId: number): StoryBoard['settings'] {
-  const row = db.prepare('SELECT color_by, party_location_id FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null } | undefined
+  const row = db.prepare('SELECT color_by, party_location_id, group_by, compact FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number } | undefined
   return {
     color_by: oneOf(COLOR_BY, row?.color_by, 'storyline'),
     party_location_id: row?.party_location_id ?? null,
+    group_by: oneOf(GROUP_BY, row?.group_by, 'storyline'),
+    compact: !!row?.compact,
   }
 }
 
@@ -69,7 +71,7 @@ export function loadStorylines(db: Database.Database, campaignId: number): Story
 
 /** The whole board in one go: settings, storylines, clusters, beats with links. */
 export function loadBoard(db: Database.Database, campaignId: number): StoryBoard {
-  const clusters = (db.prepare(`
+  const clusters: StoryCluster[] = (db.prepare(`
     SELECT c.*, l.name AS location_name, q.name AS quest_name
     FROM story_clusters c
     LEFT JOIN entities l ON l.id = c.location_id AND l.deleted_at IS NULL
@@ -77,7 +79,18 @@ export function loadBoard(db: Database.Database, campaignId: number): StoryBoard
     WHERE c.campaign_id = ?
     ORDER BY c.sort_order, c.id
   `).all(campaignId) as Array<Omit<StoryCluster, 'collapsed'> & { collapsed: number, campaign_id?: number, created_at?: string, updated_at?: string }>)
-    .map(({ campaign_id: _c, created_at: _a, updated_at: _u, ...c }): StoryCluster => ({ ...c, collapsed: !!c.collapsed, quest_id: c.quest_name ? c.quest_id : null }))
+    .map(({ campaign_id: _c, created_at: _a, updated_at: _u, ...c }): StoryCluster => ({ ...c, entities: [], collapsed: !!c.collapsed, quest_id: c.quest_name ? c.quest_id : null }))
+
+  const clusterLinks = db.prepare(`
+    SELECT ce.cluster_id, e.id, e.name, et.name AS type
+    FROM story_cluster_entities ce
+    JOIN story_clusters c ON c.id = ce.cluster_id
+    JOIN entities e ON e.id = ce.entity_id AND e.deleted_at IS NULL
+    JOIN entity_types et ON et.id = e.type_id
+    WHERE c.campaign_id = ?
+    ORDER BY e.name COLLATE NOCASE
+  `).all(campaignId) as Array<LinkedEntity & { cluster_id: number }>
+  for (const { cluster_id, ...e } of clusterLinks) clusters.find(c => c.id === cluster_id)?.entities.push(e)
 
   const links = db.prepare(`
     SELECT be.beat_id, e.id, e.name, et.name AS type
@@ -192,4 +205,26 @@ export function setQuestInvolved(db: Database.Database, campaignId: number, ques
     const ok = entityInCampaign(db, campaignId, id)
     if (ok && ok !== questId) insert.run(questId, ok, QUEST_INVOLVED_RELATION)
   }
+}
+
+/** Replace the entries linked to a cluster (this campaign's only, deduped). */
+export function setClusterEntities(db: Database.Database, campaignId: number, clusterId: number, ids: unknown) {
+  if (!Array.isArray(ids)) return
+  db.prepare('DELETE FROM story_cluster_entities WHERE cluster_id = ?').run(clusterId)
+  const insert = db.prepare('INSERT OR IGNORE INTO story_cluster_entities (cluster_id, entity_id) VALUES (?, ?)')
+  for (const id of ids) {
+    const ok = entityInCampaign(db, campaignId, id)
+    if (ok) insert.run(clusterId, ok)
+  }
+}
+
+/** What a new beat in this cluster starts with: the cluster's entries plus its quest's involved entries. */
+export function clusterDefaultEntityIds(db: Database.Database, clusterId: number): number[] {
+  const rows = db.prepare(`
+    SELECT entity_id AS id FROM story_cluster_entities WHERE cluster_id = ?
+    UNION
+    SELECT r.to_entity_id FROM story_clusters c JOIN entity_relations r ON r.from_entity_id = c.quest_id AND r.relation_type = ?
+    WHERE c.id = ?
+  `).all(clusterId, QUEST_INVOLVED_RELATION, clusterId) as Array<{ id: number }>
+  return rows.map(r => r.id)
 }
