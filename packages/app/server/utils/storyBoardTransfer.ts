@@ -70,7 +70,10 @@ export function exportStoryBoard(
   const settings = db.prepare('SELECT color_by, party_location_id, group_by, compact FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number } | undefined
   const clusterLinks = db.prepare('SELECT ce.cluster_id, ce.entity_id FROM story_cluster_entities ce JOIN story_clusters c ON c.id = ce.cluster_id WHERE c.campaign_id = ?').all(campaignId) as Array<{ cluster_id: number, entity_id: number }>
 
-  if (!lines.length && !clusters.length && !beats.length && !agendas.length && !quests.length && !settings) return undefined
+  const questlines = db.prepare('SELECT * FROM story_questlines WHERE campaign_id = ? ORDER BY sort_order, id').all(campaignId) as Array<{ id: number, storyline_id: number | null, name: string, importance: string, optional: number, notes: string | null, sort_order: number }>
+  const questlineRef = new Map(questlines.map((q, i) => [q.id, `questline:${i + 1}`]))
+
+  if (!lines.length && !questlines.length && !clusters.length && !beats.length && !agendas.length && !quests.length && !settings) return undefined
 
   return {
     settings: settings ? { color_by: settings.color_by, party_location: ref(entityRef, settings.party_location_id), group_by: settings.group_by, compact: !!settings.compact } : undefined,
@@ -107,8 +110,23 @@ export function exportStoryBoard(
       .filter(q => entityRef.has(q.id))
       .map((q) => {
         const m = readQuestMetadata(q.metadata)
-        return { quest: entityRef.get(q.id)!, giver: ref(entityRef, m.giver_id), storyline: m.storyline_id ? lineRef.get(m.storyline_id) ?? null : null }
+        return {
+          quest: entityRef.get(q.id)!,
+          giver: ref(entityRef, m.giver_id),
+          givers: m.giver_ids.map(g => entityRef.get(g)).filter((x): x is string => !!x),
+          storyline: m.storyline_id ? lineRef.get(m.storyline_id) ?? null : null,
+          questline: m.questline_id ? questlineRef.get(m.questline_id) ?? null : null,
+        }
       }),
+    questlines: questlines.map(q => ({
+      ref: questlineRef.get(q.id)!,
+      storyline: q.storyline_id ? lineRef.get(q.storyline_id) ?? null : null,
+      name: q.name,
+      importance: q.importance,
+      optional: !!q.optional,
+      notes: q.notes,
+      sort_order: q.sort_order,
+    })),
   }
 }
 
@@ -133,6 +151,12 @@ export function importStoryBoard(
   const insertLine = db.prepare('INSERT INTO story_lines (campaign_id, name, color, sort_order) VALUES (?, ?, ?, ?)')
   for (const l of data.storylines ?? []) {
     lineId.set(l.ref, Number(insertLine.run(campaignId, l.name, l.color || 1, l.sort_order || 0).lastInsertRowid))
+  }
+
+  const questlineId = new Map<string, number>()
+  const insertQuestline = db.prepare('INSERT INTO story_questlines (campaign_id, storyline_id, name, importance, optional, notes, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)')
+  for (const q of data.questlines ?? []) {
+    questlineId.set(q.ref, Number(insertQuestline.run(campaignId, id(lineId, q.storyline), q.name, q.importance === 'minor' ? 'minor' : 'major', q.optional ? 1 : 0, q.notes ?? null, q.sort_order || 0).lastInsertRowid))
   }
 
   const clusterId = new Map<string, number>()
@@ -187,6 +211,13 @@ export function importStoryBoard(
     catch {
       meta = {}
     }
-    setMeta.run(JSON.stringify({ ...meta, giver_id: id(entityId, q.giver), storyline_id: id(lineId, q.storyline) }), quest)
+    const givers = (q.givers ?? (q.giver ? [q.giver] : [])).map(g => entityId.get(g)).filter((x): x is number => !!x)
+    setMeta.run(JSON.stringify({
+      ...meta,
+      giver_id: givers[0] ?? id(entityId, q.giver),
+      giver_ids: givers,
+      storyline_id: id(lineId, q.storyline),
+      questline_id: id(questlineId, q.questline),
+    }), quest)
   }
 }

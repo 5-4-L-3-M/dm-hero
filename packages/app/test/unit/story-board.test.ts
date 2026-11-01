@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3'
 import { getTestDb } from '../utils/test-db'
 import {
   clampClock, clusterColor, nearbyLocationIds, nextStoryColor, readQuestMetadata,
-  type FactionAgenda, type Quest, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
+  type FactionAgenda, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
 } from '../../types/story'
 import { matchSubRoute } from '../../server/utils/subRouter'
 
@@ -120,6 +120,15 @@ describe('story board API', () => {
     const played = await story<StoryBeat>('PATCH', `beats/${beat.id}`, { played_session_id: session })
     expect(played).toMatchObject({ status: 'played', tray_order: null, played_session_id: session })
 
+    // Saving the edit dialog as-is (same session) keeps it played; setting it back to ready un-plays it
+    const resaved = await story<StoryBeat>('PATCH', `beats/${beat.id}`, { title: 'Ambush at the docks', played_session_id: session })
+    expect(resaved).toMatchObject({ status: 'played', played_session_id: session })
+    const restored = await story<StoryBeat>('PATCH', `beats/${beat.id}`, { status: 'ready', played_session_id: session, in_tray: true })
+    expect(restored.status).toBe('ready')
+    expect(restored.played_session_id).toBeNull()
+    expect(restored.tray_order).not.toBeNull()
+    await story('PATCH', `beats/${beat.id}`, { played_session_id: session })
+
     // Settings
     await story('PATCH', 'settings', { campaignId, color_by: 'region', party_location_id: harbor })
     b = await board()
@@ -196,6 +205,31 @@ describe('quests API', () => {
     expect(await quests<Quest[]>('GET', '', undefined, { campaignId })).toEqual([])
     await expect(quests('GET', String(q.id))).rejects.toMatchObject({ statusCode: 404 })
   })
+
+  it('questlines: several givers, hidden giver, major/minor, optional, chain order', async () => {
+    const a = entity('NPC', 'Marisol')
+    const b = entity('Faction', 'Tide Court')
+    const line = await story<StoryLine>('POST', 'storylines', { campaignId, name: 'Crown' })
+    const chain = await story<Questline>('POST', 'questlines', { campaignId, name: 'The sigil', storyline_id: line.id, importance: 'minor', optional: true })
+    expect(chain).toMatchObject({ name: 'The sigil', storyline_id: line.id, importance: 'minor', optional: true })
+
+    const q1 = await quests<Quest>('POST', '', { campaignId, name: 'Rumor of a sigil', giver_ids: [a, b], giver_hidden: true, questline_id: chain.id, importance: 'major' })
+    expect(q1).toMatchObject({ giver_id: a, giver_name: 'Marisol', giver_ids: [a, b], giver_hidden: true, importance: 'major', optional: null, questline_id: chain.id })
+    expect(q1.givers.map(g => g.name)).toEqual(['Marisol', 'Tide Court'])
+    // Older callers sending one giver_id put it first and keep the rest
+    expect((await quests<Quest>('PATCH', String(q1.id), { giver_id: b })).giver_ids).toEqual([b, a])
+    expect((await quests<Quest>('PATCH', String(q1.id), { importance: null, optional: false })).importance).toBeNull()
+
+    const q2 = await quests<Quest>('POST', '', { campaignId, name: 'Find the forger' })
+    await story('POST', 'order', { campaignId, chains: [{ questlineId: chain.id, questIds: [q2.id, q1.id] }] })
+    const all = await quests<Quest[]>('GET', '', undefined, { campaignId })
+    expect(all.filter(q => q.questline_id === chain.id).sort((x, y) => x.questline_order - y.questline_order).map(q => q.name)).toEqual(['Find the forger', 'Rumor of a sigil'])
+    expect((await story<StoryBoard>('GET', 'board', undefined, { campaignId })).questlines).toHaveLength(1)
+
+    // Deleting the questline keeps its quests
+    await story('DELETE', `questlines/${chain.id}`)
+    expect((await quests<Quest>('GET', String(q2.id))).questline_id).toBeNull()
+  })
 })
 
 describe('story board export / import', () => {
@@ -208,7 +242,8 @@ describe('story board export / import', () => {
     await story('POST', 'beats', { campaignId, title: 'Ambush', cluster_id: cluster.id, entity_ids: [npc], in_tray: true })
     await story('POST', 'beats', { campaignId, title: 'Loose idea' })
     await story('POST', 'agendas', { campaignId, faction_id: faction, goal: 'Seize the harbor', clock_filled: 2 })
-    const quest = await quests<Quest>('POST', '', { campaignId, name: 'Missing ship', giver_id: npc, storyline_id: line.id })
+    const chain = await story<Questline>('POST', 'questlines', { campaignId, name: 'Main chain', storyline_id: line.id, optional: true })
+    const quest = await quests<Quest>('POST', '', { campaignId, name: 'Missing ship', giver_id: npc, storyline_id: line.id, questline_id: chain.id })
 
     const refs = new Map([[npc, 'entity:1'], [faction, 'entity:2'], [quest.id, 'entity:3']])
     const data = exportStoryBoard(db, campaignId, refs, new Map())!
@@ -231,6 +266,7 @@ describe('story board export / import', () => {
     expect(ambush.tray_order).toBe(0)
     expect(copy.beats.find(b => b.title === 'Loose idea')!.cluster_id).toBeNull()
     expect(await story<FactionAgenda[]>('GET', 'agendas', undefined, { campaignId: target })).toMatchObject([{ faction_id: faction2, clock_filled: 2 }])
-    expect(await quests<Quest>('GET', String(quest2))).toMatchObject({ giver_id: npc2, storyline_id: copy.storylines[0]!.id })
+    expect(copy.questlines).toMatchObject([{ name: 'Main chain', optional: true, storyline_id: copy.storylines[0]!.id }])
+    expect(await quests<Quest>('GET', String(quest2))).toMatchObject({ giver_id: npc2, giver_ids: [npc2], storyline_id: copy.storylines[0]!.id, questline_id: copy.questlines[0]!.id })
   })
 })

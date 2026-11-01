@@ -3075,6 +3075,31 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 69: Story board lanes and cluster entries')
     },
   },
+  {
+    version: 70,
+    name: 'story_questlines',
+    up: (db) => {
+      // Chains of quests in order, shown on the Timeline (a storyline can hold several)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_questlines (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          storyline_id INTEGER,
+          name TEXT NOT NULL,
+          importance TEXT NOT NULL DEFAULT 'major',
+          optional INTEGER NOT NULL DEFAULT 0,
+          notes TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (storyline_id) REFERENCES story_lines(id) ON DELETE SET NULL
+        )
+      `)
+      db.exec('CREATE INDEX IF NOT EXISTS idx_story_questlines_campaign ON story_questlines(campaign_id)')
+      console.log('✅ Migration 70: Story questlines')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

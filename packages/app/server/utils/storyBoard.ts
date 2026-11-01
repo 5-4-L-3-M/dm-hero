@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3'
 import {
-  BEAT_KINDS, BEAT_STATUSES, COLOR_BY, GROUP_BY, QUEST_INVOLVED_RELATION, oneOf, readQuestMetadata,
-  type FactionAgenda, type LinkedEntity, type Quest, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
+  BEAT_KINDS, BEAT_STATUSES, COLOR_BY, GROUP_BY, QUEST_IMPORTANCE, QUEST_INVOLVED_RELATION, oneOf, readQuestMetadata,
+  type FactionAgenda, type LinkedEntity, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
 } from '../../types/story'
 
 /** 400 unless the campaign exists. */
@@ -14,7 +14,7 @@ export function requireCampaign(db: Database.Database, campaignId: unknown): num
 }
 
 /** 404 unless the row exists; returns its campaign id. */
-export function requireRow(db: Database.Database, table: 'story_lines' | 'story_clusters' | 'story_beats' | 'faction_agendas', id: unknown): { id: number, campaign_id: number } {
+export function requireRow(db: Database.Database, table: 'story_lines' | 'story_clusters' | 'story_beats' | 'faction_agendas' | 'story_questlines', id: unknown): { id: number, campaign_id: number } {
   const n = Number(id)
   const row = Number.isInteger(n) ? db.prepare(`SELECT id, campaign_id FROM ${table} WHERE id = ?`).get(n) as { id: number, campaign_id: number } | undefined : undefined
   if (!row) throw createError({ statusCode: 404, message: 'Not found' })
@@ -36,6 +36,18 @@ export function storylineInCampaign(db: Database.Database, campaignId: number, i
   const n = Number(id)
   if (!id || !Number.isInteger(n)) return null
   return db.prepare('SELECT 1 FROM story_lines WHERE id = ? AND campaign_id = ?').get(n, campaignId) ? n : null
+}
+
+export function questlineInCampaign(db: Database.Database, campaignId: number, id: unknown): number | null {
+  if (id === null || id === undefined || id === '') return null
+  const row = db.prepare('SELECT id FROM story_questlines WHERE id = ? AND campaign_id = ?').get(Number(id), campaignId) as { id: number } | undefined
+  return row?.id ?? null
+}
+
+export function loadQuestlines(db: Database.Database, campaignId: number): Questline[] {
+  return (db.prepare('SELECT id, storyline_id, name, importance, optional, notes, sort_order FROM story_questlines WHERE campaign_id = ? ORDER BY sort_order, id')
+    .all(campaignId) as Array<Omit<Questline, 'optional'> & { optional: number }>)
+    .map(q => ({ ...q, importance: oneOf(QUEST_IMPORTANCE, q.importance, 'major'), optional: !!q.optional }))
 }
 
 export function clusterInCampaign(db: Database.Database, campaignId: number, id: unknown): number | null {
@@ -118,7 +130,7 @@ export function loadBoard(db: Database.Database, campaignId: number): StoryBoard
     entities: linksByBeat.get(b.id) ?? [],
   }))
 
-  return { settings: getSettings(db, campaignId), storylines: loadStorylines(db, campaignId), clusters, beats }
+  return { settings: getSettings(db, campaignId), storylines: loadStorylines(db, campaignId), clusters, beats, questlines: loadQuestlines(db, campaignId) }
 }
 
 export function loadBeat(db: Database.Database, id: number): StoryBeat | null {
@@ -146,6 +158,7 @@ export function loadQuests(db: Database.Database, campaignId: number, id?: numbe
     ORDER BY e.name COLLATE NOCASE
   `).all(...(id ? [questTypeId(db), campaignId, id] : [questTypeId(db), campaignId])) as Array<{ id: number, name: string, description: string | null, metadata: string | null, location_id: number | null, location_name: string | null, updated_at: string }>
   const giverName = db.prepare('SELECT e.name, et.name AS type FROM entities e JOIN entity_types et ON et.id = e.type_id WHERE e.id = ? AND e.deleted_at IS NULL')
+  const questlineIds = new Set((db.prepare('SELECT id FROM story_questlines WHERE campaign_id = ?').all(campaignId) as { id: number }[]).map(q => q.id))
   const involved = db.prepare(`
     SELECT e.id, e.name, et.name AS type FROM entity_relations r
     JOIN entities e ON e.id = r.to_entity_id AND e.deleted_at IS NULL
@@ -155,15 +168,24 @@ export function loadQuests(db: Database.Database, campaignId: number, id?: numbe
   `)
   return rows.map((r) => {
     const m = readQuestMetadata(r.metadata)
-    const giver = m.giver_id ? giverName.get(m.giver_id) as { name: string, type: string } | undefined : undefined
+    const givers = m.giver_ids
+      .map((gid) => {
+        const g = giverName.get(gid) as { name: string, type: string } | undefined
+        return g ? { id: gid, name: g.name, type: g.type } : null
+      })
+      .filter((g): g is LinkedEntity => g !== null)
+    const giver = givers[0]
     return {
       id: r.id,
       name: r.name,
       description: r.description,
       ...m,
-      giver_id: giver ? m.giver_id : null,
+      questline_id: m.questline_id && questlineIds.has(m.questline_id) ? m.questline_id : null,
+      giver_id: giver?.id ?? null,
       giver_name: giver?.name ?? null,
       giver_type: giver?.type ?? null,
+      givers,
+      giver_ids: givers.map(g => g.id),
       involved: involved.all(r.id, QUEST_INVOLVED_RELATION) as LinkedEntity[],
       location_id: r.location_name ? r.location_id : null,
       location_name: r.location_name,

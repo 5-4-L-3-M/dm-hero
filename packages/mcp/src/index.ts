@@ -847,9 +847,14 @@ server.registerTool('create_quest', {
     reward: z.string().optional(),
     objectives: z.array(objectiveSchema).optional(),
     involvedIds: z.array(z.number().int().positive()).optional().describe('Other NPCs, places, items, factions… involved in the quest (shown as connections).'),
+    giverIds: z.array(z.number().int().positive()).optional().describe('Several quest givers (REPLACES the list; the first counts as the main one). Use instead of giverId.'),
+    giverHidden: z.boolean().optional().describe('Players don\'t know who is behind it yet — shown as "Unknown to players".'),
+    importance: z.enum(['major', 'minor']).nullable().optional().describe('null = same as its questline'),
+    optional: z.boolean().nullable().optional().describe('null = same as its questline'),
+    questlineId: z.number().int().positive().nullable().optional().describe('The questline (Timeline row) it belongs to — see list_questlines / create_questline.'),
   },
-}, async ({ campaignId, giverId, locationId, involvedIds, ...rest }) => {
-  const r = await callApi('/api/quests', { method: 'POST', body: JSON.stringify({ campaignId, ...rest, giver_id: giverId, location_id: locationId, involved_ids: involvedIds }) })
+}, async ({ campaignId, giverId, locationId, involvedIds, giverIds, giverHidden, questlineId, ...rest }) => {
+  const r = await callApi('/api/quests', { method: 'POST', body: JSON.stringify({ campaignId, ...rest, giver_id: giverId, giver_ids: giverIds, giver_hidden: giverHidden, questline_id: questlineId, location_id: locationId, involved_ids: involvedIds }) })
   return asText(r.body)
 })
 
@@ -865,13 +870,47 @@ server.registerTool('update_quest', {
     reward: z.string().optional(),
     objectives: z.array(objectiveSchema).optional(),
     involvedIds: z.array(z.number().int().positive()).optional().describe('REPLACES the entries involved in the quest.'),
+    giverIds: z.array(z.number().int().positive()).optional().describe('Several quest givers (REPLACES the list; the first counts as the main one). Use instead of giverId.'),
+    giverHidden: z.boolean().optional().describe('Players don\'t know who is behind it yet — shown as "Unknown to players".'),
+    importance: z.enum(['major', 'minor']).nullable().optional().describe('null = same as its questline'),
+    optional: z.boolean().nullable().optional().describe('null = same as its questline'),
+    questlineId: z.number().int().positive().nullable().optional().describe('The questline (Timeline row) it belongs to — see list_questlines / create_questline.'),
+    questlineOrder: z.number().int().nonnegative().optional().describe('Position in its questline (0 = first)'),
   },
-}, async ({ questId, giverId, locationId, involvedIds, ...rest }) => {
+}, async ({ questId, giverId, locationId, involvedIds, giverIds, giverHidden, questlineId, questlineOrder, ...rest }) => {
   const changes: Record<string, unknown> = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined))
+  if (giverIds !== undefined) changes.giver_ids = giverIds
+  if (giverHidden !== undefined) changes.giver_hidden = giverHidden
+  if (questlineId !== undefined) changes.questline_id = questlineId
+  if (questlineOrder !== undefined) changes.questline_order = questlineOrder
   if (involvedIds !== undefined) changes.involved_ids = involvedIds
   if (giverId !== undefined) changes.giver_id = giverId
   if (locationId !== undefined) changes.location_id = locationId
   const r = await callApi(`/api/quests/${questId}`, { method: 'PATCH', body: JSON.stringify(changes) })
+  return asText(r.body)
+})
+
+server.registerTool('list_questlines', {
+  description: 'List questlines (Timeline rows): chains of quests in order, each with storyline, major/minor and optional. Quests point at them with questline_id / questline_order (see list_quests).',
+  inputSchema: { campaignId: z.number().int().positive() },
+}, async ({ campaignId }) => {
+  const r = await callApi(`/api/story/board?campaignId=${campaignId}`)
+  if (!r.ok) return asText(r.body)
+  return asText((r.body as { questlines?: unknown }).questlines ?? [])
+})
+
+server.registerTool('create_questline', {
+  description: 'Create a questline: a chain of quests in order, shown as a row on the Timeline. A storyline can hold several. Show the user what you will add and wait for OK.',
+  inputSchema: {
+    campaignId: z.number().int().positive(),
+    name: z.string().min(1),
+    storylineId: z.number().int().positive().optional(),
+    importance: z.enum(['major', 'minor']).optional(),
+    optional: z.boolean().optional(),
+    notes: z.string().optional(),
+  },
+}, async ({ campaignId, storylineId, ...rest }) => {
+  const r = await callApi('/api/story/questlines', { method: 'POST', body: JSON.stringify({ campaignId, storyline_id: storylineId, ...rest }) })
   return asText(r.body)
 })
 

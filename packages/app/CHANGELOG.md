@@ -1,5 +1,19 @@
 # @dm-hero/app
 
+## 1.9.0
+
+### Minor Changes
+
+- Timeline tab on the Story Board: questlines as rows of quests in order, grouped by storyline (a storyline can hold several questlines). Drag quests to reorder them or move them between questlines; quests not in a questline wait in their own row.
+- Questlines can be major or minor and optional; each quest follows its questline or sets its own. Optional shows as a dashed outline, major/minor as a full or empty star. Filters hide minor, optional or finished quests.
+- Quests can have several givers, and a giver can be marked "Unknown to players" (eye icon) while you still see who it really is.
+- Run sheet: Undo right after Played or Skip, and a "Played this session" list with "Back to next session" so nothing played is out of reach.
+- AI connector: list_questlines and create_questline; create_quest / update_quest take several givers, hidden giver, major/minor, optional and questline.
+
+### Patch Changes
+
+- Setting a played beat back to Idea or Ready in its edit window now sticks (it used to flip right back to Played).
+
 ## 1.8.0
 
 ### Minor Changes

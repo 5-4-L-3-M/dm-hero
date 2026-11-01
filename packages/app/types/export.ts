@@ -579,7 +579,8 @@ export interface ExportStoryBoard {
   }>
   agendas: Array<{ faction: string, goal: string, next_step: string | null, clock_size: number, clock_filled: number, status: string, sort_order: number }>
   // Quest metadata holds database ids (giver, storyline) — remapped on import
-  quests: Array<{ quest: string, giver?: string | null, storyline?: string | null }>
+  quests: Array<{ quest: string, giver?: string | null, givers?: string[], storyline?: string | null, questline?: string | null }>
+  questlines?: Array<{ ref: string, storyline: string | null, name: string, importance: string, optional: boolean, notes: string | null, sort_order: number }>
 }
 
 // =============================================================================

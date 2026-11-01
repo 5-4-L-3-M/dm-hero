@@ -3082,7 +3082,8 @@
     "tabs": {
       "board": "Board",
       "run": "Ablaufplan",
-      "world": "Welt"
+      "world": "Welt",
+      "timeline": "Zeitleiste"
     },
     "colorBy": {
       "label": "Farbe nach",
@@ -3190,7 +3191,12 @@
       "played": "Gespielt",
       "skip": "Nicht jetzt",
       "emptyTitle": "Noch nichts geplant",
-      "emptyText": "Plane Beats im Board-Tab für die nächste Sitzung ein."
+      "emptyText": "Plane Beats im Board-Tab für die nächste Sitzung ein.",
+      "playedTitle": "In dieser Sitzung gespielt",
+      "restore": "Zurück in die nächste Sitzung",
+      "undo": "Rückgängig",
+      "markedPlayed": "„{title}“ als gespielt markiert",
+      "skipped": "„{title}“ aus der nächsten Sitzung genommen"
     },
     "world": {
       "today": "Heute in der Welt",
@@ -3243,6 +3249,25 @@
       "dropHere": "Cluster hierher ziehen",
       "noPlace": "Kein Ort",
       "all": "Alle Cluster"
+    },
+    "questline": {
+      "new": "Neue Questreihe",
+      "edit": "Questreihe bearbeiten",
+      "name": "Name der Questreihe",
+      "optional": "Optionale Questreihe",
+      "defaultsHint": "Haupt/Neben und optional gelten für jede Quest darin, außer eine Quest legt es anders fest.",
+      "deleteHint": "Die Quests bleiben, nur ohne Questreihe"
+    },
+    "timeline": {
+      "hideMinor": "Neben ausblenden",
+      "hideOptional": "Optionale ausblenden",
+      "hideDone": "Erledigte ausblenden",
+      "hint": "Quests ziehen, um sie umzuordnen oder in eine andere Questreihe zu verschieben.",
+      "emptyTitle": "Noch keine Questreihen",
+      "emptyText": "Eine Questreihe ist eine Kette von Quests in Reihenfolge. Ein Handlungsstrang kann mehrere haben.",
+      "dropHere": "Quests hierher ziehen",
+      "loose": "In keiner Questreihe",
+      "looseEmpty": "Alle Quests sind eingeordnet"
     }
   },
   "quests": {
@@ -3269,7 +3294,19 @@
     "involved": "Wer und was beteiligt ist",
     "relationTypes": {
       "involved": "Beteiligt"
-    }
+    },
+    "givers": "Auftraggeber",
+    "giverHidden": "Spieler wissen noch nicht, wer dahintersteckt",
+    "giverHiddenHint": "Wird als „Unbekannt“ mit Augen-Symbol gezeigt; du siehst weiterhin, wer es wirklich ist.",
+    "giverHiddenShort": "Den Spielern unbekannt",
+    "questline": "Questreihe",
+    "importance": "Haupt / Neben",
+    "optionalLabel": "Optional?",
+    "sameAsQuestline": "Wie Questreihe",
+    "major": "Haupt",
+    "minor": "Neben",
+    "optional": "Optional",
+    "required": "Pflicht"
   },
   "formattingGuide": {
     "title": "Textformatierung",

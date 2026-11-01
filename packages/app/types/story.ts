@@ -92,11 +92,26 @@ export interface StoryBoardSettings {
   compact: boolean
 }
 
+export const QUEST_IMPORTANCE = ['major', 'minor'] as const
+export type QuestImportance = typeof QUEST_IMPORTANCE[number]
+
+/** A chain of quests in order (Timeline row). A storyline can hold several. */
+export interface Questline {
+  id: number
+  storyline_id: number | null
+  name: string
+  importance: QuestImportance
+  optional: boolean
+  notes: string | null
+  sort_order: number
+}
+
 export interface StoryBoard {
   settings: StoryBoardSettings
   storylines: StoryLine[]
   clusters: StoryCluster[]
   beats: StoryBeat[]
+  questlines: Questline[]
 }
 
 export interface QuestObjective {
@@ -112,6 +127,17 @@ export interface Quest {
   giver_id: number | null
   giver_name: string | null
   giver_type: string | null
+  /** Everyone who gives the quest (giver_id = the first one) */
+  givers: LinkedEntity[]
+  giver_ids: number[]
+  /** Players don't know who's behind it yet — show "Unknown" to them */
+  giver_hidden: boolean
+  /** null = same as its questline */
+  importance: QuestImportance | null
+  /** null = same as its questline */
+  optional: boolean | null
+  questline_id: number | null
+  questline_order: number
   involved: LinkedEntity[] // entries linked to the quest (relation type "involved")
   location_id: number | null
   location_name: string | null
@@ -233,7 +259,7 @@ export function nearbyLocationIds(partyLocationId: number | null, locations: { i
 }
 
 /** Quest metadata in the entities table → clean values. */
-export function readQuestMetadata(raw: unknown): Pick<Quest, 'status' | 'giver_id' | 'storyline_id' | 'reward' | 'objectives' | 'sort_order'> {
+export function readQuestMetadata(raw: unknown): Pick<Quest, 'status' | 'giver_id' | 'giver_ids' | 'giver_hidden' | 'importance' | 'optional' | 'questline_id' | 'questline_order' | 'storyline_id' | 'reward' | 'objectives' | 'sort_order'> {
   let m: Record<string, unknown> = {}
   if (typeof raw === 'string') {
     try {
@@ -250,12 +276,32 @@ export function readQuestMetadata(raw: unknown): Pick<Quest, 'status' | 'giver_i
         .map(o => (typeof o === 'string' ? { text: o, done: false } : { text: String((o as QuestObjective)?.text ?? ''), done: !!(o as QuestObjective)?.done }))
         .filter(o => o.text.trim())
     : []
+  const giverIds = [...new Set([
+    ...(Array.isArray(m.giver_ids) ? m.giver_ids.map(num) : []),
+    num(m.giver_id),
+  ].filter((x): x is number => x !== null))]
   return {
     status: oneOf(QUEST_STATUSES, m.status, 'rumor'),
-    giver_id: num(m.giver_id),
+    giver_id: giverIds[0] ?? null,
+    giver_ids: giverIds,
+    giver_hidden: !!m.giver_hidden,
+    importance: (QUEST_IMPORTANCE as readonly unknown[]).includes(m.importance) ? m.importance as QuestImportance : null,
+    optional: typeof m.optional === 'boolean' ? m.optional : null,
+    questline_id: num(m.questline_id),
+    questline_order: Number(m.questline_order) || 0,
     storyline_id: num(m.storyline_id),
     reward: typeof m.reward === 'string' && m.reward.trim() ? m.reward : null,
     objectives,
     sort_order: Number(m.sort_order) || 0,
   }
+}
+
+/** A quest's importance: its own, else its questline's (major when neither says). */
+export function effectiveImportance(q: Pick<Quest, 'importance'>, line: Pick<Questline, 'importance'> | null | undefined): QuestImportance {
+  return q.importance ?? line?.importance ?? 'major'
+}
+
+/** Whether a quest is optional: its own setting, else its questline's. */
+export function effectiveOptional(q: Pick<Quest, 'optional'>, line: Pick<Questline, 'optional'> | null | undefined): boolean {
+  return q.optional ?? line?.optional ?? false
 }
