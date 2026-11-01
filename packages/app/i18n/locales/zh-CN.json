@@ -2995,7 +2995,14 @@
     "saveError": "无法保存此更改。",
     "partyLoad": "队伍负重",
     "partyLoadHint": "点击角色以打开其物品栏。",
-    "capacityWithBonus": "负重上限：{breakdown}（含加成）"
+    "capacityWithBonus": "负重上限：{breakdown}（含加成）",
+    "missing": {
+      "mark": "Stolen, lost or taken?",
+      "stolen": "Stolen",
+      "lost": "Lost",
+      "taken": "Taken (confiscated)",
+      "back": "Got it back"
+    }
   },
   "units": {
     "title": "单位",
@@ -3171,7 +3178,8 @@
       "location": "Where",
       "entities": "Who and what is involved",
       "playedIn": "Played in session",
-      "quickAdd": "Add a beat…"
+      "quickAdd": "Add a beat…",
+      "noDetails": "No details yet — use the pencil to add some."
     },
     "sparks": {
       "title": "Sparks",

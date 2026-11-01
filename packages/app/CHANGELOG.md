@@ -10,6 +10,8 @@
 - The side list shows everything not yet on the map; drag it in or click +. Clicking a card opens the quest in the side panel or the cluster/beat for editing.
 - Quests: Major/Minor and Optional are simple toggles now.
 - AI connector: get_story_map and connect_story_items (puts cards on the map and draws the line).
+- See details without editing: click a beat to unfold its details (click again to fold), click a cluster's title to fold/unfold it; the pencil opens the editor. On the map, click a cluster or beat title to unfold its details on the card.
+- Inventory: mark an item Stolen, Lost or Taken (confiscated) — it stays on the list (greyed out, with a tag) so you know it was theirs, doesn't count towards carried weight, and "Got it back" restores it.
 
 ## 1.9.0
 

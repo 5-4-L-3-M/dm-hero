@@ -2995,7 +2995,14 @@
     "saveError": "Impossible d'enregistrer cette modification.",
     "partyLoad": "Charge du groupe",
     "partyLoadHint": "Cliquez sur un personnage pour ouvrir son inventaire.",
-    "capacityWithBonus": "Capacité de charge : {breakdown} (bonus inclus)"
+    "capacityWithBonus": "Capacité de charge : {breakdown} (bonus inclus)",
+    "missing": {
+      "mark": "Stolen, lost or taken?",
+      "stolen": "Stolen",
+      "lost": "Lost",
+      "taken": "Taken (confiscated)",
+      "back": "Got it back"
+    }
   },
   "units": {
     "title": "Unités",
@@ -3171,7 +3178,8 @@
       "location": "Where",
       "entities": "Who and what is involved",
       "playedIn": "Played in session",
-      "quickAdd": "Add a beat…"
+      "quickAdd": "Add a beat…",
+      "noDetails": "No details yet — use the pencil to add some."
     },
     "sparks": {
       "title": "Sparks",

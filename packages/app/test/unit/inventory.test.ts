@@ -59,6 +59,13 @@ describe('carrying capacity (D&D 5e)', () => {
       { weight: null, quantity: 5 },
     ])).toBe(4.5)
   })
+
+  it('keeps stolen / lost / taken items listed but out of the carried weight', () => {
+    expect(totalCarried([{ weight: 3, quantity: 1 }, { weight: 10, quantity: 1, missing: 'taken' }])).toBe(3)
+    const notes = parseInventoryNotes(serializeInventoryNotes({ quantity: 1, equipped: true, text: null, missing: 'stolen' }))
+    expect(notes).toEqual({ quantity: 1, equipped: false, text: null, missing: 'stolen' })
+    expect(parseInventoryNotes('{"quantity":1,"missing":"eaten"}').missing).toBeUndefined()
+  })
 })
 
 describe('inventory notes', () => {

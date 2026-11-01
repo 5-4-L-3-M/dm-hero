@@ -2995,7 +2995,14 @@
     "saveError": "Couldn't save that change.",
     "partyLoad": "Party load",
     "partyLoadHint": "Click a character to open their inventory.",
-    "capacityWithBonus": "Carrying capacity: {breakdown} (bonus included)"
+    "capacityWithBonus": "Carrying capacity: {breakdown} (bonus included)",
+    "missing": {
+      "mark": "Stolen, lost or taken?",
+      "stolen": "Stolen",
+      "lost": "Lost",
+      "taken": "Taken (confiscated)",
+      "back": "Got it back"
+    }
   },
   "units": {
     "title": "Units",
@@ -3171,7 +3178,8 @@
       "location": "Where",
       "entities": "Who and what is involved",
       "playedIn": "Played in session",
-      "quickAdd": "Add a beat…"
+      "quickAdd": "Add a beat…",
+      "noDetails": "No details yet — use the pencil to add some."
     },
     "sparks": {
       "title": "Sparks",

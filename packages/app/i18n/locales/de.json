@@ -2995,7 +2995,14 @@
     "saveError": "Änderung konnte nicht gespeichert werden.",
     "partyLoad": "Traglast der Gruppe",
     "partyLoadHint": "Klicke auf einen Charakter, um sein Inventar zu öffnen.",
-    "capacityWithBonus": "Tragkraft: {breakdown} (inkl. Bonus)"
+    "capacityWithBonus": "Tragkraft: {breakdown} (inkl. Bonus)",
+    "missing": {
+      "mark": "Gestohlen, verloren oder abgenommen?",
+      "stolen": "Gestohlen",
+      "lost": "Verloren",
+      "taken": "Abgenommen (beschlagnahmt)",
+      "back": "Zurückbekommen"
+    }
   },
   "units": {
     "title": "Einheiten",
@@ -3171,7 +3178,8 @@
       "location": "Wo",
       "entities": "Wer und was beteiligt ist",
       "playedIn": "Gespielt in Sitzung",
-      "quickAdd": "Beat hinzufügen…"
+      "quickAdd": "Beat hinzufügen…",
+      "noDetails": "Noch keine Details – mit dem Stift ergänzen."
     },
     "sparks": {
       "title": "Funken",

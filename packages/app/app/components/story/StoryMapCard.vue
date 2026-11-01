@@ -20,12 +20,23 @@
           <v-list-item :title="$t('story.map.noAct')" :active="!act" @click="$emit('set-act', null)" />
         </v-list>
       </v-menu>
+      <button type="button" class="map-card__x nodrag" :title="$t('common.edit')" @click.stop="$emit('edit')">
+        <v-icon size="x-small">mdi-pencil</v-icon>
+      </button>
       <button type="button" class="map-card__x nodrag" :title="$t('story.map.removeCard')" @click.stop="$emit('remove')">
         <v-icon size="x-small">mdi-close</v-icon>
       </button>
     </div>
-    <div class="map-card__title nodrag" role="button" tabindex="0" @click.stop="$emit('open')" @keydown.enter="$emit('open')">
-      {{ item.title }}
+    <div class="map-card__title nodrag" role="button" tabindex="0" @click.stop="titleClick" @keydown.enter="titleClick">
+      <v-icon v-if="item.kind !== 'quest'" size="x-small" class="mr-1">{{ open ? 'mdi-chevron-down' : 'mdi-chevron-right' }}</v-icon>{{ item.title }}
+    </div>
+    <!-- Details: unfold with a click on the title (quests open in the side panel instead) -->
+    <div v-if="open" class="map-card__details nodrag nowheel">
+      <SharedFormattedText v-if="item.details" :text="item.details" />
+      <div v-else-if="!item.list.length" class="text-medium-emphasis">{{ $t('story.beat.noDetails') }}</div>
+      <ul v-if="item.list.length" class="map-card__list">
+        <li v-for="(l, i) in item.list" :key="i">{{ l }}</li>
+      </ul>
     </div>
     <div v-if="item.chips.length" class="map-card__chips">
       <span v-for="c in item.chips" :key="c" class="map-card__chip">{{ c }}</span>
@@ -48,9 +59,19 @@ export interface MapCardItem {
   optional: boolean
   minor: boolean
   done: boolean
+  /** Text shown when unfolded (beat body, cluster notes) */
+  details: string | null
+  /** Lines shown when unfolded (a cluster's beats) */
+  list: string[]
 }
-defineProps<{ item: MapCardItem, dim: boolean, act: number | null, acts: string[] }>()
-defineEmits<{ 'open': [], 'remove': [], 'set-act': [act: number | null] }>()
+const props = defineProps<{ item: MapCardItem, dim: boolean, act: number | null, acts: string[] }>()
+const emit = defineEmits<{ 'open': [], 'edit': [], 'remove': [], 'set-act': [act: number | null] }>()
+
+const open = ref(false)
+function titleClick() {
+  if (props.item.kind === 'quest') emit('open')
+  else open.value = !open.value
+}
 </script>
 
 <style scoped>
@@ -138,6 +159,20 @@ defineEmits<{ 'open': [], 'remove': [], 'set-act': [act: number | null] }>()
 }
 .map-card__title:hover {
   text-decoration: underline;
+}
+.map-card__details {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+  cursor: default;
+  white-space: normal;
+}
+.map-card__list {
+  padding-left: 16px;
+  margin: 4px 0 0;
 }
 .map-card__chips {
   display: flex;

@@ -78,6 +78,7 @@
                 :act="data.act"
                 :acts="actNames"
                 @open="openItem(data.kind, data.refId)"
+                @edit="editItem(data.kind, data.refId)"
                 @remove="store.removeMapNode(data.mapId)"
                 @set-act="store.setMapNodeAct(data.mapId, $event)"
               />
@@ -136,6 +137,7 @@
     </v-dialog>
 
     <StoryBeatDialog v-model="beatOpen" :beat="beatEditing" />
+    <QuestEditDialog v-model:show="questOpen" :quest-id="questEditingId" />
     <StoryClusterDialog v-model="clusterOpen" :cluster="clusterEditing" />
   </div>
 </template>
@@ -150,6 +152,7 @@ import '@vue-flow/controls/dist/style.css'
 import StoryMapCard, { type MapCardItem } from './StoryMapCard.vue'
 import StoryBeatDialog from './StoryBeatDialog.vue'
 import StoryClusterDialog from './StoryClusterDialog.vue'
+import QuestEditDialog from '~/components/quests/QuestEditDialog.vue'
 import {
   BEAT_KIND_ICONS, MAP_NODE_KINDS, NO_COLOR, QUEST_STATUS_ICONS,
   type MapEdgeKind, type MapNodeKind, type StoryBeat, type StoryCluster, type StoryMapNode,
@@ -181,6 +184,7 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
       kind, title: q.name, icon: QUEST_STATUS_ICONS[q.status], color: lineColor(q.storyline_id), storylineId: q.storyline_id,
       chips: [t(`quests.statuses.${q.status}`), ...givers, ...(q.optional ? [t('quests.optional')] : [])],
       optional: !!q.optional, minor: q.importance === 'minor', done: q.status === 'completed' || q.status === 'failed',
+      details: q.description, list: [],
     }
   }
   if (kind === 'cluster') {
@@ -191,6 +195,7 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
       kind, title: c.title, icon: 'mdi-vector-square', color: lineColor(c.storyline_id), storylineId: c.storyline_id,
       chips: [t('story.map.beatCount', { done: beats.filter(b => b.status === 'played').length, total: beats.length }), t(`story.heat.${c.heat}`)],
       optional: false, minor: false, done: c.status === 'resolved',
+      details: c.notes, list: beats.map(x => (x.status === 'played' ? `✓ ${x.title}` : x.title)),
     }
   }
   const b = store.beats.find(x => x.id === refId)
@@ -200,6 +205,7 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
     kind, title: b.title, icon: BEAT_KIND_ICONS[b.kind], color: lineColor(c?.storyline_id), storylineId: c?.storyline_id ?? null,
     chips: [c ? c.title : t('story.sparks.title'), t(`story.beatStatus.${b.status}`)],
     optional: false, minor: false, done: b.status === 'played' || b.status === 'cut',
+    details: b.body, list: b.entities.map(e => e.name),
   }
 }
 
@@ -361,10 +367,17 @@ const beatOpen = ref(false)
 const beatEditing = ref<StoryBeat | null>(null)
 const clusterOpen = ref(false)
 const clusterEditing = ref<StoryCluster | null>(null)
+const questOpen = ref(false)
+const questEditingId = ref<number | null>(null)
+/** Quest title → its full details in the side panel (clusters and beats unfold on the card) */
 function openItem(kind: MapNodeKind, refId: number) {
+  const q = kind === 'quest' ? store.quests.find(x => x.id === refId) : null
+  if (q) tabs.open('quest', q.id, q.name)
+}
+function editItem(kind: MapNodeKind, refId: number) {
   if (kind === 'quest') {
-    const q = store.quests.find(x => x.id === refId)
-    if (q) tabs.open('quest', q.id, q.name)
+    questEditingId.value = refId
+    questOpen.value = true
   }
   else if (kind === 'cluster') {
     clusterEditing.value = store.clusters.find(x => x.id === refId) ?? null

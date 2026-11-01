@@ -24,10 +24,20 @@ export function isCarriedRelation(type: string | null | undefined): boolean {
   return (CARRIED_ITEM_RELATIONS as readonly string[]).includes(type.toLowerCase())
 }
 
+/** Why an item isn't with the character right now (still listed so you know it was theirs) */
+export const MISSING_REASONS = ['stolen', 'lost', 'taken'] as const
+export type MissingReason = typeof MISSING_REASONS[number]
+
 export interface InventoryNotes {
   quantity: number
   equipped: boolean
   text: string | null
+  /** Set = not carried right now; doesn't count towards weight */
+  missing?: MissingReason | null
+}
+
+function readMissing(v: unknown): MissingReason | null {
+  return (MISSING_REASONS as readonly unknown[]).includes(v) ? v as MissingReason : null
 }
 
 /** Relation notes can be JSON ({quantity, equipped, text}), plain text, or empty. */
@@ -46,8 +56,9 @@ export function parseInventoryNotes(raw: unknown): InventoryNotes {
     const q = Number(o.quantity)
     return {
       quantity: Number.isFinite(q) && q > 0 ? q : 1,
-      equipped: o.equipped === true,
+      equipped: o.equipped === true && !readMissing(o.missing),
       text: typeof o.text === 'string' && o.text.trim() ? o.text : null,
+      ...(readMissing(o.missing) ? { missing: readMissing(o.missing) } : {}),
     }
   }
   if (typeof value === 'string') return { quantity: 1, equipped: false, text: value }
@@ -55,8 +66,9 @@ export function parseInventoryNotes(raw: unknown): InventoryNotes {
 }
 
 export function serializeInventoryNotes(notes: InventoryNotes): string {
-  const out: Record<string, unknown> = { quantity: notes.quantity, equipped: notes.equipped }
+  const out: Record<string, unknown> = { quantity: notes.quantity, equipped: notes.missing ? false : notes.equipped }
   if (notes.text) out.text = notes.text
+  if (notes.missing) out.missing = notes.missing
   return JSON.stringify(out)
 }
 
@@ -135,6 +147,8 @@ export interface InventoryEntry {
   quantity: number
   equipped: boolean
   text: string | null
+  /** stolen / lost / taken — still listed, not carried */
+  missing: MissingReason | null
 }
 
 export interface PlayerInventory {
@@ -161,7 +175,8 @@ export interface PartyLoadEntry {
   missing_weights: number
 }
 
-export function totalCarried(items: Pick<InventoryEntry, 'weight' | 'quantity'>[]): number {
-  const sum = items.reduce((acc, i) => acc + (i.weight ?? 0) * i.quantity, 0)
+export function totalCarried(items: Array<Pick<InventoryEntry, 'weight' | 'quantity'> & { missing?: MissingReason | null }>): number {
+  // Stolen / lost / taken items aren't on the character
+  const sum = items.reduce((acc, i) => acc + (i.missing ? 0 : (i.weight ?? 0) * i.quantity), 0)
   return Math.round(sum * 100) / 100
 }
