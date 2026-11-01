@@ -17,23 +17,55 @@
         </v-btn-toggle>
 
         <v-row dense>
-          <v-col cols="12" sm="6">
+          <v-col cols="12">
             <v-autocomplete
               v-model:search="quickGiverSearch"
-              v-model="form.giver_id"
+              v-model="form.giver_ids"
               :items="givers"
               item-title="name"
               item-value="id"
-              :label="$t('quests.giver')"
+              :label="$t('quests.givers')"
               prepend-inner-icon="mdi-account-voice"
+              multiple
+              chips
+              closable-chips
               variant="outlined"
               density="comfortable"
-              clearable
+              hide-details
+              @update:model-value="quickGiverSearch = ''"
             >
+              <template #item="{ props: itemProps, item }">
+                <v-list-item v-bind="itemProps" :prepend-icon="iconFor(item.type)" :subtitle="item.type" />
+              </template>
               <template #no-data>
                 <SharedCreateFromSearch :search="quickGiverSearch" type="NPC" @created="quickGiverCreated" />
               </template>
             </v-autocomplete>
+            <v-checkbox
+              v-model="form.giver_hidden"
+              :label="$t('quests.giverHidden')"
+              :hint="$t('quests.giverHiddenHint')"
+              persistent-hint
+              density="compact"
+              class="mb-2"
+            />
+          </v-col>
+          <v-col cols="12">
+            <v-select
+              v-model="form.questline_id"
+              :items="questlineOptions"
+              :label="$t('quests.questline')"
+              prepend-inner-icon="mdi-timeline-outline"
+              variant="outlined"
+              density="comfortable"
+              clearable
+            />
+          </v-col>
+          <v-col cols="6">
+            <v-select v-model="form.importance" :items="importanceOptions" :label="$t('quests.importance')" variant="outlined" density="comfortable" />
+          </v-col>
+          <v-col cols="6">
+            <v-select v-model="form.optional" :items="optionalOptions" :label="$t('quests.optionalLabel')" variant="outlined" density="comfortable" />
           </v-col>
           <v-col cols="12" sm="6">
             <v-autocomplete
@@ -130,20 +162,41 @@
 </template>
 
 <script setup lang="ts">
-import { QUEST_STATUSES, QUEST_STATUS_ICONS, type Quest, type QuestObjective, type QuestStatus } from '~~/types/story'
+import { QUEST_STATUSES, QUEST_STATUS_ICONS, type Quest, type QuestImportance, type QuestObjective, type QuestStatus } from '~~/types/story'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
 
 /** Create or edit a quest: status, who gave it, where, who's involved, reward and objectives. */
-const props = defineProps<{ show: boolean, questId?: number | null, initialStatus?: QuestStatus }>()
+const props = defineProps<{ show: boolean, questId?: number | null, initialStatus?: QuestStatus, initialQuestlineId?: number | null }>()
 const emit = defineEmits<{ 'update:show': [value: boolean], 'saved': [quest: Quest], 'deleted': [id: number] }>()
 
+const { t } = useI18n()
 const store = useStoryBoardStore()
 const { dockAttrs, dockOutside, dockAccept } = useDockedDialog(720)
 const campaignStore = useCampaignStore()
 
-interface Form { name: string, description: string, status: QuestStatus, giver_id: number | null, location_id: number | null, storyline_id: number | null, reward: string, objectives: QuestObjective[], involved_ids: number[] }
-const blank = (): Form => ({ name: '', description: '', status: props.initialStatus ?? 'rumor', giver_id: null, location_id: null, storyline_id: null, reward: '', objectives: [], involved_ids: [] })
+interface Form {
+  name: string
+  description: string
+  status: QuestStatus
+  giver_ids: number[]
+  giver_hidden: boolean
+  importance: QuestImportance | null
+  optional: boolean | null
+  questline_id: number | null
+  location_id: number | null
+  storyline_id: number | null
+  reward: string
+  objectives: QuestObjective[]
+  involved_ids: number[]
+}
+const blank = (): Form => {
+  const line = props.initialQuestlineId ? store.questlines.find(q => q.id === props.initialQuestlineId) : null
+  return {
+    name: '', description: '', status: props.initialStatus ?? 'rumor', giver_ids: [], giver_hidden: false, importance: null, optional: null,
+    questline_id: line?.id ?? null, location_id: null, storyline_id: line?.storyline_id ?? null, reward: '', objectives: [], involved_ids: [],
+  }
+}
 const form = ref<Form>(blank())
 const loading = ref(false)
 const saving = ref(false)
@@ -165,7 +218,7 @@ watch(() => props.show, async (open) => {
     await store.load(campaignStore.activeCampaignIdNumber)
     if (props.questId) {
       const q = await $fetch<Quest>(`/api/quests/${props.questId}`)
-      form.value = { name: q.name, description: q.description ?? '', status: q.status, giver_id: q.giver_id, location_id: q.location_id, storyline_id: q.storyline_id, reward: q.reward ?? '', objectives: q.objectives.map(o => ({ ...o })), involved_ids: (q.involved ?? []).map(e => e.id) }
+      form.value = { name: q.name, description: q.description ?? '', status: q.status, giver_ids: [...q.giver_ids], giver_hidden: q.giver_hidden, importance: q.importance, optional: q.optional, questline_id: q.questline_id, location_id: q.location_id, storyline_id: q.storyline_id, reward: q.reward ?? '', objectives: q.objectives.map(o => ({ ...o })), involved_ids: (q.involved ?? []).map(e => e.id) }
     }
   }
   finally {
@@ -180,11 +233,35 @@ function addObjective() {
   newObjective.value = ''
 }
 
+const questlineOptions = computed(() => store.questlines.map(q => ({ title: q.name, value: q.id })))
+const importanceOptions = computed(() => [
+  { title: t('quests.sameAsQuestline'), value: null },
+  { title: t('quests.major'), value: 'major' },
+  { title: t('quests.minor'), value: 'minor' },
+])
+const optionalOptions = computed(() => [
+  { title: t('quests.sameAsQuestline'), value: null },
+  { title: t('quests.optional'), value: true },
+  { title: t('quests.required'), value: false },
+])
+
+// Picked a questline → take its storyline if none is set
+watch(() => form.value.questline_id, (id) => {
+  const line = id ? store.questlines.find(q => q.id === id) : null
+  if (line?.storyline_id && !form.value.storyline_id) form.value.storyline_id = line.storyline_id
+})
+
 async function save() {
   addObjective()
   saving.value = true
   try {
-    const quest = await store.saveQuest(props.questId ?? null, { ...form.value, description: form.value.description || null, reward: form.value.reward || null })
+    const data: Partial<Quest> & Record<string, unknown> = { ...form.value, description: form.value.description || null, reward: form.value.reward || null }
+    // New in a questline, or moved into another one → goes to the end of that chain
+    const before = props.questId ? store.quests.find(q => q.id === props.questId) : null
+    if (form.value.questline_id && form.value.questline_id !== before?.questline_id) {
+      data.questline_order = Math.max(-1, ...store.quests.filter(q => q.questline_id === form.value.questline_id).map(q => q.questline_order)) + 1
+    }
+    const quest = await store.saveQuest(props.questId ?? null, data)
     emit('saved', quest)
     emit('update:show', false)
   }
@@ -203,7 +280,7 @@ async function remove() {
 // Typed a name that matches nothing → create it right from the list
 const quickGiverSearch = ref('')
 function quickGiverCreated(e: { id: number, name: string }) {
-  form.value.giver_id = e.id
+  form.value.giver_ids.push(e.id)
 }
 
 // Typed a name that matches nothing → create it right from the list

@@ -15,9 +15,12 @@
 
       <div class="d-flex flex-wrap ga-1 mt-1">
         <v-chip v-if="storyline" size="x-small" :color="`story-${storyline.color}`" variant="flat">{{ storyline.name }}</v-chip>
-        <v-chip v-if="quest.giver_name" size="x-small" variant="tonal" @click.stop>
-          <v-icon start size="x-small">mdi-account-voice</v-icon>
-          <SharedEntityLink :id="quest.giver_id" :type="giverType" :name="quest.giver_name" />
+        <v-chip v-for="g in quest.givers" :key="g.id" size="x-small" variant="tonal" @click.stop>
+          <v-icon start size="x-small">{{ quest.giver_hidden ? 'mdi-eye-off' : 'mdi-account-voice' }}</v-icon>
+          <SharedEntityLink :id="g.id" :type="g.type" :name="g.name" />
+        </v-chip>
+        <v-chip v-if="quest.giver_hidden && !quest.givers.length" size="x-small" variant="tonal">
+          <v-icon start size="x-small">mdi-eye-off</v-icon>{{ $t('quests.giverHiddenShort') }}
         </v-chip>
         <v-chip v-if="quest.location_name" size="x-small" variant="tonal" color="green" @click.stop>
           <v-icon start size="x-small">mdi-map-marker</v-icon>
@@ -47,7 +50,6 @@ const store = useStoryBoardStore()
 const storyline = computed(() => store.storylines.find(s => s.id === props.quest.storyline_id) ?? null)
 const color = computed(() => (storyline.value ? `story-${storyline.value.color}` : NO_COLOR))
 const done = computed(() => props.quest.objectives.filter(o => o.done).length)
-const giverType = computed(() => props.quest.giver_type ?? 'NPC')
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type {
-  LinkedEntity, Quest, StoryBeat, StoryBoard, StoryBoardSettings, StoryCluster, StoryLine,
+  LinkedEntity, Quest, Questline, StoryBeat, StoryBoard, StoryBoardSettings, StoryCluster, StoryLine,
 } from '~~/types/story'
 import { nearbyLocationIds } from '~~/types/story'
 
@@ -26,6 +26,7 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     storylines: s => s.board?.storylines ?? [],
     clusters: s => s.board?.clusters ?? [],
     beats: s => s.board?.beats ?? [],
+    questlines: (s): Questline[] => s.board?.questlines ?? [],
     settings: (s): StoryBoardSettings => s.board?.settings ?? { color_by: 'storyline', party_location_id: null, group_by: 'storyline', compact: false },
     sparks(): StoryBeat[] {
       return this.beats.filter(b => b.cluster_id === null)
@@ -94,6 +95,38 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     async deleteStoryline(id: number) {
       await $fetch(`/api/story/storylines/${id}`, { method: 'DELETE' })
       await this.reload()
+    },
+
+    // --- questlines (Timeline rows) -------------------------------------
+    async addQuestline(data: Partial<Questline>) {
+      const line = await $fetch<Questline>('/api/story/questlines', { method: 'POST', body: { campaignId: this.campaignId, ...data } })
+      this.board?.questlines.push(line)
+      return line
+    },
+    async updateQuestline(id: number, changes: Partial<Questline>) {
+      const line = await $fetch<Questline>(`/api/story/questlines/${id}`, { method: 'PATCH', body: changes })
+      const i = this.questlines.findIndex(q => q.id === id)
+      if (i >= 0 && this.board) this.board.questlines[i] = line
+    },
+    async deleteQuestline(id: number) {
+      await $fetch(`/api/story/questlines/${id}`, { method: 'DELETE' })
+      if (this.board) this.board.questlines = this.board.questlines.filter(q => q.id !== id)
+      for (const q of this.quests) if (q.questline_id === id) q.questline_id = null
+    },
+    /** Timeline drag & drop: questline order and quests in order per questline (null = not placed) */
+    async saveTimeline(order: { questlines?: number[], chains?: { questlineId: number | null, questIds: number[] }[] }) {
+      order.questlines?.forEach((id, i) => {
+        const l = this.questlines.find(x => x.id === id)
+        if (l) l.sort_order = i
+      })
+      this.board?.questlines.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)
+      for (const chain of order.chains ?? []) {
+        chain.questIds.forEach((id, i) => {
+          const q = this.quests.find(x => x.id === id)
+          if (q) Object.assign(q, { questline_id: chain.questlineId, questline_order: i })
+        })
+      }
+      await $fetch('/api/story/order', { method: 'POST', body: { campaignId: this.campaignId, ...order } })
     },
 
     // --- clusters --------------------------------------------------------

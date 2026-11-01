@@ -21,6 +21,7 @@
             {{ $t('story.tabs.run') }}
             <v-chip v-if="store.tray.length" size="x-small" color="primary" class="ml-2">{{ store.tray.length }}</v-chip>
           </v-tab>
+          <v-tab value="timeline" prepend-icon="mdi-timeline-outline">{{ $t('story.tabs.timeline') }}</v-tab>
           <v-tab value="world" prepend-icon="mdi-earth">{{ $t('story.tabs.world') }}</v-tab>
         </v-tabs>
       </div>
@@ -30,6 +31,7 @@
       <template v-if="store.board">
         <StoryBoardTab v-if="tab === 'board'" @open-run-sheet="tab = 'run'" />
         <StoryRunSheet v-else-if="tab === 'run'" />
+        <StoryTimelineTab v-else-if="tab === 'timeline'" />
         <StoryWorldTab v-else :campaign-id="campaignId" />
       </template>
     </template>
@@ -40,6 +42,7 @@
 import StoryBoardTab from '~/components/story/StoryBoardTab.vue'
 import StoryRunSheet from '~/components/story/StoryRunSheet.vue'
 import StoryWorldTab from '~/components/story/StoryWorldTab.vue'
+import StoryTimelineTab from '~/components/story/StoryTimelineTab.vue'
 
 /** Story Board: plan with clusters and sparks, run the session from the tray, keep an eye on the world. */
 const route = useRoute()
@@ -48,7 +51,7 @@ const campaignStore = useCampaignStore()
 const store = useStoryBoardStore()
 
 const campaignId = computed(() => campaignStore.activeCampaignIdNumber)
-const TABS = ['board', 'run', 'world'] as const
+const TABS = ['board', 'run', 'timeline', 'world'] as const
 const tab = ref<typeof TABS[number]>((TABS as readonly string[]).includes(String(route.query.tab)) ? route.query.tab as typeof TABS[number] : 'board')
 watch(tab, t => router.replace({ query: { ...route.query, tab: t === 'board' ? undefined : t } }))
 

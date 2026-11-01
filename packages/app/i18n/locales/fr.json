@@ -3082,7 +3082,8 @@
     "tabs": {
       "board": "Board",
       "run": "Run sheet",
-      "world": "World"
+      "world": "World",
+      "timeline": "Timeline"
     },
     "colorBy": {
       "label": "Color by",
@@ -3190,7 +3191,12 @@
       "played": "Played",
       "skip": "Not now",
       "emptyTitle": "Nothing planned yet",
-      "emptyText": "Add beats to the next session on the Board tab."
+      "emptyText": "Add beats to the next session on the Board tab.",
+      "playedTitle": "Played this session",
+      "restore": "Back to next session",
+      "undo": "Undo",
+      "markedPlayed": "\"{title}\" marked played",
+      "skipped": "\"{title}\" taken off next session"
     },
     "world": {
       "today": "Today in the world",
@@ -3243,6 +3249,25 @@
       "dropHere": "Drag a cluster here",
       "noPlace": "No place",
       "all": "All clusters"
+    },
+    "questline": {
+      "new": "New questline",
+      "edit": "Edit questline",
+      "name": "Questline name",
+      "optional": "Optional questline",
+      "defaultsHint": "Major/minor and optional apply to every quest in it unless a quest says otherwise.",
+      "deleteHint": "Its quests stay, just not in a questline"
+    },
+    "timeline": {
+      "hideMinor": "Hide minor",
+      "hideOptional": "Hide optional",
+      "hideDone": "Hide done",
+      "hint": "Drag quests to reorder or move them between questlines.",
+      "emptyTitle": "No questlines yet",
+      "emptyText": "A questline is a chain of quests in order. A storyline can hold several.",
+      "dropHere": "Drag quests here",
+      "loose": "Not in a questline",
+      "looseEmpty": "Every quest is placed"
     }
   },
   "quests": {
@@ -3269,7 +3294,19 @@
     "involved": "Who and what is involved",
     "relationTypes": {
       "involved": "Involved"
-    }
+    },
+    "givers": "Quest givers",
+    "giverHidden": "Players don't know who's behind it yet",
+    "giverHiddenHint": "Shows as \"Unknown\" with an eye icon; you still see who it really is.",
+    "giverHiddenShort": "Unknown to players",
+    "questline": "Questline",
+    "importance": "Major / minor",
+    "optionalLabel": "Optional?",
+    "sameAsQuestline": "Same as questline",
+    "major": "Major",
+    "minor": "Minor",
+    "optional": "Optional",
+    "required": "Required"
   },
   "formattingGuide": {
     "title": "Text formatting",

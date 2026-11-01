@@ -12,6 +12,9 @@ import clusterDelete from '../../handlers/story/clusters/[id].delete'
 import beatCreate from '../../handlers/story/beats/index.post'
 import beatUpdate from '../../handlers/story/beats/[id].patch'
 import beatDelete from '../../handlers/story/beats/[id].delete'
+import questlineCreate from '../../handlers/story/questlines/index.post'
+import questlineUpdate from '../../handlers/story/questlines/[id].patch'
+import questlineDelete from '../../handlers/story/questlines/[id].delete'
 import agendaList from '../../handlers/story/agendas/index.get'
 import agendaCreate from '../../handlers/story/agendas/index.post'
 import agendaUpdate from '../../handlers/story/agendas/[id].patch'
@@ -29,6 +32,8 @@ const routes: SubRoutes = {
   'clusters/:id': { PATCH: clusterUpdate, DELETE: clusterDelete },
   'beats': { POST: beatCreate },
   'beats/:id': { PATCH: beatUpdate, DELETE: beatDelete },
+  'questlines': { POST: questlineCreate },
+  'questlines/:id': { PATCH: questlineUpdate, DELETE: questlineDelete },
   'agendas': { GET: agendaList, POST: agendaCreate },
   'agendas/:id': { PATCH: agendaUpdate, DELETE: agendaDelete },
 }

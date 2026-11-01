@@ -170,10 +170,15 @@
           </div>
 
           <div class="quest-facts text-body-medium mb-3">
-            <template v-if="entity.giver_name">
-              <v-icon size="small" class="text-medium-emphasis">mdi-account-voice</v-icon>
-              <span class="text-medium-emphasis">{{ $t('quests.giver') }}</span>
-              <SharedEntityLink :id="Number(entity.giver_id)" :type="giverType" :name="String(entity.giver_name)" />
+            <template v-if="questGivers.length || entity.giver_hidden">
+              <v-icon size="small" class="text-medium-emphasis">{{ entity.giver_hidden ? 'mdi-eye-off' : 'mdi-account-voice' }}</v-icon>
+              <span class="text-medium-emphasis">{{ questGivers.length > 1 ? $t('quests.givers') : $t('quests.giver') }}</span>
+              <span>
+                <span v-if="entity.giver_hidden" class="text-medium-emphasis">{{ $t('quests.giverHiddenShort') }}{{ questGivers.length ? ': ' : '' }}</span>
+                <template v-for="(g, i) in questGivers" :key="g.id">
+                  <SharedEntityLink :id="g.id" :type="g.type" :name="g.name" /><span v-if="i < questGivers.length - 1">, </span>
+                </template>
+              </span>
             </template>
             <template v-if="entity.location_name">
               <v-icon size="small" class="text-medium-emphasis">mdi-map-marker</v-icon>
@@ -462,7 +467,11 @@ watch(() => type.value === 'quest' && campaignId.value, (id) => {
 watch(() => storyStore.questVersion, () => {
   if (type.value === 'quest') load()
 })
-const giverType = computed(() => String(entity.value?.giver_type ?? 'NPC'))
+const questGivers = computed(() => {
+  const list = (entity.value as { givers?: { id: number, name: string, type: string }[] } | null)?.givers
+  if (Array.isArray(list)) return list
+  return entity.value?.giver_id && entity.value?.giver_name ? [{ id: Number(entity.value.giver_id), name: String(entity.value.giver_name), type: String(entity.value.giver_type ?? 'NPC') }] : []
+})
 async function toggleObjective(index: number, done: boolean) {
   if (!entity.value) return
   const objectives: QuestObjective[] = quest.value.objectives.map((o, i) => (i === index ? { ...o, done } : o))

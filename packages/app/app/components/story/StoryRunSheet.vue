@@ -60,10 +60,33 @@
         </div>
         <div class="d-flex flex-column ga-1 ml-2">
           <v-btn color="success" variant="flat" size="small" prepend-icon="mdi-check" @click="markPlayed(beat)">{{ $t('story.run.played') }}</v-btn>
-          <v-btn variant="text" size="small" prepend-icon="mdi-arrow-u-left-top" @click="store.updateBeat(beat.id, { in_tray: false })">{{ $t('story.run.skip') }}</v-btn>
+          <v-btn variant="text" size="small" prepend-icon="mdi-arrow-u-left-top" @click="skip(beat)">{{ $t('story.run.skip') }}</v-btn>
         </div>
       </div>
     </v-card>
+
+    <!-- Played this session: nothing disappears for good, put it back with one click -->
+    <div v-if="playedHere.length" class="mt-6">
+      <div class="d-flex align-center mb-2">
+        <v-icon class="mr-2" color="success">mdi-check-all</v-icon>
+        <span class="text-title-small font-weight-bold">{{ $t('story.run.playedTitle') }}</span>
+        <v-chip size="x-small" class="ml-2">{{ playedHere.length }}</v-chip>
+      </div>
+      <v-card v-for="beat in playedHere" :key="beat.id" variant="tonal" class="mb-2 played-beat">
+        <div class="d-flex align-center pa-2 ga-2">
+          <v-icon size="small">{{ BEAT_KIND_ICONS[beat.kind] }}</v-icon>
+          <span class="flex-grow-1 text-body-medium">{{ beat.title }}</span>
+          <v-btn size="small" variant="text" prepend-icon="mdi-restore" @click="restore(beat)">{{ $t('story.run.restore') }}</v-btn>
+        </div>
+      </v-card>
+    </div>
+
+    <v-snackbar v-model="undoOpen" :timeout="8000" location="bottom">
+      {{ undoText }}
+      <template #actions>
+        <v-btn color="primary" variant="text" @click="undo">{{ $t('story.run.undo') }}</v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
@@ -73,6 +96,7 @@ import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
 
 /** The next-session tray as a clean run sheet: read it at the table, tick beats off as they happen. */
+const { t } = useI18n()
 const store = useStoryBoardStore()
 
 const sessions = ref<{ id: number, session_number: number | null, title: string }[]>([])
@@ -99,9 +123,44 @@ function iconFor(type: string) {
   return p ? ENTITY_PREVIEW_CONFIG[p].icon : 'mdi-link'
 }
 
+// What the last Played / Skip changed, so Undo can put it back exactly
+interface Snapshot { id: number, status: StoryBeat['status'], played_session_id: number | null, trayIds: number[] }
+const last = ref<Snapshot | null>(null)
+const undoOpen = ref(false)
+const undoText = ref('')
+
+function remember(beat: StoryBeat, text: string) {
+  last.value = { id: beat.id, status: beat.status, played_session_id: beat.played_session_id, trayIds: store.tray.map(b => b.id) }
+  undoText.value = text
+  undoOpen.value = true
+}
+
 async function markPlayed(beat: StoryBeat) {
+  remember(beat, t('story.run.markedPlayed', { title: beat.title }))
   // Without a session to log to it still counts as played
   await store.updateBeat(beat.id, sessionId.value ? { played_session_id: sessionId.value } : { status: 'played', in_tray: false })
+}
+
+async function skip(beat: StoryBeat) {
+  remember(beat, t('story.run.skipped', { title: beat.title }))
+  await store.updateBeat(beat.id, { in_tray: false })
+}
+
+async function undo() {
+  const s = last.value
+  undoOpen.value = false
+  if (!s) return
+  last.value = null
+  await store.updateBeat(s.id, { status: s.status, played_session_id: s.played_session_id, in_tray: true })
+  // Back to the same spot in the list
+  await store.saveOrder({ tray: s.trayIds })
+}
+
+/** Beats logged to the chosen session (or marked played without one) that can go back */
+const playedHere = computed(() => store.beats.filter(b => b.status === 'played' && (sessionId.value ? b.played_session_id === sessionId.value : !b.played_session_id)))
+
+async function restore(beat: StoryBeat) {
+  await store.updateBeat(beat.id, { status: 'ready', played_session_id: null, in_tray: true })
 }
 </script>
 

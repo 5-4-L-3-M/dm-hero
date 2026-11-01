@@ -35,10 +35,15 @@ export default defineEventHandler(async (event) => {
   if (has('played_session_id')) {
     const sid = Number(body.played_session_id)
     played = body.played_session_id && db.prepare('SELECT 1 FROM sessions WHERE id = ? AND campaign_id = ?').get(sid, campaignId) ? sid : null
-    if (played) {
-      status = 'played'
-      tray = null
-    }
+  }
+  if (played && played !== b.played_session_id) {
+    // Newly logged to a session → it happened, and it leaves the next-session tray
+    status = 'played'
+    tray = null
+  }
+  else if (status !== 'played') {
+    // Set back to idea / ready / cut → no longer counts as played in a session
+    played = null
   }
 
   db.transaction(() => {

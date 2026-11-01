@@ -81,6 +81,12 @@ export default defineEventHandler(() => {
       Quest: {
         status: { type: 'string', oneOf: ['rumor', 'active', 'completed', 'failed'] },
         giver_id: { type: 'number', note: 'entity id of the quest giver' },
+        giver_ids: { type: 'array', note: 'several quest givers (entity ids); the first is the main one' },
+        giver_hidden: { type: 'boolean', note: 'players don\'t know who is behind it yet' },
+        importance: { type: 'string', oneOf: ['major', 'minor'], note: 'unset = same as its questline' },
+        optional: { type: 'boolean', note: 'unset = same as its questline' },
+        questline_id: { type: 'number', note: 'questline (Timeline row) — create_questline' },
+        questline_order: { type: 'number', note: 'position in the questline, 0 = first' },
         reward: { type: 'string' },
         objectives: { type: 'array', note: '[{ text: "Find the key", done: false }]' },
       },
