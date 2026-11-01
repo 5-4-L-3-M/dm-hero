@@ -1,7 +1,8 @@
 import type Database from 'better-sqlite3'
 import {
   BEAT_KINDS, BEAT_STATUSES, COLOR_BY, GROUP_BY, QUEST_IMPORTANCE, QUEST_INVOLVED_RELATION, oneOf, readQuestMetadata,
-  type FactionAgenda, type LinkedEntity, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
+  MAP_NODE_KINDS,
+  type FactionAgenda, type LinkedEntity, type MapNodeKind, type StoryMap, type StoryMapEdge, type StoryMapNode, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
 } from '../../types/story'
 
 /** 400 unless the campaign exists. */
@@ -14,7 +15,7 @@ export function requireCampaign(db: Database.Database, campaignId: unknown): num
 }
 
 /** 404 unless the row exists; returns its campaign id. */
-export function requireRow(db: Database.Database, table: 'story_lines' | 'story_clusters' | 'story_beats' | 'faction_agendas' | 'story_questlines', id: unknown): { id: number, campaign_id: number } {
+export function requireRow(db: Database.Database, table: 'story_lines' | 'story_clusters' | 'story_beats' | 'faction_agendas' | 'story_questlines' | 'story_map_nodes' | 'story_map_edges', id: unknown): { id: number, campaign_id: number } {
   const n = Number(id)
   const row = Number.isInteger(n) ? db.prepare(`SELECT id, campaign_id FROM ${table} WHERE id = ?`).get(n) as { id: number, campaign_id: number } | undefined : undefined
   if (!row) throw createError({ statusCode: 404, message: 'Not found' })
@@ -68,8 +69,17 @@ export function setBeatEntities(db: Database.Database, campaignId: number, beatI
 }
 
 export function getSettings(db: Database.Database, campaignId: number): StoryBoard['settings'] {
-  const row = db.prepare('SELECT color_by, party_location_id, group_by, compact FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number } | undefined
+  const row = db.prepare('SELECT color_by, party_location_id, group_by, compact, acts FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number, acts: string | null } | undefined
+  let acts: string[] | null = null
+  try {
+    const parsed = row?.acts ? JSON.parse(row.acts) : null
+    acts = Array.isArray(parsed) && parsed.length ? parsed.map(a => String(a)) : null
+  }
+  catch {
+    acts = null
+  }
   return {
+    acts,
     color_by: oneOf(COLOR_BY, row?.color_by, 'storyline'),
     party_location_id: row?.party_location_id ?? null,
     group_by: oneOf(GROUP_BY, row?.group_by, 'storyline'),
@@ -249,4 +259,30 @@ export function clusterDefaultEntityIds(db: Database.Database, clusterId: number
     WHERE c.id = ?
   `).all(clusterId, QUEST_INVOLVED_RELATION, clusterId) as Array<{ id: number }>
   return rows.map(r => r.id)
+}
+
+// ---------------------------------------------------------------------------
+// Story map
+// ---------------------------------------------------------------------------
+
+/** Does the quest / cluster / beat exist in this campaign? */
+export function mapRefExists(db: Database.Database, campaignId: number, kind: MapNodeKind, refId: unknown): boolean {
+  const id = Number(refId)
+  if (!Number.isInteger(id) || id <= 0) return false
+  if (kind === 'quest') return !!db.prepare('SELECT 1 FROM entities WHERE id = ? AND campaign_id = ? AND type_id = ? AND deleted_at IS NULL').get(id, campaignId, questTypeId(db))
+  if (kind === 'cluster') return !!db.prepare('SELECT 1 FROM story_clusters WHERE id = ? AND campaign_id = ?').get(id, campaignId)
+  return !!db.prepare('SELECT 1 FROM story_beats WHERE id = ? AND campaign_id = ?').get(id, campaignId)
+}
+
+/** The map; cards whose quest / cluster / beat is gone are cleaned up on the way. */
+export function loadStoryMap(db: Database.Database, campaignId: number): StoryMap {
+  const nodes = db.prepare('SELECT id, kind, ref_id, x, y, act FROM story_map_nodes WHERE campaign_id = ? ORDER BY id').all(campaignId) as StoryMapNode[]
+  const gone = nodes.filter(n => !(MAP_NODE_KINDS as readonly string[]).includes(n.kind) || !mapRefExists(db, campaignId, n.kind, n.ref_id))
+  if (gone.length) {
+    const del = db.prepare('DELETE FROM story_map_nodes WHERE id = ?')
+    db.transaction(() => gone.forEach(n => del.run(n.id)))()
+  }
+  const goneIds = new Set(gone.map(n => n.id))
+  const edges = db.prepare('SELECT id, from_node, to_node, label, kind FROM story_map_edges WHERE campaign_id = ? ORDER BY id').all(campaignId) as StoryMapEdge[]
+  return { nodes: nodes.filter(n => !goneIds.has(n.id)), edges: edges.filter(e => !goneIds.has(e.from_node) && !goneIds.has(e.to_node)) }
 }

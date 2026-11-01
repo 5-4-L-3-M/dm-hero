@@ -1,5 +1,16 @@
 # @dm-hero/app
 
+## 1.10.0
+
+### Minor Changes
+
+- Story map (replaces the Timeline tab): put quests, clusters and beats on a free canvas and draw lines between them. A solid arrow means "leads to / opens up"; a dotted line means "connected, any order" for open-world overlap. Click a line to label it ("if they break in") or switch its kind.
+- Acts: every card can belong to an act (Act 1–3 by default; rename, add or remove them). Pick an act to see only its cards; on "All acts", Arrange lays out each act left to right.
+- Arrange lines everything up along the arrows; drag cards anywhere and they stay put. Storyline chips fade out everything else.
+- The side list shows everything not yet on the map; drag it in or click +. Clicking a card opens the quest in the side panel or the cluster/beat for editing.
+- Quests: Major/Minor and Optional are simple toggles now.
+- AI connector: get_story_map and connect_story_items (puts cards on the map and draws the line).
+
 ## 1.9.0
 
 ### Minor Changes
