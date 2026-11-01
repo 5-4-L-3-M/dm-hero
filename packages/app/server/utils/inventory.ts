@@ -76,6 +76,7 @@ export function getInventoryEntries(db: Database.Database, entityId: number): In
         quantity: notes.quantity,
         equipped: notes.equipped,
         text: notes.text,
+        missing: notes.missing ?? null,
       }
     })
 }

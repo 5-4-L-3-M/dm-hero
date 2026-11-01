@@ -2995,7 +2995,14 @@
     "saveError": "Couldn't save that change.",
     "partyLoad": "Party load",
     "partyLoadHint": "Click a character to open their inventory.",
-    "capacityWithBonus": "Carrying capacity: {breakdown} (bonus included)"
+    "capacityWithBonus": "Carrying capacity: {breakdown} (bonus included)",
+    "missing": {
+      "mark": "Stolen, lost or taken?",
+      "stolen": "Stolen",
+      "lost": "Lost",
+      "taken": "Taken (confiscated)",
+      "back": "Got it back"
+    }
   },
   "units": {
     "title": "Units",
@@ -3083,7 +3090,8 @@
       "board": "Board",
       "run": "Run sheet",
       "world": "World",
-      "timeline": "Timeline"
+      "timeline": "Timeline",
+      "map": "Map"
     },
     "colorBy": {
       "label": "Color by",
@@ -3170,7 +3178,8 @@
       "location": "Where",
       "entities": "Who and what is involved",
       "playedIn": "Played in session",
-      "quickAdd": "Add a beat…"
+      "quickAdd": "Add a beat…",
+      "noDetails": "No details yet — use the pencil to add some."
     },
     "sparks": {
       "title": "Sparks",
@@ -3268,6 +3277,40 @@
       "dropHere": "Drag quests here",
       "loose": "Not in a questline",
       "looseEmpty": "Every quest is placed"
+    },
+    "map": {
+      "kinds": {
+        "quest": "Quest",
+        "cluster": "Cluster",
+        "beat": "Beat"
+      },
+      "kindsPlural": {
+        "quest": "Quests",
+        "cluster": "Clusters",
+        "beat": "Beats"
+      },
+      "addTitle": "Add to the map",
+      "addHint": "Drag onto the map or click +. Then drag from a card's right dot to another card to connect them.",
+      "add": "Add to the map",
+      "allPlaced": "Everything here is on the map",
+      "arrange": "Arrange",
+      "fit": "Fit to screen",
+      "removeCard": "Take off the map (nothing is deleted)",
+      "beatCount": "{done}/{total} beats",
+      "emptyTitle": "Lay out how things connect",
+      "emptyText": "Drag quests, clusters and beats in from the left, then drag from a card's right dot to another card. Click a line to label it (\"if they break in\") or make it a dotted \"connected, any order\" line.",
+      "arrowTitle": "Line between cards",
+      "arrowLabel": "Condition (optional)",
+      "arrowPlaceholder": "if they side with Evander",
+      "removeArrow": "Remove line",
+      "leads": "Leads to",
+      "related": "Connected, any order",
+      "allActs": "All acts",
+      "actN": "Act {n}",
+      "noAct": "No act",
+      "editActs": "Rename acts",
+      "addAct": "Add an act",
+      "actsHint": "Acts are stages of the world, not a strict order — cards can skip acts and lines can cross between them."
     }
   },
   "quests": {

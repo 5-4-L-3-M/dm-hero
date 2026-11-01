@@ -849,12 +849,11 @@ server.registerTool('create_quest', {
     involvedIds: z.array(z.number().int().positive()).optional().describe('Other NPCs, places, items, factions… involved in the quest (shown as connections).'),
     giverIds: z.array(z.number().int().positive()).optional().describe('Several quest givers (REPLACES the list; the first counts as the main one). Use instead of giverId.'),
     giverHidden: z.boolean().optional().describe('Players don\'t know who is behind it yet — shown as "Unknown to players".'),
-    importance: z.enum(['major', 'minor']).nullable().optional().describe('null = same as its questline'),
-    optional: z.boolean().nullable().optional().describe('null = same as its questline'),
-    questlineId: z.number().int().positive().nullable().optional().describe('The questline (Timeline row) it belongs to — see list_questlines / create_questline.'),
+    importance: z.enum(['major', 'minor']).optional(),
+    optional: z.boolean().optional(),
   },
-}, async ({ campaignId, giverId, locationId, involvedIds, giverIds, giverHidden, questlineId, ...rest }) => {
-  const r = await callApi('/api/quests', { method: 'POST', body: JSON.stringify({ campaignId, ...rest, giver_id: giverId, giver_ids: giverIds, giver_hidden: giverHidden, questline_id: questlineId, location_id: locationId, involved_ids: involvedIds }) })
+}, async ({ campaignId, giverId, locationId, involvedIds, giverIds, giverHidden, ...rest }) => {
+  const r = await callApi('/api/quests', { method: 'POST', body: JSON.stringify({ campaignId, ...rest, giver_id: giverId, giver_ids: giverIds, giver_hidden: giverHidden, location_id: locationId, involved_ids: involvedIds }) })
   return asText(r.body)
 })
 
@@ -872,17 +871,13 @@ server.registerTool('update_quest', {
     involvedIds: z.array(z.number().int().positive()).optional().describe('REPLACES the entries involved in the quest.'),
     giverIds: z.array(z.number().int().positive()).optional().describe('Several quest givers (REPLACES the list; the first counts as the main one). Use instead of giverId.'),
     giverHidden: z.boolean().optional().describe('Players don\'t know who is behind it yet — shown as "Unknown to players".'),
-    importance: z.enum(['major', 'minor']).nullable().optional().describe('null = same as its questline'),
-    optional: z.boolean().nullable().optional().describe('null = same as its questline'),
-    questlineId: z.number().int().positive().nullable().optional().describe('The questline (Timeline row) it belongs to — see list_questlines / create_questline.'),
-    questlineOrder: z.number().int().nonnegative().optional().describe('Position in its questline (0 = first)'),
+    importance: z.enum(['major', 'minor']).optional(),
+    optional: z.boolean().optional(),
   },
-}, async ({ questId, giverId, locationId, involvedIds, giverIds, giverHidden, questlineId, questlineOrder, ...rest }) => {
+}, async ({ questId, giverId, locationId, involvedIds, giverIds, giverHidden, ...rest }) => {
   const changes: Record<string, unknown> = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined))
   if (giverIds !== undefined) changes.giver_ids = giverIds
   if (giverHidden !== undefined) changes.giver_hidden = giverHidden
-  if (questlineId !== undefined) changes.questline_id = questlineId
-  if (questlineOrder !== undefined) changes.questline_order = questlineOrder
   if (involvedIds !== undefined) changes.involved_ids = involvedIds
   if (giverId !== undefined) changes.giver_id = giverId
   if (locationId !== undefined) changes.location_id = locationId
@@ -890,28 +885,49 @@ server.registerTool('update_quest', {
   return asText(r.body)
 })
 
-server.registerTool('list_questlines', {
-  description: 'List questlines (Timeline rows): chains of quests in order, each with storyline, major/minor and optional. Quests point at them with questline_id / questline_order (see list_quests).',
+const mapKind = z.enum(['quest', 'cluster', 'beat'])
+
+server.registerTool('get_story_map', {
+  description: 'The story map: cards (quests, clusters, beats — kind + ref_id = the quest/cluster/beat id, act = 1-based act or null) and arrows between them ("from leads to to", label = condition like "if they break in"). Act names are in get_story_board settings.acts (null = Act 1–3).',
   inputSchema: { campaignId: z.number().int().positive() },
 }, async ({ campaignId }) => {
-  const r = await callApi(`/api/story/board?campaignId=${campaignId}`)
-  if (!r.ok) return asText(r.body)
-  return asText((r.body as { questlines?: unknown }).questlines ?? [])
+  const r = await callApi(`/api/story/map?campaignId=${campaignId}`)
+  return asText(r.body)
 })
 
-server.registerTool('create_questline', {
-  description: 'Create a questline: a chain of quests in order, shown as a row on the Timeline. A storyline can hold several. Show the user what you will add and wait for OK.',
+server.registerTool('connect_story_items', {
+  description: 'Draw a line on the story map: kind "leads" (default) = solid arrow, one quest/cluster/beat opens up another; kind "related" = dotted line, connected in any order (open-world overlap). Optional condition label ("if they side with Evander"). Puts either card on the map first if it is not there yet (act sets which act new cards go in). Show the user what you will connect and wait for OK.',
   inputSchema: {
     campaignId: z.number().int().positive(),
-    name: z.string().min(1),
-    storylineId: z.number().int().positive().optional(),
-    importance: z.enum(['major', 'minor']).optional(),
-    optional: z.boolean().optional(),
-    notes: z.string().optional(),
+    from: z.object({ kind: mapKind, id: z.number().int().positive() }),
+    to: z.object({ kind: mapKind, id: z.number().int().positive() }),
+    label: z.string().optional(),
+    kind: z.enum(['leads', 'related']).optional(),
+    act: z.number().int().positive().optional(),
   },
-}, async ({ campaignId, storylineId, ...rest }) => {
-  const r = await callApi('/api/story/questlines', { method: 'POST', body: JSON.stringify({ campaignId, storyline_id: storylineId, ...rest }) })
-  return asText(r.body)
+}, async ({ campaignId, from, to, label, kind, act }) => {
+  const m = await callApi(`/api/story/map?campaignId=${campaignId}`)
+  if (!m.ok) return asText(m.body)
+  const nodes = (m.body as { nodes: Array<{ id: number, kind: string, ref_id: number, x: number, y: number }> }).nodes
+  const place = async (item: { kind: string, id: number }, dx: number) => {
+    const found = nodes.find(n => n.kind === item.kind && n.ref_id === item.id)
+    if (found) return found.id
+    const maxX = Math.max(0, ...nodes.map(n => n.x))
+    const r = await callApi('/api/story/map/nodes', { method: 'POST', body: JSON.stringify({ campaignId, kind: item.kind, ref_id: item.id, x: maxX + dx, y: 0, act }) })
+    if (!r.ok) throw new Error(JSON.stringify(r.body))
+    const node = r.body as { id: number, kind: string, ref_id: number, x: number, y: number }
+    nodes.push(node)
+    return node.id
+  }
+  try {
+    const a = await place(from, 300)
+    const b = await place(to, 600)
+    const r = await callApi('/api/story/map/edges', { method: 'POST', body: JSON.stringify({ campaignId, from_node: a, to_node: b, label, kind }) })
+    return asText(r.body)
+  }
+  catch (e) {
+    return asText({ error: String(e instanceof Error ? e.message : e) })
+  }
 })
 
 // ---------------------------------------------------------------------------

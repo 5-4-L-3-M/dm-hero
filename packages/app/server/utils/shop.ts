@@ -200,7 +200,7 @@ export function sellShopItem(db: Database.Database, options: SellOptions): ShopS
     const existing = getInventoryEntries(db, options.playerId).find(e => e.item_id === itemId)
     if (existing) {
       db.prepare('UPDATE entity_relations SET notes = ? WHERE id = ?').run(
-        serializeInventoryNotes({ quantity: existing.quantity + quantity, equipped: existing.equipped, text: existing.text }),
+        serializeInventoryNotes({ quantity: existing.quantity + quantity, equipped: existing.equipped, text: existing.text, missing: existing.missing }),
         existing.relation_id,
       )
     }

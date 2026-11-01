@@ -289,6 +289,7 @@
             <span class="inv-qty text-medium-emphasis">{{ it.quantity }}×</span>
             <SharedEntityLink :id="it.item_id" type="Item" :name="it.name" class="flex-grow-1" />
             <v-chip v-if="it.equipped" size="x-small" color="primary" variant="tonal" class="ml-1">{{ $t('inventory.columns.equipped') }}</v-chip>
+            <v-chip v-if="it.missing" size="x-small" color="error" variant="tonal" class="ml-1">{{ $t(`inventory.missing.${it.missing}`) }}</v-chip>
           </div>
         </SharedPreviewSection>
 

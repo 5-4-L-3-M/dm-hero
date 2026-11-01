@@ -2995,7 +2995,14 @@
     "saveError": "Änderung konnte nicht gespeichert werden.",
     "partyLoad": "Traglast der Gruppe",
     "partyLoadHint": "Klicke auf einen Charakter, um sein Inventar zu öffnen.",
-    "capacityWithBonus": "Tragkraft: {breakdown} (inkl. Bonus)"
+    "capacityWithBonus": "Tragkraft: {breakdown} (inkl. Bonus)",
+    "missing": {
+      "mark": "Gestohlen, verloren oder abgenommen?",
+      "stolen": "Gestohlen",
+      "lost": "Verloren",
+      "taken": "Abgenommen (beschlagnahmt)",
+      "back": "Zurückbekommen"
+    }
   },
   "units": {
     "title": "Einheiten",
@@ -3083,7 +3090,8 @@
       "board": "Board",
       "run": "Ablaufplan",
       "world": "Welt",
-      "timeline": "Zeitleiste"
+      "timeline": "Zeitleiste",
+      "map": "Karte"
     },
     "colorBy": {
       "label": "Farbe nach",
@@ -3170,7 +3178,8 @@
       "location": "Wo",
       "entities": "Wer und was beteiligt ist",
       "playedIn": "Gespielt in Sitzung",
-      "quickAdd": "Beat hinzufügen…"
+      "quickAdd": "Beat hinzufügen…",
+      "noDetails": "Noch keine Details – mit dem Stift ergänzen."
     },
     "sparks": {
       "title": "Funken",
@@ -3268,6 +3277,40 @@
       "dropHere": "Quests hierher ziehen",
       "loose": "In keiner Questreihe",
       "looseEmpty": "Alle Quests sind eingeordnet"
+    },
+    "map": {
+      "kinds": {
+        "quest": "Quest",
+        "cluster": "Cluster",
+        "beat": "Beat"
+      },
+      "kindsPlural": {
+        "quest": "Quests",
+        "cluster": "Cluster",
+        "beat": "Beats"
+      },
+      "addTitle": "Zur Karte hinzufügen",
+      "addHint": "Auf die Karte ziehen oder + klicken. Dann vom rechten Punkt einer Karte zu einer anderen ziehen, um sie zu verbinden.",
+      "add": "Zur Karte hinzufügen",
+      "allPlaced": "Alles hier ist auf der Karte",
+      "arrange": "Anordnen",
+      "fit": "Einpassen",
+      "removeCard": "Von der Karte nehmen (nichts wird gelöscht)",
+      "beatCount": "{done}/{total} Beats",
+      "emptyTitle": "Zeig, wie alles zusammenhängt",
+      "emptyText": "Quests, Cluster und Beats von links hineinziehen, dann vom rechten Punkt einer Karte zu einer anderen ziehen. Eine Linie anklicken, um sie zu beschriften oder als gestrichelte „verbunden, beliebige Reihenfolge“-Linie zu setzen.",
+      "arrowTitle": "Linie zwischen Karten",
+      "arrowLabel": "Bedingung (optional)",
+      "arrowPlaceholder": "wenn sie sich auf Evanders Seite stellen",
+      "removeArrow": "Linie entfernen",
+      "leads": "Führt zu",
+      "related": "Verbunden, beliebige Reihenfolge",
+      "allActs": "Alle Akte",
+      "actN": "Akt {n}",
+      "noAct": "Kein Akt",
+      "editActs": "Akte umbenennen",
+      "addAct": "Akt hinzufügen",
+      "actsHint": "Akte sind Phasen der Welt, keine feste Reihenfolge – Karten können Akte überspringen und Linien zwischen ihnen verlaufen."
     }
   },
   "quests": {

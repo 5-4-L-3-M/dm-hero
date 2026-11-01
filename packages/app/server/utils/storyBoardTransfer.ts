@@ -67,16 +67,28 @@ export function exportStoryBoard(
     WHERE et.name = 'Quest' AND e.campaign_id = ? AND e.deleted_at IS NULL
   `).all(campaignId) as Array<{ id: number, metadata: string | null }>
 
-  const settings = db.prepare('SELECT color_by, party_location_id, group_by, compact FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number } | undefined
+  const settings = db.prepare('SELECT color_by, party_location_id, group_by, compact, acts FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number, acts: string | null } | undefined
   const clusterLinks = db.prepare('SELECT ce.cluster_id, ce.entity_id FROM story_cluster_entities ce JOIN story_clusters c ON c.id = ce.cluster_id WHERE c.campaign_id = ?').all(campaignId) as Array<{ cluster_id: number, entity_id: number }>
 
   const questlines = db.prepare('SELECT * FROM story_questlines WHERE campaign_id = ? ORDER BY sort_order, id').all(campaignId) as Array<{ id: number, storyline_id: number | null, name: string, importance: string, optional: number, notes: string | null, sort_order: number }>
   const questlineRef = new Map(questlines.map((q, i) => [q.id, `questline:${i + 1}`]))
 
+  const beatRef = new Map(beats.map((b, i) => [b.id, `beat:${i + 1}`]))
+  const mapNodes = db.prepare('SELECT id, kind, ref_id, x, y, act FROM story_map_nodes WHERE campaign_id = ? ORDER BY id').all(campaignId) as Array<{ id: number, kind: string, ref_id: number, x: number, y: number, act: number | null }>
+  const mapEdges = db.prepare('SELECT from_node, to_node, label, kind FROM story_map_edges WHERE campaign_id = ? ORDER BY id').all(campaignId) as Array<{ from_node: number, to_node: number, label: string | null, kind: string }>
+  const itemRef = (kind: string, id: number) => (kind === 'quest' ? entityRef.get(id) : kind === 'cluster' ? clusterRef.get(id) : beatRef.get(id)) ?? null
+  const nodeRef = new Map<number, string>()
+  const exportedNodes = mapNodes.flatMap((n) => {
+    const item = itemRef(n.kind, n.ref_id)
+    if (!item) return []
+    nodeRef.set(n.id, `node:${nodeRef.size + 1}`)
+    return [{ ref: nodeRef.get(n.id)!, kind: n.kind, item, x: n.x, y: n.y, act: n.act }]
+  })
+
   if (!lines.length && !questlines.length && !clusters.length && !beats.length && !agendas.length && !quests.length && !settings) return undefined
 
   return {
-    settings: settings ? { color_by: settings.color_by, party_location: ref(entityRef, settings.party_location_id), group_by: settings.group_by, compact: !!settings.compact } : undefined,
+    settings: settings ? { color_by: settings.color_by, party_location: ref(entityRef, settings.party_location_id), group_by: settings.group_by, compact: !!settings.compact, acts: settings.acts } : undefined,
     storylines: lines.map(l => ({ ref: lineRef.get(l.id)!, name: l.name, color: l.color, sort_order: l.sort_order })),
     clusters: clusters.map(c => ({
       ref: clusterRef.get(c.id)!,
@@ -118,6 +130,12 @@ export function exportStoryBoard(
           questline: m.questline_id ? questlineRef.get(m.questline_id) ?? null : null,
         }
       }),
+    map: exportedNodes.length
+      ? {
+          nodes: exportedNodes,
+          edges: mapEdges.filter(e => nodeRef.has(e.from_node) && nodeRef.has(e.to_node)).map(e => ({ from: nodeRef.get(e.from_node)!, to: nodeRef.get(e.to_node)!, label: e.label, kind: e.kind })),
+        }
+      : undefined,
     questlines: questlines.map(q => ({
       ref: questlineRef.get(q.id)!,
       storyline: q.storyline_id ? lineRef.get(q.storyline_id) ?? null : null,
@@ -141,10 +159,10 @@ export function importStoryBoard(
 
   if (data.settings) {
     db.prepare(`
-      INSERT INTO story_board_settings (campaign_id, color_by, party_location_id, group_by, compact) VALUES (?, ?, ?, ?, ?)
+      INSERT INTO story_board_settings (campaign_id, color_by, party_location_id, group_by, compact, acts) VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(campaign_id) DO UPDATE SET color_by = excluded.color_by, party_location_id = excluded.party_location_id,
-        group_by = excluded.group_by, compact = excluded.compact
-    `).run(campaignId, data.settings.color_by || 'storyline', id(entityId, data.settings.party_location), data.settings.group_by || 'storyline', data.settings.compact ? 1 : 0)
+        group_by = excluded.group_by, compact = excluded.compact, acts = excluded.acts
+    `).run(campaignId, data.settings.color_by || 'storyline', id(entityId, data.settings.party_location), data.settings.group_by || 'storyline', data.settings.compact ? 1 : 0, data.settings.acts ?? null)
   }
 
   const lineId = new Map<string, number>()
@@ -178,11 +196,13 @@ export function importStoryBoard(
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const insertLink = db.prepare('INSERT OR IGNORE INTO story_beat_entities (beat_id, entity_id) VALUES (?, ?)')
-  for (const b of data.beats ?? []) {
+  const beatId = new Map<string, number>()
+  for (const [i, b] of (data.beats ?? []).entries()) {
     const beat = Number(insertBeat.run(
       campaignId, id(clusterId, b.cluster), b.title, b.body ?? null, b.kind || 'scene', b.status || 'idea',
       id(entityId, b.location), b.sort_order || 0, b.tray_order ?? null, id(sessionId, b.played_session),
     ).lastInsertRowid)
+    beatId.set(`beat:${i + 1}`, beat)
     for (const e of b.entities ?? []) {
       const eid = entityId.get(e)
       if (eid) insertLink.run(beat, eid)
@@ -219,5 +239,21 @@ export function importStoryBoard(
       storyline_id: id(lineId, q.storyline),
       questline_id: id(questlineId, q.questline),
     }), quest)
+  }
+
+  // Story map: cards point at the new quest / cluster / beat ids
+  const insertNode = db.prepare('INSERT OR IGNORE INTO story_map_nodes (campaign_id, kind, ref_id, x, y, act) VALUES (?, ?, ?, ?, ?, ?)')
+  const insertEdge = db.prepare('INSERT OR IGNORE INTO story_map_edges (campaign_id, from_node, to_node, label, kind) VALUES (?, ?, ?, ?, ?)')
+  const nodeId = new Map<string, number>()
+  for (const n of data.map?.nodes ?? []) {
+    const ref = n.kind === 'quest' ? entityId.get(n.item) : n.kind === 'cluster' ? clusterId.get(n.item) : n.kind === 'beat' ? beatId.get(n.item) : undefined
+    if (!ref) continue
+    const r = insertNode.run(campaignId, n.kind, ref, Number(n.x) || 0, Number(n.y) || 0, Number(n.act) > 0 ? Number(n.act) : null)
+    if (r.changes) nodeId.set(n.ref, Number(r.lastInsertRowid))
+  }
+  for (const e of data.map?.edges ?? []) {
+    const from = nodeId.get(e.from)
+    const to = nodeId.get(e.to)
+    if (from && to && from !== to) insertEdge.run(campaignId, from, to, e.label ?? null, e.kind === 'related' ? 'related' : 'leads')
   }
 }

@@ -550,7 +550,7 @@ export interface ExportPinboardItem {
 // Entity links use export ids ("entity:1"), sessions "session:1"; storylines
 // and clusters are referenced by their position-free local ref ("line:1").
 export interface ExportStoryBoard {
-  settings?: { color_by: string, party_location?: string | null, group_by?: string, compact?: boolean }
+  settings?: { color_by: string, party_location?: string | null, group_by?: string, compact?: boolean, acts?: string | null }
   storylines: Array<{ ref: string, name: string, color: number, sort_order: number }>
   clusters: Array<{
     ref: string
@@ -581,6 +581,11 @@ export interface ExportStoryBoard {
   // Quest metadata holds database ids (giver, storyline) — remapped on import
   quests: Array<{ quest: string, giver?: string | null, givers?: string[], storyline?: string | null, questline?: string | null }>
   questlines?: Array<{ ref: string, storyline: string | null, name: string, importance: string, optional: boolean, notes: string | null, sort_order: number }>
+  /** Story map: item = quest entity ref, cluster ref or beat ref (beat:N = Nth beat in beats) */
+  map?: {
+    nodes: Array<{ ref: string, kind: string, item: string, x: number, y: number, act?: number | null }>
+    edges: Array<{ from: string, to: string, label: string | null, kind?: string }>
+  }
 }
 
 // =============================================================================

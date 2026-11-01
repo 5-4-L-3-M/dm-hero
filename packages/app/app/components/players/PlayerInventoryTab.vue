@@ -60,7 +60,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in inventory.items" :key="row.relation_id">
+          <tr v-for="row in inventory.items" :key="row.relation_id" :class="{ 'inv-missing': row.missing }">
             <td>
               <div class="d-flex align-center py-1">
                 <v-avatar size="36" rounded="lg" class="mr-3" :color="row.image_url ? undefined : 'surface-variant'">
@@ -68,7 +68,12 @@
                   <v-icon v-else :icon="getItemTypeIcon(row.item_type)" size="20" />
                 </v-avatar>
                 <div class="min-width-0">
-                  <div class="font-weight-medium"><SharedEntityLink :id="row.item_id" type="item" :name="row.name" /></div>
+                  <div class="font-weight-medium d-flex align-center flex-wrap ga-1">
+                    <SharedEntityLink :id="row.item_id" type="item" :name="row.name" class="inv-name" />
+                    <v-chip v-if="row.missing" size="x-small" color="error" variant="tonal">
+                      <v-icon start size="x-small">{{ MISSING_ICONS[row.missing] }}</v-icon>{{ $t(`inventory.missing.${row.missing}`) }}
+                    </v-chip>
+                  </div>
                   <div v-if="row.text" class="text-body-small text-medium-emphasis text-truncate" style="max-width: 220px">
                     {{ row.text }}
                   </div>
@@ -116,11 +121,37 @@
             <td class="text-center">
               <v-checkbox-btn
                 :model-value="row.equipped"
+                :disabled="!!row.missing"
                 class="d-inline-flex"
                 @update:model-value="setEquipped(row, !!$event)"
               />
             </td>
-            <td class="text-right">
+            <td class="text-right text-no-wrap">
+              <!-- Stolen / lost / taken: stays on the list so you know it was theirs -->
+              <v-menu>
+                <template #activator="{ props: menu }">
+                  <v-btn
+                    v-bind="menu"
+                    :icon="row.missing ? 'mdi-hand-back-left' : 'mdi-account-question-outline'"
+                    size="small"
+                    variant="text"
+                    :color="row.missing ? 'error' : undefined"
+                    :title="$t('inventory.missing.mark')"
+                    :aria-label="$t('inventory.missing.mark')"
+                  />
+                </template>
+                <v-list density="compact">
+                  <v-list-item
+                    v-for="r in MISSING_REASONS"
+                    :key="r"
+                    :prepend-icon="MISSING_ICONS[r]"
+                    :title="$t(`inventory.missing.${r}`)"
+                    :active="row.missing === r"
+                    @click="setMissing(row, r)"
+                  />
+                  <v-list-item v-if="row.missing" prepend-icon="mdi-check" :title="$t('inventory.missing.back')" @click="setMissing(row, null)" />
+                </v-list>
+              </v-menu>
               <v-btn
                 icon="mdi-close"
                 size="small"
@@ -201,6 +232,8 @@ import PlayerPurse from '~/components/players/PlayerPurse.vue'
 import {
   loadStatus,
   serializeInventoryNotes,
+  MISSING_REASONS,
+  type MissingReason,
   totalCarried,
   type InventoryEntry,
   type PlayerInventory,
@@ -282,7 +315,7 @@ async function saveNotes(row: InventoryEntry) {
     method: 'PATCH',
     body: {
       relationType: row.relation_type,
-      notes: serializeInventoryNotes({ quantity: row.quantity, equipped: row.equipped, text: row.text }),
+      notes: serializeInventoryNotes({ quantity: row.quantity, equipped: row.equipped, text: row.text, missing: row.missing }),
     },
   })
   emit('changed')
@@ -311,6 +344,22 @@ async function setEquipped(row: InventoryEntry, equipped: boolean) {
   catch (error) {
     row.equipped = previous
     console.error('Failed to update equipped:', error)
+    snackbarStore.error(t('inventory.saveError'))
+  }
+}
+
+const MISSING_ICONS: Record<MissingReason, string> = { stolen: 'mdi-incognito', lost: 'mdi-map-marker-question-outline', taken: 'mdi-shield-lock-outline' }
+
+async function setMissing(row: InventoryEntry, missing: MissingReason | null) {
+  const before = { missing: row.missing, equipped: row.equipped }
+  row.missing = missing
+  if (missing) row.equipped = false
+  try {
+    await saveNotes(row)
+  }
+  catch (error) {
+    Object.assign(row, before)
+    console.error('Failed to update missing:', error)
     snackbarStore.error(t('inventory.saveError'))
   }
 }
@@ -414,5 +463,11 @@ function quickItemCreated(e: { id: number, name: string }) {
 }
 .inventory-table :deep(td) {
   vertical-align: middle;
+}
+.inv-missing td {
+  opacity: 0.6;
+}
+.inv-missing .inv-name {
+  text-decoration: line-through;
 }
 </style>

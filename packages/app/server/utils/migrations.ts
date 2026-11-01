@@ -3100,6 +3100,43 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 70: Story questlines')
     },
   },
+  {
+    version: 71,
+    name: 'story_map',
+    up: (db) => {
+      // Story map: quests, clusters and beats placed freely, joined by "leads to" arrows
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_map_nodes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          kind TEXT NOT NULL,
+          ref_id INTEGER NOT NULL,
+          x REAL NOT NULL DEFAULT 0,
+          y REAL NOT NULL DEFAULT 0,
+          act INTEGER,
+          UNIQUE (campaign_id, kind, ref_id),
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        )
+      `)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_map_edges (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          from_node INTEGER NOT NULL,
+          to_node INTEGER NOT NULL,
+          label TEXT,
+          kind TEXT NOT NULL DEFAULT 'leads',
+          UNIQUE (from_node, to_node),
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (from_node) REFERENCES story_map_nodes(id) ON DELETE CASCADE,
+          FOREIGN KEY (to_node) REFERENCES story_map_nodes(id) ON DELETE CASCADE
+        )
+      `)
+      // Act names (JSON list); null = Act 1–3
+      db.exec('ALTER TABLE story_board_settings ADD COLUMN acts TEXT')
+      console.log('✅ Migration 71: Story map')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

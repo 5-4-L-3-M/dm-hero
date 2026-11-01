@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3'
 import { getTestDb } from '../utils/test-db'
 import {
   clampClock, clusterColor, nearbyLocationIds, nextStoryColor, readQuestMetadata,
-  type FactionAgenda, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
+  type FactionAgenda, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine, type StoryMap, type StoryMapEdge, type StoryMapNode,
 } from '../../types/story'
 import { matchSubRoute } from '../../server/utils/subRouter'
 
@@ -132,7 +132,11 @@ describe('story board API', () => {
     // Settings
     await story('PATCH', 'settings', { campaignId, color_by: 'region', party_location_id: harbor })
     b = await board()
-    expect(b.settings).toEqual({ color_by: 'region', party_location_id: harbor, group_by: 'storyline', compact: false })
+    expect(b.settings).toEqual({ color_by: 'region', party_location_id: harbor, group_by: 'storyline', compact: false, acts: null })
+    await story('PATCH', 'settings', { campaignId, acts: [' Prologue ', '', 'The Spire'] })
+    expect((await board()).settings.acts).toEqual(['Prologue', 'The Spire'])
+    await story('PATCH', 'settings', { campaignId, acts: [] })
+    expect((await board()).settings.acts).toBeNull()
     await story('PATCH', 'settings', { campaignId, group_by: 'heat', compact: true })
     expect((await board()).settings).toMatchObject({ group_by: 'heat', compact: true, color_by: 'region' })
 
@@ -179,6 +183,46 @@ describe('story board API', () => {
     expect(filled.clock_filled).toBe(4)
     expect(await story<FactionAgenda[]>('GET', 'agendas', undefined, { campaignId, factionId: faction })).toHaveLength(1)
     await expect(story('POST', 'agendas', { campaignId, faction_id: entity('NPC', 'Not a faction'), goal: 'x' })).rejects.toMatchObject({ statusCode: 400 })
+  })
+})
+
+describe('story map', () => {
+  it('places quests, clusters and beats, joins them with arrows, cleans up what is gone', async () => {
+    const quest = await quests<Quest>('POST', '', { campaignId, name: 'Get our weapons back' })
+    const cluster = await story<StoryCluster>('POST', 'clusters', { campaignId, title: 'The guardhouse' })
+    const beat = await story<StoryBeat>('POST', 'beats', { campaignId, title: 'Bribe the guard', cluster_id: cluster.id })
+
+    const q = await story<StoryMapNode>('POST', 'map/nodes', { campaignId, kind: 'quest', ref_id: quest.id, x: 0, y: 0 })
+    const c = await story<StoryMapNode>('POST', 'map/nodes', { campaignId, kind: 'cluster', ref_id: cluster.id, x: 300, y: 0, act: 2 })
+    expect(c.act).toBe(2)
+    expect((await story<StoryMapNode>('PATCH', `map/nodes/${c.id}`, { act: null })).act).toBeNull()
+    expect((await story<StoryMapNode>('PATCH', `map/nodes/${c.id}`, { act: 1 })).x).toBe(300)
+    const b = await story<StoryMapNode>('POST', 'map/nodes', { campaignId, kind: 'beat', ref_id: beat.id, x: 600, y: 0 })
+    // Adding the same thing again moves the card instead of duplicating it
+    expect((await story<StoryMapNode>('POST', 'map/nodes', { campaignId, kind: 'beat', ref_id: beat.id, x: 650, y: 40 })).id).toBe(b.id)
+    await expect(story('POST', 'map/nodes', { campaignId, kind: 'beat', ref_id: 99999 })).rejects.toMatchObject({ statusCode: 400 })
+
+    const e1 = await story<StoryMapEdge>('POST', 'map/edges', { campaignId, from_node: q.id, to_node: c.id, label: ' if they go quietly ' })
+    expect(e1.label).toBe('if they go quietly')
+    const e2 = await story<StoryMapEdge>('POST', 'map/edges', { campaignId, from_node: c.id, to_node: b.id })
+    expect(e2.kind).toBe('leads')
+    expect((await story<StoryMapEdge>('PATCH', `map/edges/${e2.id}`, { kind: 'related' })).kind).toBe('related')
+    await expect(story('POST', 'map/edges', { campaignId, from_node: c.id, to_node: c.id })).rejects.toMatchObject({ statusCode: 400 })
+    expect((await story<StoryMapEdge>('PATCH', `map/edges/${e1.id}`, { label: '' })).label).toBeNull()
+
+    await story('POST', 'map/positions', { campaignId, nodes: [{ id: q.id, x: 10, y: 20 }] })
+    let map = await story<StoryMap>('GET', 'map', undefined, { campaignId })
+    expect(map.nodes).toHaveLength(3)
+    expect(map.nodes.find(n => n.id === q.id)).toMatchObject({ x: 10, y: 20 })
+    expect(map.edges).toHaveLength(2)
+
+    // Deleting the beat removes its card and its arrows; taking a card off the map keeps the quest
+    await story('DELETE', `beats/${beat.id}`)
+    await story('DELETE', `map/nodes/${q.id}`)
+    map = await story<StoryMap>('GET', 'map', undefined, { campaignId })
+    expect(map.nodes.map(n => n.kind)).toEqual(['cluster'])
+    expect(map.edges).toEqual([])
+    expect(await quests<Quest>('GET', String(quest.id))).toMatchObject({ name: 'Get our weapons back' })
   })
 })
 
@@ -245,6 +289,9 @@ describe('story board export / import', () => {
     const chain = await story<Questline>('POST', 'questlines', { campaignId, name: 'Main chain', storyline_id: line.id, optional: true })
     const quest = await quests<Quest>('POST', '', { campaignId, name: 'Missing ship', giver_id: npc, storyline_id: line.id, questline_id: chain.id })
 
+    const qNode = await story<StoryMapNode>('POST', 'map/nodes', { campaignId, kind: 'quest', ref_id: quest.id, x: 5, y: 6 })
+    const cNode = await story<StoryMapNode>('POST', 'map/nodes', { campaignId, kind: 'cluster', ref_id: cluster.id, x: 300, y: 6 })
+    await story('POST', 'map/edges', { campaignId, from_node: cNode.id, to_node: qNode.id, label: 'if they win' })
     const refs = new Map([[npc, 'entity:1'], [faction, 'entity:2'], [quest.id, 'entity:3']])
     const data = exportStoryBoard(db, campaignId, refs, new Map())!
     expect(data.beats.map(b => b.title).sort()).toEqual(['Ambush', 'Loose idea'])
@@ -266,6 +313,9 @@ describe('story board export / import', () => {
     expect(ambush.tray_order).toBe(0)
     expect(copy.beats.find(b => b.title === 'Loose idea')!.cluster_id).toBeNull()
     expect(await story<FactionAgenda[]>('GET', 'agendas', undefined, { campaignId: target })).toMatchObject([{ faction_id: faction2, clock_filled: 2 }])
+    const copyMap = await story<StoryMap>('GET', 'map', undefined, { campaignId: target })
+    expect(copyMap.nodes.map(n => [n.kind, n.ref_id])).toEqual([['quest', quest2], ['cluster', copy.clusters[0]!.id]])
+    expect(copyMap.edges).toMatchObject([{ label: 'if they win' }])
     expect(copy.questlines).toMatchObject([{ name: 'Main chain', optional: true, storyline_id: copy.storylines[0]!.id }])
     expect(await quests<Quest>('GET', String(quest2))).toMatchObject({ giver_id: npc2, giver_ids: [npc2], storyline_id: copy.storylines[0]!.id, questline_id: copy.questlines[0]!.id })
   })

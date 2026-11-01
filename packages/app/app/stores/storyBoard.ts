@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type {
-  LinkedEntity, Quest, Questline, StoryBeat, StoryBoard, StoryBoardSettings, StoryCluster, StoryLine,
+  LinkedEntity, MapNodeKind, Quest, Questline, StoryBeat, StoryMap, StoryMapEdge, StoryMapNode, StoryBoard, StoryBoardSettings, StoryCluster, StoryLine,
 } from '~~/types/story'
 import { nearbyLocationIds } from '~~/types/story'
 
@@ -18,6 +18,8 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     entities: [] as LinkedEntity[],
     locations: [] as { id: number, name: string, parent_id: number | null }[],
     quests: [] as Quest[],
+    /** Story map: cards and arrows */
+    map: { nodes: [], edges: [] } as StoryMap,
     /** Bumped whenever a quest is saved, so open side-panel tabs reload */
     questVersion: 0,
   }),
@@ -27,7 +29,7 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     clusters: s => s.board?.clusters ?? [],
     beats: s => s.board?.beats ?? [],
     questlines: (s): Questline[] => s.board?.questlines ?? [],
-    settings: (s): StoryBoardSettings => s.board?.settings ?? { color_by: 'storyline', party_location_id: null, group_by: 'storyline', compact: false },
+    settings: (s): StoryBoardSettings => s.board?.settings ?? { color_by: 'storyline', party_location_id: null, group_by: 'storyline', compact: false, acts: null },
     sparks(): StoryBeat[] {
       return this.beats.filter(b => b.cluster_id === null)
     },
@@ -50,16 +52,18 @@ export const useStoryBoardStore = defineStore('storyBoard', {
       this.campaignId = campaignId
       this.loading = true
       try {
-        const [board, linkable, quests] = await Promise.all([
+        const [board, linkable, quests, map] = await Promise.all([
           $fetch<StoryBoard>('/api/story/board', { query: { campaignId } }),
           $fetch<{ entities: LinkedEntity[], locations: { id: number, name: string, parent_id: number | null }[] }>('/api/story/entities', { query: { campaignId } }),
           $fetch<Quest[]>('/api/quests', { query: { campaignId } }),
+          $fetch<StoryMap>('/api/story/map', { query: { campaignId } }).catch(() => ({ nodes: [], edges: [] })),
         ])
         if (this.campaignId !== campaignId) return
         this.board = board
         this.entities = linkable.entities
         this.locations = linkable.locations
         this.quests = quests
+        this.map = map
       }
       finally {
         this.loading = false
@@ -97,36 +101,53 @@ export const useStoryBoardStore = defineStore('storyBoard', {
       await this.reload()
     },
 
-    // --- questlines (Timeline rows) -------------------------------------
-    async addQuestline(data: Partial<Questline>) {
-      const line = await $fetch<Questline>('/api/story/questlines', { method: 'POST', body: { campaignId: this.campaignId, ...data } })
-      this.board?.questlines.push(line)
-      return line
+    // --- story map -------------------------------------------------------
+    async loadMap() {
+      if (this.campaignId) this.map = await $fetch<StoryMap>('/api/story/map', { query: { campaignId: this.campaignId } })
     },
-    async updateQuestline(id: number, changes: Partial<Questline>) {
-      const line = await $fetch<Questline>(`/api/story/questlines/${id}`, { method: 'PATCH', body: changes })
-      const i = this.questlines.findIndex(q => q.id === id)
-      if (i >= 0 && this.board) this.board.questlines[i] = line
+    async addMapNode(kind: MapNodeKind, refId: number, x: number, y: number, act: number | null = null) {
+      const node = await $fetch<StoryMapNode>('/api/story/map/nodes', { method: 'POST', body: { campaignId: this.campaignId, kind, ref_id: refId, x, y, act } })
+      const i = this.map.nodes.findIndex(n => n.id === node.id)
+      if (i >= 0) this.map.nodes[i] = node
+      else this.map.nodes.push(node)
+      return node
     },
-    async deleteQuestline(id: number) {
-      await $fetch(`/api/story/questlines/${id}`, { method: 'DELETE' })
-      if (this.board) this.board.questlines = this.board.questlines.filter(q => q.id !== id)
-      for (const q of this.quests) if (q.questline_id === id) q.questline_id = null
+    async moveMapNode(id: number, x: number, y: number) {
+      const n = this.map.nodes.find(x => x.id === id)
+      if (n) Object.assign(n, { x, y })
+      await $fetch(`/api/story/map/nodes/${id}`, { method: 'PATCH', body: { x, y } })
     },
-    /** Timeline drag & drop: questline order and quests in order per questline (null = not placed) */
-    async saveTimeline(order: { questlines?: number[], chains?: { questlineId: number | null, questIds: number[] }[] }) {
-      order.questlines?.forEach((id, i) => {
-        const l = this.questlines.find(x => x.id === id)
-        if (l) l.sort_order = i
-      })
-      this.board?.questlines.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)
-      for (const chain of order.chains ?? []) {
-        chain.questIds.forEach((id, i) => {
-          const q = this.quests.find(x => x.id === id)
-          if (q) Object.assign(q, { questline_id: chain.questlineId, questline_order: i })
-        })
+    async setMapNodeAct(id: number, act: number | null) {
+      const n = this.map.nodes.find(x => x.id === id)
+      if (n) n.act = act
+      await $fetch(`/api/story/map/nodes/${id}`, { method: 'PATCH', body: { act } })
+    },
+    async removeMapNode(id: number) {
+      this.map.nodes = this.map.nodes.filter(n => n.id !== id)
+      this.map.edges = this.map.edges.filter(e => e.from_node !== id && e.to_node !== id)
+      await $fetch(`/api/story/map/nodes/${id}`, { method: 'DELETE' })
+    },
+    async saveMapPositions(nodes: { id: number, x: number, y: number }[]) {
+      for (const p of nodes) {
+        const n = this.map.nodes.find(x => x.id === p.id)
+        if (n) Object.assign(n, { x: p.x, y: p.y })
       }
-      await $fetch('/api/story/order', { method: 'POST', body: { campaignId: this.campaignId, ...order } })
+      await $fetch('/api/story/map/positions', { method: 'POST', body: { campaignId: this.campaignId, nodes } })
+    },
+    async addMapEdge(from: number, to: number, label: string | null = null) {
+      const edge = await $fetch<StoryMapEdge>('/api/story/map/edges', { method: 'POST', body: { campaignId: this.campaignId, from_node: from, to_node: to, label } })
+      const i = this.map.edges.findIndex(e => e.id === edge.id)
+      if (i >= 0) this.map.edges[i] = edge
+      else this.map.edges.push(edge)
+    },
+    async updateMapEdge(id: number, changes: Partial<Pick<StoryMapEdge, 'label' | 'kind'>>) {
+      const edge = await $fetch<StoryMapEdge>(`/api/story/map/edges/${id}`, { method: 'PATCH', body: changes })
+      const i = this.map.edges.findIndex(e => e.id === id)
+      if (i >= 0) this.map.edges[i] = edge
+    },
+    async removeMapEdge(id: number) {
+      this.map.edges = this.map.edges.filter(e => e.id !== id)
+      await $fetch(`/api/story/map/edges/${id}`, { method: 'DELETE' })
     },
 
     // --- clusters --------------------------------------------------------

@@ -17,12 +17,20 @@
         size="x-small"
         @click="store.updateCluster(cluster.id, { collapsed: !cluster.collapsed })"
       />
-      <span class="text-title-small font-weight-bold flex-grow-1 cluster-title" role="button" tabindex="0" @click="$emit('edit', cluster)" @keydown.enter="$emit('edit', cluster)">
+      <span
+        class="text-title-small font-weight-bold flex-grow-1 cluster-title"
+        role="button"
+        tabindex="0"
+        :title="cluster.collapsed ? $t('story.cluster.expand') : $t('story.cluster.collapse')"
+        @click="toggle"
+        @keydown.enter="toggle"
+      >
         {{ cluster.title }}
       </span>
       <v-chip size="x-small" variant="tonal" class="mr-1" :title="$t('story.cluster.progress')">
         {{ playedCount }}/{{ beats.length }}
       </v-chip>
+      <v-btn icon="mdi-pencil" variant="text" size="x-small" :title="$t('common.edit')" :aria-label="$t('common.edit')" @click="$emit('edit', cluster)" />
       <v-menu>
         <template #activator="{ props: menu }">
           <v-btn v-bind="menu" icon="mdi-dots-vertical" variant="text" size="x-small" :aria-label="$t('common.actions')" />
@@ -35,7 +43,7 @@
     </div>
 
     <!-- What this cluster is: storyline, heat, status, place, quest -->
-    <div v-if="!compact" class="d-flex flex-wrap ga-1 px-3 pb-2">
+    <div v-if="!compact || peek" class="d-flex flex-wrap ga-1 px-3 pb-2">
       <v-chip v-if="storyline" size="x-small" :color="`story-${storyline.color}`" variant="flat">{{ storyline.name }}</v-chip>
       <v-chip size="x-small" :color="heatColor(cluster.heat)" variant="tonal">
         <v-icon start size="x-small">{{ HEAT_ICONS[cluster.heat] }}</v-icon>{{ $t(`story.heat.${cluster.heat}`) }}
@@ -55,7 +63,7 @@
     </div>
 
     <!-- Who and what is involved across the whole cluster (new beats start with these) -->
-    <div v-if="!compact && cluster.entities?.length" class="d-flex flex-wrap align-center ga-1 px-3 pb-2">
+    <div v-if="(!compact || peek) && cluster.entities?.length" class="d-flex flex-wrap align-center ga-1 px-3 pb-2">
       <v-icon size="x-small" class="text-medium-emphasis" :title="$t('story.cluster.involved')">mdi-account-multiple</v-icon>
       <v-chip v-for="e in cluster.entities" :key="e.id" size="x-small" variant="outlined">
         <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
@@ -63,7 +71,7 @@
     </div>
 
     <v-expand-transition>
-      <div v-show="!compact && !cluster.collapsed" class="px-2 pb-2">
+      <div v-show="compact ? peek : !cluster.collapsed" class="px-2 pb-2">
         <div v-if="cluster.notes" class="text-body-small text-medium-emphasis px-2 pb-2 cluster-notes">{{ cluster.notes }}</div>
         <StoryBeatList
           :beats="visibleBeats"
@@ -109,6 +117,13 @@ const storyline = computed(() => store.storylines.find(s => s.id === cluster.val
 const beats = computed(() => store.beatsOf(cluster.value.id))
 const visibleBeats = computed(() => (props.hidePlayed ? beats.value.filter(b => b.status !== 'played' && b.status !== 'cut') : beats.value))
 const playedCount = computed(() => beats.value.filter(b => b.status === 'played').length)
+
+// Title click: compact view shows the beats for a moment; otherwise fold / unfold
+const peek = ref(false)
+function toggle() {
+  if (props.compact) peek.value = !peek.value
+  else store.updateCluster(cluster.value.id, { collapsed: !cluster.value.collapsed })
+}
 
 const newBeat = ref('')
 async function addBeat() {

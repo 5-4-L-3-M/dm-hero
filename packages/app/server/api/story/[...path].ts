@@ -15,6 +15,7 @@ import beatDelete from '../../handlers/story/beats/[id].delete'
 import questlineCreate from '../../handlers/story/questlines/index.post'
 import questlineUpdate from '../../handlers/story/questlines/[id].patch'
 import questlineDelete from '../../handlers/story/questlines/[id].delete'
+import * as storyMap from '../../handlers/story/map'
 import agendaList from '../../handlers/story/agendas/index.get'
 import agendaCreate from '../../handlers/story/agendas/index.post'
 import agendaUpdate from '../../handlers/story/agendas/[id].patch'
@@ -34,6 +35,12 @@ const routes: SubRoutes = {
   'beats/:id': { PATCH: beatUpdate, DELETE: beatDelete },
   'questlines': { POST: questlineCreate },
   'questlines/:id': { PATCH: questlineUpdate, DELETE: questlineDelete },
+  'map': { GET: storyMap.getMap },
+  'map/nodes': { POST: storyMap.addNode },
+  'map/nodes/:id': { PATCH: storyMap.moveNode, DELETE: storyMap.removeNode },
+  'map/positions': { POST: storyMap.savePositions },
+  'map/edges': { POST: storyMap.addEdge },
+  'map/edges/:id': { PATCH: storyMap.updateEdge, DELETE: storyMap.removeEdge },
   'agendas': { GET: agendaList, POST: agendaCreate },
   'agendas/:id': { PATCH: agendaUpdate, DELETE: agendaDelete },
 }

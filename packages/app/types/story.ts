@@ -90,6 +90,8 @@ export interface StoryBoardSettings {
   party_location_id: number | null
   group_by: GroupBy
   compact: boolean
+  /** Act names for the story map; null = the default Act 1–3 */
+  acts: string[] | null
 }
 
 export const QUEST_IMPORTANCE = ['major', 'minor'] as const
@@ -304,4 +306,39 @@ export function effectiveImportance(q: Pick<Quest, 'importance'>, line: Pick<Que
 /** Whether a quest is optional: its own setting, else its questline's. */
 export function effectiveOptional(q: Pick<Quest, 'optional'>, line: Pick<Questline, 'optional'> | null | undefined): boolean {
   return q.optional ?? line?.optional ?? false
+}
+
+// ---------------------------------------------------------------------------
+// Story map: quests, clusters and beats placed freely, joined by arrows
+// ---------------------------------------------------------------------------
+
+export const MAP_NODE_KINDS = ['quest', 'cluster', 'beat'] as const
+export type MapNodeKind = typeof MAP_NODE_KINDS[number]
+
+export interface StoryMapNode {
+  id: number
+  kind: MapNodeKind
+  ref_id: number
+  x: number
+  y: number
+  /** 1-based act number, null = no act yet */
+  act: number | null
+}
+
+/** leads = solid arrow "opens up"; related = dotted line "connected, any order" */
+export const MAP_EDGE_KINDS = ['leads', 'related'] as const
+export type MapEdgeKind = typeof MAP_EDGE_KINDS[number]
+
+/** A line between two cards, optionally with a condition ("if they break in") */
+export interface StoryMapEdge {
+  id: number
+  from_node: number
+  to_node: number
+  label: string | null
+  kind: MapEdgeKind
+}
+
+export interface StoryMap {
+  nodes: StoryMapNode[]
+  edges: StoryMapEdge[]
 }
