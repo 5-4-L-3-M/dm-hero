@@ -32,11 +32,23 @@
     <div class="map-main">
       <!-- Acts: like chapters; pick one to see only its cards -->
       <div class="d-flex flex-wrap align-center ga-2 mb-2">
-        <v-btn-toggle v-model="viewAct" mandatory density="compact" variant="outlined" divided color="primary">
+        <v-btn-toggle v-model="viewAct" mandatory density="compact" variant="outlined" divided color="primary" :disabled="nextOnly">
           <v-btn :value="0" size="small">{{ $t('story.map.allActs') }}</v-btn>
           <v-btn v-for="(name, i) in actNames" :key="i" :value="i + 1" size="small">{{ name }}</v-btn>
         </v-btn-toggle>
         <v-btn icon="mdi-pencil" size="small" variant="text" :aria-label="$t('story.map.editActs')" :title="$t('story.map.editActs')" @click="openActs" />
+        <v-divider vertical class="mx-1" />
+        <!-- Next session: its own filter, across all acts -->
+        <v-btn
+          prepend-icon="mdi-calendar-arrow-right"
+          :variant="nextOnly ? 'flat' : 'outlined'"
+          color="primary"
+          size="small"
+          :title="$t('story.map.nextSessionHint')"
+          @click="toggleNext"
+        >
+          {{ $t('story.map.nextSession') }}
+        </v-btn>
       </div>
       <div class="d-flex flex-wrap align-center ga-2 mb-2">
         <v-btn prepend-icon="mdi-sitemap-outline" variant="tonal" color="primary" size="small" :disabled="store.map.nodes.length < 2" @click="arrange">{{ $t('story.map.arrange') }}</v-btn>
@@ -91,6 +103,10 @@
           <v-icon size="48" class="mb-2">mdi-vector-polyline</v-icon>
           <div class="text-title-medium mb-1">{{ $t('story.map.emptyTitle') }}</div>
           <div class="text-body-medium">{{ $t('story.map.emptyText') }}</div>
+        </div>
+        <div v-else-if="nextOnly && !flowNodes.length" class="map-empty">
+          <v-icon size="48" class="mb-2">mdi-calendar-arrow-right</v-icon>
+          <div class="text-body-medium">{{ $t('story.map.nextSessionEmpty') }}</div>
         </div>
       </div>
     </div>
@@ -227,7 +243,38 @@ async function saveActs() {
   actsOpen.value = false
 }
 
-const visibleMapNodes = computed(() => store.map.nodes.filter(n => !viewAct.value || n.act === viewAct.value))
+// --- next session ------------------------------------------------------------
+// Only the beats in the next-session tray, plus the "what if" branches hanging off
+// them (follow the lines out of the tray through beats that haven't happened yet).
+const nextOnly = ref(false)
+function toggleNext() {
+  nextOnly.value = !nextOnly.value
+  nextTick(() => fitView({ padding: 0.2 }))
+}
+const nextSessionNodeIds = computed(() => {
+  const beatOf = (nodeId: number) => {
+    const n = store.map.nodes.find(x => x.id === nodeId)
+    return n?.kind === 'beat' ? store.beats.find(b => b.id === n.ref_id) : undefined
+  }
+  const keep = new Set(store.map.nodes.filter(n => beatOf(n.id)?.tray_order != null).map(n => n.id))
+  const queue = [...keep]
+  while (queue.length) {
+    const from = queue.shift()!
+    for (const e of store.map.edges) {
+      if (e.from_node !== from || keep.has(e.to_node)) continue
+      const b = beatOf(e.to_node)
+      if (b && b.status !== 'played' && b.status !== 'cut') {
+        keep.add(e.to_node)
+        queue.push(e.to_node)
+      }
+    }
+  }
+  return keep
+})
+
+const visibleMapNodes = computed(() => store.map.nodes.filter(n =>
+  nextOnly.value ? nextSessionNodeIds.value.has(n.id) : (!viewAct.value || n.act === viewAct.value),
+))
 const flowNodes = computed(() => visibleMapNodes.value.flatMap((n: StoryMapNode) => {
   const item = describe(n.kind, n.ref_id)
   return item ? [{ id: `n${n.id}`, type: 'story', position: { x: n.x, y: n.y }, data: { item, mapId: n.id, kind: n.kind, refId: n.ref_id, act: n.act, storylineId: item.storylineId } }] : []

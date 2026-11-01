@@ -3309,6 +3309,9 @@
       "actN": "Act {n}",
       "noAct": "No act",
       "editActs": "Rename acts",
+      "nextSession": "Next session",
+      "nextSessionHint": "Only the beats in the next-session tray, plus the branches that hang off them",
+      "nextSessionEmpty": "None of the beats in the next-session tray are on the map yet. Add them from the Beats list on the left.",
       "addAct": "Add an act",
       "actsHint": "Acts are stages of the world, not a strict order — cards can skip acts and lines can cross between them."
     }

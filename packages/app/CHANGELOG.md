@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.11.0
+
+### Minor Changes
+
+- Story map: a Next session filter. It shows only the beats in the next-session tray, plus the "what if" branches that hang off them (lines out of the tray into beats that haven't happened yet). It works across all acts, so the act tabs pause while it's on.
+
 ## 1.10.0
 
 ### Minor Changes
