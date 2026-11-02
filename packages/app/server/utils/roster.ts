@@ -1,5 +1,6 @@
 import type Database from 'better-sqlite3'
 import { readLoyalty } from '../../types/npc'
+import { placeCategoryNames } from './places'
 import { SETTLEMENT_TYPES, type Roster, type RosterNpc, type RosterPlace, type RosterRole } from '../../types/roster'
 
 function meta(raw: string | null): Record<string, unknown> {
@@ -13,7 +14,7 @@ function meta(raw: string | null): Record<string, unknown> {
 }
 
 /** An entity of this campaign and type (not deleted), or null */
-export function entityOfType(db: Database.Database, campaignId: number, id: unknown, type: 'Location' | 'NPC'): number | null {
+export function entityOfType(db: Database.Database, campaignId: number, id: unknown, type: 'Location' | 'NPC' | 'Faction'): number | null {
   if (id === null || id === undefined || id === '') return null
   const row = db.prepare(`
     SELECT e.id FROM entities e JOIN entity_types et ON et.id = e.type_id
@@ -33,11 +34,13 @@ export function ensureRosterPlace(db: Database.Database, campaignId: number, loc
 
 /** The whole roster, or only the roles of one place / one NPC (for side panels). */
 export function loadRoster(db: Database.Database, campaignId: number, filter: { locationId?: number, npcId?: number } = {}): Roster {
+  // Places — and factions, for guilds and groups without a building of their own
   const locs = db.prepare(`
-    SELECT e.id, e.name, e.image_url, e.metadata, e.parent_entity_id
+    SELECT e.id, e.name, e.image_url, e.metadata, e.parent_entity_id, et.name AS kind
     FROM entities e JOIN entity_types et ON et.id = e.type_id
-    WHERE e.campaign_id = ? AND et.name = 'Location' AND e.deleted_at IS NULL
-  `).all(campaignId) as Array<{ id: number, name: string, image_url: string | null, metadata: string | null, parent_entity_id: number | null }>
+    WHERE e.campaign_id = ? AND et.name IN ('Location', 'Faction') AND e.deleted_at IS NULL
+  `).all(campaignId) as Array<{ id: number, name: string, image_url: string | null, metadata: string | null, parent_entity_id: number | null, kind: 'Location' | 'Faction' }>
+  const categoryNames = placeCategoryNames(db, campaignId)
   const byId = new Map(locs.map(l => [l.id, l]))
   const typeOf = (l: { metadata: string | null }) => {
     const t = meta(l.metadata).type
@@ -61,8 +64,10 @@ export function loadRoster(db: Database.Database, campaignId: number, filter: { 
   const places: RosterPlace[] = placeRows.flatMap((p) => {
     const l = byId.get(p.location_id)
     if (!l) return []
-    const s = settlementOf(l.id)
-    return [{ location_id: l.id, name: l.name, image_url: l.image_url, type: typeOf(l), category: p.category, sort_order: p.sort_order, settlement_id: s?.id ?? null, settlement_name: s?.name ?? null }]
+    const s = l.kind === 'Location' ? settlementOf(l.id) : null
+    // A place's heading is its place category; factions keep the roster heading
+    const category = (l.kind === 'Location' ? categoryNames.get(l.id) : null) ?? p.category
+    return [{ location_id: l.id, kind: l.kind, name: l.name, image_url: l.image_url, type: l.kind === 'Location' ? typeOf(l) : null, category, sort_order: p.sort_order, settlement_id: s?.id ?? null, settlement_name: s?.name ?? null }]
   })
 
   const where = filter.locationId ? 'AND r.location_id = ?' : filter.npcId ? 'AND r.npc_id = ?' : ''

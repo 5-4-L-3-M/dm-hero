@@ -1,5 +1,15 @@
 # @dm-hero/app
 
+## 1.15.0
+
+### Minor Changes
+
+- Place categories: your own groups of places with a colour and an icon (starting with Settlements, Shops & Services, Inns & Taverns, Institutions & Government, Temples & Shrines, Guilds & Factions, Parks and Recreation, Wilds, Dungeons & Ruins). Each place is guessed from its type and can be changed in its side panel; edit names, colours and icons from the map.
+- Maps: pins take their category's colour and icon; filter chips for each category (and NPCs, items …) show only what you pick, with counts.
+- List beside the map: everything pinned on the current map, grouped and following the filters, with a search. Click an entry to fly to its pin and open it in the side panel.
+- Roster headings are the place categories, so the roster and the maps stay in step; moving a place to another heading files it there for the maps too.
+- The roster takes factions as well as places — for guilds and groups without a building of their own.
+
 ## 1.14.0
 
 ### Minor Changes

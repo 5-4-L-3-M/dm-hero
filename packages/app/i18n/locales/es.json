@@ -3439,7 +3439,9 @@
     "customRole": "Other role…",
     "place": "Place",
     "category": "Heading",
-    "categoryHint": "Your own grouping, e.g. Shops & Services"
+    "categoryHint": "Your own grouping, e.g. Shops & Services",
+    "faction": "Faction",
+    "placeOrFaction": "Place or faction"
   },
   "reputation": {
     "title": "Reputation",
@@ -3580,5 +3582,20 @@
       "cheaper": "Prices here are {pct}% lower — {from} is {tier} toward the party.",
       "dearer": "Prices here are {pct}% higher — {from} is {tier} toward the party."
     }
+  },
+  "places": {
+    "category": "Category",
+    "categories": "Place categories",
+    "manage": "Edit categories",
+    "newCategory": "New category",
+    "guess": "Guessed from the place type",
+    "allOnMap": "Everything on this map",
+    "onThisMap": "On this map",
+    "nothing": "Nothing matches the filters.",
+    "uncategorized": "Other places",
+    "searchList": "Search this map…",
+    "showList": "List",
+    "hideList": "Hide list",
+    "filterHint": "Click to show only these; none selected = everything"
   }
 }

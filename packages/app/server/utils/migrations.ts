@@ -3230,6 +3230,36 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 73: Reputation and archive')
     },
   },
+  {
+    version: 74,
+    name: 'place_categories',
+    up: (db) => {
+      // The DM's own place categories (colour + icon), used for map pins and roster headings
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS place_categories (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          color TEXT NOT NULL DEFAULT '#888888',
+          icon TEXT NOT NULL DEFAULT 'mdi-map-marker',
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        )
+      `)
+      // A place's category when set by hand (otherwise it's guessed from the location type)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS location_categories (
+          location_id INTEGER PRIMARY KEY,
+          campaign_id INTEGER NOT NULL,
+          category_id INTEGER NOT NULL,
+          FOREIGN KEY (location_id) REFERENCES entities(id) ON DELETE CASCADE,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (category_id) REFERENCES place_categories(id) ON DELETE CASCADE
+        )
+      `)
+      console.log('✅ Migration 74: Place categories')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

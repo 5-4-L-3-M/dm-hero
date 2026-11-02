@@ -89,21 +89,9 @@
           {{ addModeLabel }}
         </v-chip>
 
-        <!-- Entity type filters -->
-        <div v-if="availableEntityTypes.length > 0" class="filter-chips">
-          <v-chip
-            v-for="entityType in availableEntityTypes"
-            :key="entityType"
-            :prepend-icon="ENTITY_TYPE_ICONS[entityType] || 'mdi-help'"
-            :variant="activeFilters.has(entityType) ? 'flat' : 'outlined'"
-            :color="activeFilters.has(entityType) ? ENTITY_TYPE_COLORS[entityType] : undefined"
-            size="small"
-            class="mr-1"
-            @click="toggleFilter(entityType)"
-          >
-            {{ $t(`nav.${entityType.toLowerCase()}s`) }}
-          </v-chip>
-        </div>
+        <v-btn :prepend-icon="listOpen ? 'mdi-format-list-bulleted-square' : 'mdi-format-list-bulleted'" :variant="listOpen ? 'flat' : 'text'" :color="listOpen ? 'primary' : undefined" size="small" class="mr-1" @click="listOpen = !listOpen">
+          {{ $t('places.showList') }}
+        </v-btn>
 
         <!-- Show to players (only with a running game) -->
         <GameTableShowMapButton :map-id="selectedMap.id" class="mr-1" />
@@ -152,8 +140,43 @@
         </v-menu>
       </div>
 
+      <div v-if="filterOptions.length > 0" class="map-filter-row">
+        <!-- Filters: place categories (coloured like their pins) and other kinds of markers -->
+        <div class="filter-chips" :title="$t('places.filterHint')">
+          <v-chip
+            v-for="opt in filterOptions"
+            :key="opt.key"
+            :prepend-icon="opt.icon"
+            :variant="activeFilters.has(opt.key) ? 'flat' : 'outlined'"
+            :color="opt.color"
+            size="small"
+            class="mr-1"
+            @click="toggleFilter(opt.key)"
+          >
+            {{ opt.label }} <span class="ml-1 opacity-60">{{ opt.count }}</span>
+          </v-chip>
+          <v-btn icon="mdi-cog-outline" size="x-small" variant="text" :title="$t('places.manage')" @click="categoriesOpen = true" />
+        </div>
+      </div>
+
       <!-- Map Content -->
       <div class="map-content">
+        <!-- Everything on this map, following the filters; click to fly there and open it -->
+        <div v-if="listOpen" class="map-list">
+          <v-text-field v-model="listSearch" :placeholder="$t('places.searchList')" prepend-inner-icon="mdi-magnify" variant="solo-filled" flat density="compact" hide-details clearable class="ma-2 flex-grow-0" />
+          <div class="map-list__scroll">
+            <div v-if="!listGroups.length" class="text-body-small text-medium-emphasis pa-3">{{ $t('places.nothing') }}</div>
+            <template v-for="g in listGroups" :key="g.key">
+              <div class="map-list__head" :style="{ color: g.color || undefined }">
+                <v-icon size="x-small" class="mr-1">{{ g.icon }}</v-icon>{{ g.label }} <span class="ml-1 opacity-60">{{ g.items.length }}</span>
+              </div>
+              <button v-for="m in g.items" :key="m.id" type="button" class="map-list__item" @click="focusFromList(m)">
+                <span class="map-list__dot" :style="{ background: markerColor(m) }" />
+                <span class="text-truncate">{{ m.custom_label || m.entity_name }}</span>
+              </button>
+            </template>
+          </div>
+        </div>
         <ClientOnly>
           <MapsMapViewer
             ref="viewerRef"
@@ -396,6 +419,8 @@
     </v-dialog>
 
     <!-- Add/Edit Marker Dialog -->
+    <PlaceCategoryManager v-model="categoriesOpen" />
+
     <MapsMapMarkerEditDialog
       v-model:show="showAddMarkerDialog"
       :map-id="selectedMap?.id || 0"
@@ -592,6 +617,7 @@ import type { CampaignMap, MapMarker, MapArea, MapClimateArea } from '~~/types/m
 import { ENTITY_TYPE_ICONS, ENTITY_TYPE_COLORS } from '~~/types/map'
 import type { EntityPreviewType } from '~/components/shared/EntityPreviewDialog.vue'
 import { useSnackbarStore } from '~/stores/snackbar'
+import PlaceCategoryManager from '~/components/places/PlaceCategoryManager.vue'
 import { FOG_BRUSH_SIZES, NOTE_MS, PING_MS, pingColor, type FogBrushSize, type FogMode } from '~~/types/fog'
 
 const { t } = useI18n()
@@ -686,26 +712,60 @@ const deletingMap = ref<CampaignMap | null>(null)
 // Entity type filter
 const activeFilters = ref<Set<string>>(new Set())
 
-// Available entity types based on current markers
-const availableEntityTypes = computed(() => {
-  const types = new Set<string>()
-  for (const marker of selectedMapMarkers.value) {
-    if (marker.entity_type) {
-      types.add(marker.entity_type)
+// Place categories colour location pins and drive the filters
+const places = usePlacesStore()
+const entityTabs = useEntityTabsStore()
+watch(() => campaignStore.activeCampaignIdNumber, id => places.load(id), { immediate: true })
+const categoriesOpen = ref(false)
+
+/** Filter key of a marker: its place category for places, its kind for everything else */
+function markerKey(m: MapMarker): string {
+  if (m.entity_type === 'Location') return `cat:${places.categoryOf(m.entity_id)?.id ?? 'none'}`
+  return `type:${m.entity_type ?? 'other'}`
+}
+function markerColor(m: MapMarker): string {
+  if (m.custom_color) return m.custom_color
+  if (m.entity_type === 'Location') return places.categoryOf(m.entity_id)?.color ?? ENTITY_TYPE_COLORS.Location ?? '#888'
+  return (m.entity_type && ENTITY_TYPE_COLORS[m.entity_type]) || '#888'
+}
+
+const filterOptions = computed(() => {
+  const counts = new Map<string, number>()
+  for (const m of selectedMapMarkers.value) counts.set(markerKey(m), (counts.get(markerKey(m)) ?? 0) + 1)
+  return [...counts.entries()].map(([key, count]) => {
+    if (key.startsWith('cat:')) {
+      const cat = places.categories.find(c => `cat:${c.id}` === key)
+      return { key, count, label: cat?.name ?? t('places.uncategorized'), icon: cat?.icon ?? 'mdi-map-marker', color: cat?.color ?? undefined, order: cat ? cat.sort_order : 900 }
     }
-  }
-  return Array.from(types).sort()
+    const type = key.slice(5)
+    return { key, count, label: t(`nav.${type.toLowerCase()}s`), icon: ENTITY_TYPE_ICONS[type] || 'mdi-help', color: ENTITY_TYPE_COLORS[type], order: 1000 }
+  }).sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
 })
 
-// Filtered markers based on active filters
+// Filtered markers based on active filters (none selected = everything); pins take their category's colour and icon
 const filteredMarkers = computed(() => {
-  if (activeFilters.value.size === 0) {
-    return selectedMapMarkers.value
-  }
-  return selectedMapMarkers.value.filter(
-    marker => marker.entity_type && activeFilters.value.has(marker.entity_type),
-  )
+  const shown = activeFilters.value.size === 0 ? selectedMapMarkers.value : selectedMapMarkers.value.filter(m => activeFilters.value.has(markerKey(m)))
+  return shown.map((m) => {
+    const cat = m.entity_type === 'Location' ? places.categoryOf(m.entity_id) : null
+    return cat ? { ...m, custom_color: m.custom_color ?? cat.color, custom_icon: m.custom_icon ?? cat.icon } : m
+  })
 })
+
+// The list beside the map
+const listOpen = ref(false)
+const listSearch = ref('')
+const listGroups = computed(() => {
+  const q = (listSearch.value ?? '').toLowerCase().trim()
+  const items = filteredMarkers.value.filter(m => !q || (m.custom_label || m.entity_name || '').toLowerCase().includes(q))
+  return filterOptions.value
+    .map(o => ({ ...o, items: items.filter(m => markerKey(m) === o.key).sort((a, b) => (a.entity_name ?? '').localeCompare(b.entity_name ?? '')) }))
+    .filter(g => g.items.length)
+})
+function focusFromList(m: MapMarker) {
+  ;(viewerRef.value as { focusMarker?: (m: MapMarker) => void } | null)?.focusMarker?.(m)
+  const type = (m.entity_type ?? '').toLowerCase()
+  if (['npc', 'location', 'item', 'faction', 'lore', 'player'].includes(type)) entityTabs.open(type as EntityPreviewType, m.entity_id, m.entity_name ?? '')
+}
 
 // Toggle filter for an entity type
 function toggleFilter(entityType: string) {
@@ -1681,9 +1741,18 @@ watch(activeCampaignId, () => {
   gap: 8px;
 }
 
+.map-filter-row {
+  padding: 6px 16px;
+  background: rgb(var(--v-theme-surface));
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  flex-shrink: 0;
+}
+
 .filter-chips {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 0;
 }
 
 .map-title {
@@ -1696,6 +1765,57 @@ watch(activeCampaignId, () => {
   flex: 1;
   position: relative;
   overflow: hidden;
+}
+
+.map-list {
+  position: absolute;
+  top: 12px;
+  left: 56px;
+  bottom: 12px;
+  width: 280px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  background: rgba(var(--v-theme-surface), 0.96);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+.map-list__scroll {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 6px 8px;
+}
+.map-list__head {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 8px 4px;
+}
+.map-list__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: rgb(var(--v-theme-on-surface));
+  cursor: pointer;
+}
+.map-list__item:hover {
+  background: rgba(var(--v-theme-on-surface), 0.08);
+}
+.map-list__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .map-help-badges {
