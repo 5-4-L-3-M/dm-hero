@@ -1,28 +1,53 @@
 <template>
   <div>
-    <!-- Next session: a band across the top, the plan for the table -->
+    <!-- Next session: a band across the top, the plan for the table, grouped by cluster -->
     <v-card class="tray-band mb-3" color="primary" variant="tonal">
       <div class="d-flex align-center flex-wrap ga-2 px-4 pt-3">
         <v-icon color="primary">mdi-calendar-star</v-icon>
         <span class="text-title-medium font-weight-bold">{{ $t('story.tray.title') }}</span>
         <v-chip size="x-small" color="primary" variant="flat">{{ store.tray.length }}</v-chip>
         <v-spacer />
+        <v-btn
+          v-if="trayGroups.length > 1"
+          variant="text"
+          size="small"
+          :prepend-icon="allTrayFolded ? 'mdi-unfold-more-horizontal' : 'mdi-unfold-less-horizontal'"
+          @click="trayFolds.setAll(trayGroups, !allTrayFolded)"
+        >
+          {{ allTrayFolded ? $t('story.tray.openAll') : $t('story.tray.foldAll') }}
+        </v-btn>
         <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-format-list-numbered" :disabled="!store.tray.length" @click="$emit('open-run-sheet')">
           {{ $t('story.run.open') }}
         </v-btn>
       </div>
       <div class="px-4 pb-3 pt-2">
         <div v-if="!store.tray.length" class="text-body-small text-medium-emphasis">{{ $t('story.tray.empty') }}</div>
-        <draggable v-model="trayList" item-key="id" :animation="180" class="tray-strip" @change="saveTray">
-          <template #item="{ element, index }">
-            <div class="tray-item" role="button" tabindex="0" @click="editBeat(element)" @keydown.enter="editBeat(element)">
-              <span class="tray-item__num">{{ index + 1 }}</span>
-              <v-icon size="small" class="mx-1">{{ BEAT_KIND_ICONS[element.kind as BeatKind] }}</v-icon>
-              <span class="tray-item__title">{{ element.title }}</span>
-              <v-btn icon="mdi-close" size="x-small" variant="text" :aria-label="$t('story.tray.remove')" @click.stop="toggleTray(element)" />
-            </div>
-          </template>
-        </draggable>
+        <div v-for="g in trayGroups" :key="g.key" class="tray-group" :style="{ '--group-color': colorCss(g.cluster ? colorOf(g.cluster) : NO_COLOR) }">
+          <button type="button" class="tray-group__head" @click="trayFolds.toggle(g.key, g.beats.length)">
+            <v-icon size="small">{{ trayFolds.isFolded(g.key, g.beats.length) ? 'mdi-chevron-right' : 'mdi-chevron-down' }}</v-icon>
+            <span class="tray-group__dot" />
+            <span class="tray-group__title">{{ g.cluster?.title ?? $t('story.sparks.title') }}</span>
+            <span class="tray-group__count">{{ g.beats.length }}</span>
+            <span v-if="trayFolds.isFolded(g.key, g.beats.length)" class="tray-group__preview">{{ g.beats.map(b => b.title).join(' · ') }}</span>
+          </button>
+          <draggable
+            v-if="!trayFolds.isFolded(g.key, g.beats.length)"
+            :model-value="g.beats"
+            item-key="id"
+            :animation="180"
+            class="tray-list"
+            @update:model-value="(v: StoryBeat[]) => reorderTrayGroup(g.key, v)"
+          >
+            <template #item="{ element }">
+              <div class="tray-row" role="button" tabindex="0" @click="editBeat(element)" @keydown.enter="editBeat(element)">
+                <span class="tray-row__num">{{ trayNum.get(element.id) }}</span>
+                <v-icon size="small" class="tray-row__icon">{{ BEAT_KIND_ICONS[element.kind as BeatKind] }}</v-icon>
+                <span class="tray-row__title">{{ element.title }}</span>
+                <v-btn icon="mdi-close" size="x-small" variant="text" class="tray-row__remove" :aria-label="$t('story.tray.remove')" @click.stop="toggleTray(element)" />
+              </div>
+            </template>
+          </draggable>
+        </div>
       </div>
     </v-card>
 
@@ -241,6 +266,7 @@ import StoryBeatDialog from './StoryBeatDialog.vue'
 import StoryClusterDialog from './StoryClusterDialog.vue'
 import StorylineManager from './StorylineManager.vue'
 import StoryArchiveDialog from './StoryArchiveDialog.vue'
+import { groupTray, reorderTray, TRAY_BIG_GROUP, trayNumbers } from '~/utils/storyTray'
 import {
   BEAT_STATUSES,
   colorCss, storylineColor,
@@ -263,26 +289,7 @@ const dragging = ref(false)
 
 // --- per-viewer conveniences (folded lanes, storyline filter) ----------
 function remember<T>(name: string, fallback: T) {
-  const key = computed(() => `dmhero.storyBoard.${name}.${store.campaignId}`)
-  const value = ref<T>(fallback) as Ref<T>
-  watch(key, (k) => {
-    try {
-      const raw = localStorage.getItem(k)
-      value.value = raw ? JSON.parse(raw) : fallback
-    }
-    catch {
-      value.value = fallback
-    }
-  }, { immediate: true })
-  watch(value, (v) => {
-    try {
-      localStorage.setItem(key.value, JSON.stringify(v))
-    }
-    catch {
-      // storage blocked — works for this visit
-    }
-  }, { deep: true })
-  return value
+  return useStoryPref<T>(name, fallback)
 }
 const foldedLanes = remember<string[]>('foldedLanes', [])
 const storylineFilter = remember<string[]>('storylineFilter', [])
@@ -400,10 +407,12 @@ async function onLaneChange(lane: Lane & { items: StoryCluster[] }, e: { added?:
 }
 
 // --- tray & sparks -------------------------------------------------------
-const trayList = ref<StoryBeat[]>([])
-watch(() => store.tray, v => (trayList.value = [...v]), { immediate: true })
-function saveTray() {
-  store.saveOrder({ tray: trayList.value.map(b => b.id) })
+const trayGroups = computed(() => groupTray(store.tray, store.clusters))
+const trayNum = computed(() => trayNumbers(store.tray))
+const trayFolds = useTrayFolds('trayFolds', TRAY_BIG_GROUP)
+const allTrayFolded = computed(() => trayGroups.value.every(g => trayFolds.isFolded(g.key, g.beats.length)))
+function reorderTrayGroup(key: string, beats: StoryBeat[]) {
+  store.saveOrder({ tray: reorderTray(trayGroups.value, key, beats) })
 }
 
 const sparks = computed(() => store.sparks.filter(b => shownStatuses.value.includes(b.status)))
@@ -468,31 +477,97 @@ async function confirmDelete(withBeats: boolean) {
 .tray-band {
   border: 1px solid rgba(var(--v-theme-primary), 0.5);
 }
-.tray-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.tray-group {
+  border-left: 3px solid var(--group-color);
+  padding-left: 10px;
+  margin-top: 6px;
 }
-.tray-item {
+.tray-group + .tray-group {
+  margin-top: 10px;
+}
+.tray-group__head {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 4px 4px 4px 10px;
-  border-radius: 999px;
-  background: rgb(var(--v-theme-surface));
-  border: 1px solid rgba(var(--v-theme-primary), 0.4);
-  cursor: grab;
-  max-width: 100%;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 0;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  min-width: 0;
 }
-.tray-item__num {
+.tray-group__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--group-color);
+  flex-shrink: 0;
+}
+.tray-group__title {
   font-weight: 700;
-  color: rgb(var(--v-theme-primary));
+  white-space: nowrap;
 }
-.tray-item__title {
+.tray-group__count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(var(--v-theme-on-surface), 0.1);
+}
+.tray-group__preview {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 260px;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+.tray-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2px 16px;
+  padding: 2px 0 4px 22px;
+}
+.tray-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 4px 3px 6px;
+  border-radius: 6px;
+  cursor: grab;
+}
+.tray-row:hover,
+.tray-row:focus-visible {
+  background: rgba(var(--v-theme-on-surface), 0.06);
+  outline: none;
+}
+.tray-row__num {
+  min-width: 1.6em;
+  text-align: right;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: rgb(var(--v-theme-primary));
+}
+.tray-row__icon {
+  opacity: 0.7;
+}
+.tray-row__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tray-row__remove {
+  opacity: 0;
+}
+.tray-row:hover .tray-row__remove,
+.tray-row:focus-within .tray-row__remove {
+  opacity: 0.7;
 }
 
 /* Lanes */
