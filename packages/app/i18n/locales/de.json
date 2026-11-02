@@ -3670,7 +3670,61 @@
       },
       "calendar": {
         "title": "Kalender & Wetter"
+      },
+      "music": {
+        "title": "Musik",
+        "notConnected": "Spotify ist noch nicht verbunden.",
+        "setUp": "Einrichten"
       }
+    }
+  },
+  "spotify": {
+    "nothing": "Es läuft nichts",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "shuffle": "Zufall",
+    "browse": "Deine Playlists",
+    "connect": "Spotify verbinden",
+    "disconnect": "Trennen",
+    "connectHint": "Einmal im Browser anmelden — danach steuert DM Hero Spotify wie eine Fernbedienung.",
+    "openApp": "Öffne Spotify auf deinem Computer (oder Handy) — DM Hero sagt ihm, was es spielen soll.",
+    "setup": {
+      "intro": "DM Hero nutzt deine eigene Spotify-Entwickler-App (kostenlos, Premium nötig). Einmalig:",
+      "step1": "Erstelle eine App auf",
+      "step2": "Trage diese Redirect-URI ein und wähle \"Web API\":",
+      "step3": "Füge die Client ID der App hier ein (kein Secret nötig).",
+      "clientId": "Client ID",
+      "change": "Client ID ändern"
+    },
+    "scenes": {
+      "title": "Szenen",
+      "add": "Szene hinzufügen",
+      "none": "Noch keine Szenen — füge welche auf der Musik-Seite hinzu.",
+      "rename": "Umbenennen",
+      "moveLeft": "Nach links",
+      "remove": "Entfernen",
+      "shuffled": "Zufällig",
+      "inOrder": "Der Reihe nach",
+      "shuffleHint": "Ob eine Szene zufällig startet"
+    },
+    "picker": {
+      "title": "Playlists & Suche",
+      "search": "Spotify durchsuchen — Playlists, Alben, Künstler, Songs",
+      "yours": "Deine Playlists",
+      "results": "Ergebnisse",
+      "addScene": "Szene",
+      "added": "{name} ist jetzt eine Szene",
+      "empty": "Nichts gefunden."
+    },
+    "kinds": {
+      "playlist": "Playlist",
+      "album": "Album",
+      "artist": "Künstler",
+      "track": "Song",
+      "show": "Podcast",
+      "episode": "Folge"
     }
   }
 }

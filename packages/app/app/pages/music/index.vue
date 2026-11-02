@@ -28,6 +28,11 @@
       </UiPageHeader>
     </div>
 
+    <!-- Spotify remote (your own playlists, scene buttons) -->
+    <ClientOnly>
+      <SpotifyPanel />
+    </ClientOnly>
+
     <v-alert v-if="error" type="warning" variant="tonal" closable class="mb-4" @click:close="error = null">
       {{ error }}
     </v-alert>

@@ -61,6 +61,7 @@
             <OpenRolesCard v-else-if="c.type === 'openRoles'" :campaign-id="campaignId" />
             <ScratchpadCard v-else-if="c.type === 'scratchpad'" :text="String(c.config?.text ?? '')" @change="setConfig(c.i, { text: $event })" />
             <RecapCard v-else-if="c.type === 'recap'" :sessions="sessions" />
+            <MusicCard v-else-if="c.type === 'music'" />
             <DashboardCalendarWidget
               v-else-if="c.type === 'calendar'"
               :calendar="ctx?.calendar ?? null"
@@ -90,6 +91,7 @@ import ClocksCard from './ClocksCard.vue'
 import OpenRolesCard from './OpenRolesCard.vue'
 import ScratchpadCard from './ScratchpadCard.vue'
 import RecapCard from './RecapCard.vue'
+import MusicCard from './MusicCard.vue'
 import { toPreviewType } from '~/stores/entityTabs'
 import type { SessionRow } from '~/composables/useSessionPlan'
 import type { PinboardItem } from '~~/types/pinboard'
