@@ -3407,7 +3407,9 @@
       "addAct": "Add an act",
       "actsHint": "Acts are stages of the world, not a strict order — cards can skip acts and lines can cross between them.",
       "intoNext": "Put the whole thing in the next session",
-      "outOfNext": "Take it out of the next session"
+      "outOfNext": "Take it out of the next session",
+      "inNext": "Nella prossima sessione",
+      "addToNext": "Aggiungi alla prossima sessione"
     },
     "archive": {
       "title": "Archive",

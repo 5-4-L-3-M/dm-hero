@@ -3407,7 +3407,9 @@
       "addAct": "Akt hinzufügen",
       "actsHint": "Akte sind Phasen der Welt, keine feste Reihenfolge – Karten können Akte überspringen und Linien zwischen ihnen verlaufen.",
       "intoNext": "Ganz in die nächste Sitzung legen",
-      "outOfNext": "Aus der nächsten Sitzung nehmen"
+      "outOfNext": "Aus der nächsten Sitzung nehmen",
+      "inNext": "In der nächsten Sitzung",
+      "addToNext": "Zur nächsten Sitzung"
     },
     "archive": {
       "title": "Archiv",

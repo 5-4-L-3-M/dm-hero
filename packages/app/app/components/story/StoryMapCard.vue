@@ -20,16 +20,6 @@
           <v-list-item :title="$t('story.map.noAct')" :active="!act" @click="$emit('set-act', null)" />
         </v-list>
       </v-menu>
-      <button
-        v-if="item.inTray !== null"
-        type="button"
-        class="map-card__x nodrag"
-        :class="{ 'map-card__x--on': item.inTray }"
-        :title="item.inTray ? $t('story.map.outOfNext') : $t('story.map.intoNext')"
-        @click.stop="$emit('toggle-next')"
-      >
-        <v-icon size="x-small">{{ item.inTray ? 'mdi-calendar-check' : 'mdi-calendar-plus' }}</v-icon>
-      </button>
       <button type="button" class="map-card__x nodrag" :title="$t('common.edit')" @click.stop="$emit('edit')">
         <v-icon size="x-small">mdi-pencil</v-icon>
       </button>
@@ -40,6 +30,19 @@
     <div class="map-card__title nodrag" role="button" tabindex="0" @click.stop="titleClick" @keydown.enter="titleClick">
       <v-icon v-if="item.kind !== 'quest'" size="x-small" class="mr-1">{{ open ? 'mdi-chevron-down' : 'mdi-chevron-right' }}</v-icon>{{ item.title }}
     </div>
+    <!-- Into / out of the next session, in plain sight -->
+    <v-chip
+      v-if="item.inTray !== null"
+      size="x-small"
+      class="nodrag mt-1"
+      :color="item.inTray ? 'primary' : undefined"
+      :variant="item.inTray ? 'flat' : 'outlined'"
+      :prepend-icon="item.inTray ? 'mdi-calendar-check' : 'mdi-calendar-plus'"
+      :title="item.inTray ? $t('story.map.outOfNext') : $t('story.map.intoNext')"
+      @click.stop="$emit('toggle-next')"
+    >
+      {{ item.inTray ? $t('story.map.inNext') : $t('story.map.addToNext') }}
+    </v-chip>
     <!-- Details: unfold with a click on the title (quests open in the side panel instead) -->
     <div v-if="open" class="map-card__details nodrag nowheel">
       <SharedFormattedText v-if="item.details" :text="item.details" />
