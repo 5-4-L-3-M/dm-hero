@@ -128,16 +128,31 @@
                       <div class="d-flex align-start">
                         <v-icon v-if="!onlyOpen" size="small" class="role-drag mt-2 mr-1 text-medium-emphasis" :title="$t('roster.dragHint')">mdi-drag-vertical</v-icon>
                         <v-textarea
+                          v-if="renamingRole === r.id"
                           :model-value="r.role"
                           variant="plain"
                           density="compact"
                           hide-details
                           auto-grow
+                          autofocus
                           rows="1"
                           class="role-field font-weight-medium"
                           @keydown.enter.prevent="($event.target as HTMLTextAreaElement).blur()"
+                          @keydown.esc="renamingRole = null"
                           @change="(e: Event) => updateRole(r, { role: (e.target as HTMLTextAreaElement).value.replace(/\s+/g, ' ').trim() })"
+                          @blur="renamingRole = null"
                         />
+                        <div
+                          v-else
+                          class="role-name font-weight-medium"
+                          role="button"
+                          tabindex="0"
+                          :title="$t('common.edit')"
+                          @click="renamingRole = r.id"
+                          @keydown.enter="renamingRole = r.id"
+                        >
+                          {{ breakableRole(r.role) }}
+                        </div>
                       </div>
                     </td>
                     <td class="col-npc">
@@ -495,6 +510,10 @@ async function reorderRoles(locationId: number, list: RosterRole[]) {
 }
 // Changing who fills a role happens in edit mode (no stray "clear" next to every name)
 const editingRole = ref<number | null>(null)
+/** Role whose name is being edited (shown as plain text otherwise) */
+const renamingRole = ref<number | null>(null)
+/** Let long roles wrap at "/" and "-" instead of mid-word ("Ambassador/Envoy") */
+const breakableRole = (role: string) => role.replace(/([/\\-])/g, '$1\u200B')
 async function pickNpc(r: RosterRole, id: number) {
   editingRole.value = null
   if (id !== r.npc?.id) await updateRole(r, { npc_id: id })
@@ -580,8 +599,8 @@ async function saveCategory() {
   padding-bottom: 6px !important;
 }
 .col-role {
-  width: 190px;
-  min-width: 170px;
+  width: 220px;
+  min-width: 190px;
 }
 .col-npc {
   width: 300px;
@@ -607,6 +626,20 @@ td.col-info {
 }
 .role-field :deep(textarea) {
   overflow-wrap: break-word;
+}
+.role-name {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 0;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+  cursor: text;
+  border-radius: 4px;
+}
+.role-name:hover,
+.role-name:focus-visible {
+  background: rgba(var(--v-theme-on-surface), 0.06);
+  outline: none;
 }
 .row-open td {
   background: rgba(var(--v-theme-warning), 0.06);

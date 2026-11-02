@@ -6,6 +6,7 @@
 
 - Next session band: beats are grouped by cluster in folding sections, each with its color, a count and a one-line preview when folded. Big groups (like free time in the city) start folded. Beats read as a tidy numbered list instead of a wall of pills; the remove button shows on hover. "Fold all / Open all" in the header. Folds are remembered per campaign.
 - Run sheet: one section per cluster with a colored header. Big pick-what-they-visit groups show as short rows (number, title, who's there, a quick Played check); click a row to open the full card. Played, Not now and Reputation sit on the card's title line, so the text gets the full width and is easier to read. The top shows how many beats are left and how many were played.
+- Roster: role names wrap at a slash or dash instead of breaking mid-word ("Ambassador/Envoy"), and the role column is a little wider. Click a role name to rename it.
 
 ## 1.23.1
 
