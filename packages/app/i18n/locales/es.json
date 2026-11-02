@@ -3356,7 +3356,10 @@
     "major": "Major",
     "minor": "Minor",
     "optional": "Optional",
-    "required": "Required"
+    "required": "Required",
+    "searchPlaceholder": "Search words, places, people…",
+    "searchHint": "Looks through quest names, descriptions, rewards, objectives, givers, places and the story beats tied to each quest",
+    "peoplePlaces": "People & places"
   },
   "formattingGuide": {
     "title": "Text formatting",

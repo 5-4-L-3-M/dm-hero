@@ -17,14 +17,33 @@
         <v-spacer />
         <v-text-field
           v-model="search"
-          :placeholder="$t('common.search')"
+          :placeholder="$t('quests.searchPlaceholder')"
+          :title="$t('quests.searchHint')"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
           density="compact"
           hide-details
           clearable
-          class="search-field"
+          class="search-field search-field--wide"
         />
+        <!-- People & places: only quests tied to every pick (as giver, place, involved or in one of its beats) -->
+        <v-autocomplete
+          v-model="linkFilter"
+          :items="linkOptions"
+          :label="$t('quests.peoplePlaces')"
+          variant="outlined"
+          density="compact"
+          hide-details
+          multiple
+          chips
+          closable-chips
+          clearable
+          class="search-field search-field--wide"
+        >
+          <template #item="{ props: itemProps, item }">
+            <v-list-item v-bind="itemProps" :prepend-icon="item.icon" />
+          </template>
+        </v-autocomplete>
         <v-select
           v-model="storylineFilter"
           :items="store.storylines.map(s => ({ title: s.name, value: s.id }))"
@@ -75,7 +94,9 @@
 import draggable from 'vuedraggable'
 import QuestCard from '~/components/quests/QuestCard.vue'
 import QuestEditDialog from '~/components/quests/QuestEditDialog.vue'
-import { QUEST_STATUSES, QUEST_STATUS_ICONS, type Quest, type QuestStatus } from '~~/types/story'
+import { QUEST_STATUSES, QUEST_STATUS_ICONS, type LinkedEntity, type Quest, type QuestStatus } from '~~/types/story'
+import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
+import { toPreviewType } from '~/stores/entityTabs'
 
 /** Quest board: rumors → active → completed / failed. Drag a card to change its status. */
 const route = useRoute()
@@ -91,17 +112,53 @@ const highlightId = computed(() => Number(route.query.highlight) || null)
 const COLUMN_COLORS: Record<QuestStatus, string> = { rumor: 'warning', active: 'primary', completed: 'success', failed: 'error' }
 const columns = ref<{ status: QuestStatus, color: string, items: Quest[] }[]>([])
 
+// --- search: words anywhere in the quest or its story beats; people & places it's tied to ---
+const linkFilter = ref<string[]>([])
+const linkKey = (e: LinkedEntity) => `${e.type}-${e.id}`
+const placeOf = (id: number | null, name: string | null): LinkedEntity[] => (id && name ? [{ id, name, type: 'Location' }] : [])
+const searchIndex = computed(() => {
+  const index = new Map<number, { text: string, links: LinkedEntity[] }>()
+  for (const q of store.quests) {
+    const links: LinkedEntity[] = [...q.givers, ...q.involved, ...placeOf(q.location_id, q.location_name)]
+    const parts: (string | null)[] = [q.name, q.description, q.reward, ...q.objectives.map(o => o.text)]
+    // The quest's clusters and beats on the Story Board count too
+    for (const c of store.clusters.filter(c => c.quest_id === q.id)) {
+      parts.push(c.title, c.notes)
+      links.push(...placeOf(c.location_id, c.location_name))
+      for (const b of store.beatsOf(c.id)) {
+        parts.push(b.title, b.body)
+        links.push(...b.entities, ...placeOf(b.location_id, b.location_name))
+      }
+    }
+    parts.push(...links.map(l => l.name))
+    index.set(q.id, { text: parts.filter(Boolean).join('\n').toLowerCase(), links })
+  }
+  return index
+})
+const linkOptions = computed(() => {
+  const seen = new Map<string, { title: string, value: string, icon: string }>()
+  for (const { links } of searchIndex.value.values()) {
+    for (const e of links) {
+      const t = toPreviewType(e.type)
+      if (!seen.has(linkKey(e))) seen.set(linkKey(e), { title: e.name, value: linkKey(e), icon: t ? ENTITY_PREVIEW_CONFIG[t].icon : 'mdi-link' })
+    }
+  }
+  return [...seen.values()].sort((a, b) => a.title.localeCompare(b.title))
+})
+
 function rebuild() {
   const q = search.value?.toLowerCase().trim() ?? ''
-  const filtered = store.quests.filter(x =>
-    (!q || x.name.toLowerCase().includes(q) || (x.description ?? '').toLowerCase().includes(q))
-    && (!storylineFilter.value || x.storyline_id === storylineFilter.value),
-  )
+  const filtered = store.quests.filter((x) => {
+    const entry = searchIndex.value.get(x.id)
+    return (!q || !!entry?.text.includes(q))
+      && (!linkFilter.value.length || linkFilter.value.every(k => entry?.links.some(e => linkKey(e) === k)))
+      && (!storylineFilter.value || x.storyline_id === storylineFilter.value)
+  })
   // Saved order first (drag & drop), then name — the store's list isn't re-sorted after a save
   const ordered = [...filtered].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
   columns.value = QUEST_STATUSES.map(status => ({ status, color: COLUMN_COLORS[status], items: ordered.filter(x => x.status === status) }))
 }
-watch(() => [store.quests, search.value, storylineFilter.value], rebuild, { deep: true })
+watch(() => [store.quests, search.value, storylineFilter.value, linkFilter.value, searchIndex.value], rebuild, { deep: true })
 
 watch(campaignId, id => store.load(id), { immediate: true })
 onMounted(() => store.loadQuests().then(rebuild))
@@ -165,5 +222,9 @@ function openQuest(q: Quest) {
 .search-field {
   max-width: 220px;
   min-width: 160px;
+}
+.search-field--wide {
+  max-width: 300px;
+  min-width: 220px;
 }
 </style>
