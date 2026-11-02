@@ -33,10 +33,17 @@
     <!-- Details: unfold with a click on the title (quests open in the side panel instead) -->
     <div v-if="open" class="map-card__details nodrag nowheel">
       <SharedFormattedText v-if="item.details" :text="item.details" />
-      <div v-else-if="!item.list.length" class="text-medium-emphasis">{{ $t('story.beat.noDetails') }}</div>
+      <div v-else-if="!item.list.length && !item.links.length" class="text-medium-emphasis">{{ $t('story.beat.noDetails') }}</div>
       <ul v-if="item.list.length" class="map-card__list">
         <li v-for="(l, i) in item.list" :key="i">{{ l }}</li>
       </ul>
+      <!-- Linked people, places, items…: click one to open it in the side panel -->
+      <div v-if="item.links.length" class="map-card__links">
+        <v-chip v-for="e in item.links" :key="`${e.type}-${e.id}`" size="small" variant="tonal" @click.stop>
+          <v-icon start size="small">{{ linkIcon(e.type) }}</v-icon>
+          <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
+        </v-chip>
+      </div>
     </div>
     <div v-if="item.chips.length" class="map-card__chips">
       <span v-for="c in item.chips" :key="c" class="map-card__chip">{{ c }}</span>
@@ -47,7 +54,9 @@
 
 <script setup lang="ts">
 import { Handle, Position } from '@vue-flow/core'
-import type { MapNodeKind } from '~~/types/story'
+import type { LinkedEntity, MapNodeKind } from '~~/types/story'
+import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
+import { toPreviewType } from '~/stores/entityTabs'
 
 /** One card on the story map: a quest, a cluster or a beat. Drag from the right dot to draw an arrow. */
 export interface MapCardItem {
@@ -63,6 +72,12 @@ export interface MapCardItem {
   details: string | null
   /** Lines shown when unfolded (a cluster's beats) */
   list: string[]
+  /** Linked entries shown when unfolded (a beat's place, people, items…) */
+  links: LinkedEntity[]
+}
+function linkIcon(type: string) {
+  const t = toPreviewType(type)
+  return t ? ENTITY_PREVIEW_CONFIG[t].icon : 'mdi-link'
 }
 const props = defineProps<{ item: MapCardItem, dim: boolean, act: number | null, acts: string[] }>()
 const emit = defineEmits<{ 'open': [], 'edit': [], 'remove': [], 'set-act': [act: number | null] }>()
@@ -76,7 +91,7 @@ function titleClick() {
 
 <style scoped>
 .map-card {
-  width: 210px;
+  width: 260px;
   background: rgb(var(--v-theme-surface));
   color: rgb(var(--v-theme-on-surface));
   border: 1px solid rgba(var(--v-theme-on-surface), 0.2);
@@ -84,22 +99,22 @@ function titleClick() {
   border-radius: 8px;
   padding: 6px 10px 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   transition: opacity 0.2s;
 }
 .map-card--quest {
-  width: 240px;
+  width: 300px;
   border-width: 2px 2px 2px 8px;
 }
 .map-card--quest .map-card__title {
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 .map-card--beat {
-  width: 190px;
+  width: 250px;
   border-radius: 14px;
 }
 .map-card--minor {
-  width: 190px;
+  width: 240px;
 }
 .map-card--optional {
   border-style: dashed dashed dashed solid;
@@ -164,15 +179,21 @@ function titleClick() {
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  max-height: 220px;
+  max-height: 300px;
   overflow-y: auto;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   cursor: default;
   white-space: normal;
 }
 .map-card__list {
   padding-left: 16px;
   margin: 4px 0 0;
+}
+.map-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
 }
 .map-card__chips {
   display: flex;
@@ -181,7 +202,7 @@ function titleClick() {
   margin-top: 6px;
 }
 .map-card__chip {
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   padding: 1px 6px;
   border-radius: 999px;
   background: rgba(var(--v-theme-on-surface), 0.08);

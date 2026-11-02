@@ -5,6 +5,8 @@
 ### Patch Changes
 
 - Story map: fold the "Add to the map" list down to a slim strip with its arrow (it remembers). "Bigger map" folds the main menu and the list in one click; click it again to bring them back.
+- Story map cards are larger and easier to read.
+- Unfold a beat or cluster on the map and its place, people, items and other linked entries show as chips; click one to open it in the side panel.
 
 ## 1.11.0
 

@@ -187,7 +187,7 @@ import StoryClusterDialog from './StoryClusterDialog.vue'
 import QuestEditDialog from '~/components/quests/QuestEditDialog.vue'
 import {
   BEAT_KIND_ICONS, MAP_NODE_KINDS, NO_COLOR, QUEST_STATUS_ICONS,
-  type MapEdgeKind, type MapNodeKind, type StoryBeat, type StoryCluster, type StoryMapNode,
+  type LinkedEntity, type MapEdgeKind, type MapNodeKind, type StoryBeat, type StoryCluster, type StoryMapNode,
 } from '~~/types/story'
 
 /**
@@ -216,7 +216,7 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
       kind, title: q.name, icon: QUEST_STATUS_ICONS[q.status], color: lineColor(q.storyline_id), storylineId: q.storyline_id,
       chips: [t(`quests.statuses.${q.status}`), ...givers, ...(q.optional ? [t('quests.optional')] : [])],
       optional: !!q.optional, minor: q.importance === 'minor', done: q.status === 'completed' || q.status === 'failed',
-      details: q.description, list: [],
+      details: q.description, list: [], links: [],
     }
   }
   if (kind === 'cluster') {
@@ -228,6 +228,7 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
       chips: [t('story.map.beatCount', { done: beats.filter(b => b.status === 'played').length, total: beats.length }), t(`story.heat.${c.heat}`)],
       optional: false, minor: false, done: c.status === 'resolved',
       details: c.notes, list: beats.map(x => (x.status === 'played' ? `✓ ${x.title}` : x.title)),
+      links: placeLink(c.location_id, c.location_name),
     }
   }
   const b = store.beats.find(x => x.id === refId)
@@ -237,8 +238,13 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
     kind, title: b.title, icon: BEAT_KIND_ICONS[b.kind], color: lineColor(c?.storyline_id), storylineId: c?.storyline_id ?? null,
     chips: [c ? c.title : t('story.sparks.title'), t(`story.beatStatus.${b.status}`)],
     optional: false, minor: false, done: b.status === 'played' || b.status === 'cut',
-    details: b.body, list: b.entities.map(e => e.name),
+    details: b.body, list: [],
+    links: [...placeLink(b.location_id, b.location_name), ...b.entities],
   }
+}
+/** Where it happens, as a clickable link (if it has a place) */
+function placeLink(id: number | null, name: string | null): LinkedEntity[] {
+  return id && name ? [{ id, name, type: 'Location' }] : []
 }
 
 // --- acts ------------------------------------------------------------------
