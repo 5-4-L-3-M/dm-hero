@@ -3,6 +3,16 @@
     <div class="d-flex align-center mb-3 ga-2">
       <div class="text-body-medium text-medium-emphasis">{{ $t('shop.count', { n: items.length }) }}</div>
       <v-spacer />
+      <v-btn
+        :variant="showSecret ? 'flat' : 'tonal'"
+        :color="showSecret ? 'primary' : undefined"
+        prepend-icon="mdi-incognito"
+        :title="$t('shop.blackMarket.toggleHint')"
+        @click="showSecret = !showSecret"
+      >
+        {{ $t('shop.blackMarket.title') }}
+        <v-chip v-if="secretCount" size="x-small" class="ml-2" variant="tonal">{{ secretCount }}</v-chip>
+      </v-btn>
       <v-btn variant="tonal" prepend-icon="mdi-hand-coin" @click="openBuy">
         {{ $t('shop.buyFrom.button') }}
       </v-btn>
@@ -24,6 +34,7 @@
         <span class="font-weight-bold">{{ $t('shop.blackMarket.title') }}</span>
         <span class="text-body-small text-medium-emphasis">{{ $t('shop.blackMarket.hint') }}</span>
       </div>
+      <div v-if="section.key === 'secret' && !section.items.length" class="text-body-small text-medium-emphasis px-2 pb-2">{{ $t('shop.blackMarket.empty') }}</div>
       <v-table v-if="section.items.length > 0" density="comfortable" :class="{ 'black-market': section.key === 'secret' }">
         <thead>
           <tr>
@@ -416,7 +427,10 @@ const sorted = computed(() => sortShopItems(items.value))
 const sections = computed(() => [
   { key: 'shelf', items: sorted.value.filter(i => !i.secret) },
   { key: 'secret', items: sorted.value.filter(i => i.secret) },
-].filter(x => x.key === 'shelf' || x.items.length))
+].filter(x => x.key === 'shelf' || showSecret.value))
+// Black market toggle: shows what's under the counter; new items added meanwhile go there too
+const showSecret = ref(false)
+const secretCount = computed(() => items.value.filter(i => i.secret).length)
 const denominations = computed<Denomination[]>(() =>
   currencies.value
     .map(c => ({ code: c.code, rate: c.exchange_rate, isDefault: c.is_default === 1 }))
@@ -486,7 +500,7 @@ function blankForm() {
 }
 
 function openNew() {
-  form.value = { ...blankForm(), priceCode: mainCode.value }
+  form.value = { ...blankForm(), priceCode: mainCode.value, secret: showSecret.value }
   copyFromItemId.value = null
   editOpen.value = true
 }
