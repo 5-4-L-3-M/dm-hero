@@ -3174,6 +3174,51 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 72: NPC roster')
     },
   },
+  {
+    version: 73,
+    name: 'reputation_and_archive',
+    up: (db) => {
+      // Every reputation change as a log line; a track's points = the sum of its lines
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS rep_events (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          subject_id INTEGER NOT NULL,
+          player_id INTEGER NOT NULL DEFAULT 0,
+          kind TEXT NOT NULL DEFAULT 'rep',
+          delta INTEGER NOT NULL,
+          reason TEXT,
+          preset TEXT,
+          session_id INTEGER,
+          source_event_id INTEGER,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (subject_id) REFERENCES entities(id) ON DELETE CASCADE,
+          FOREIGN KEY (source_event_id) REFERENCES rep_events(id) ON DELETE CASCADE
+        )
+      `)
+      db.exec('CREATE INDEX IF NOT EXISTS idx_rep_events_subject ON rep_events(campaign_id, subject_id)')
+      // Tracks that should show even with no changes yet (split-off players, pinned)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS rep_tracks (
+          campaign_id INTEGER NOT NULL,
+          subject_id INTEGER NOT NULL,
+          player_id INTEGER NOT NULL DEFAULT 0,
+          kind TEXT NOT NULL DEFAULT 'rep',
+          PRIMARY KEY (campaign_id, subject_id, player_id, kind),
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (subject_id) REFERENCES entities(id) ON DELETE CASCADE
+        )
+      `)
+      // World automation switches
+      db.exec('ALTER TABLE story_board_settings ADD COLUMN rep_consequences INTEGER NOT NULL DEFAULT 1')
+      db.exec('ALTER TABLE story_board_settings ADD COLUMN rep_rumors INTEGER NOT NULL DEFAULT 1')
+      // Archive: hidden by default, restore any time
+      db.exec('ALTER TABLE story_clusters ADD COLUMN archived_at TEXT')
+      db.exec('ALTER TABLE story_beats ADD COLUMN archived_at TEXT')
+      console.log('✅ Migration 73: Reputation and archive')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {
