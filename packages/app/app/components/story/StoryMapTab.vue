@@ -1,9 +1,16 @@
 <template>
-  <div class="map-layout">
+  <div class="map-layout" :class="{ 'map-layout--side-closed': !sideOpen }">
+    <!-- Folded away: a slim strip with a button to bring the list back -->
+    <v-card v-if="!sideOpen" variant="tonal" class="map-side-strip">
+      <v-btn icon="mdi-chevron-right" size="small" variant="text" :aria-label="$t('story.map.showList')" :title="$t('story.map.showList')" @click="setSide(true)" />
+    </v-card>
     <!-- What can go on the map: drag onto the canvas or click + -->
-    <v-card variant="tonal" class="map-side">
+    <v-card v-else variant="tonal" class="map-side">
       <div class="pa-3 pb-0">
-        <div class="text-title-small font-weight-bold mb-1">{{ $t('story.map.addTitle') }}</div>
+        <div class="d-flex align-center mb-1">
+          <div class="text-title-small font-weight-bold flex-grow-1">{{ $t('story.map.addTitle') }}</div>
+          <v-btn icon="mdi-chevron-left" size="x-small" variant="text" :aria-label="$t('story.map.hideList')" :title="$t('story.map.hideList')" @click="setSide(false)" />
+        </div>
         <div class="text-body-small text-medium-emphasis mb-2">{{ $t('story.map.addHint') }}</div>
         <v-btn-toggle v-model="sideKind" mandatory density="compact" variant="outlined" divided class="mb-2 w-100">
           <v-btn v-for="k in MAP_NODE_KINDS" :key="k" :value="k" size="small" class="flex-grow-1">{{ $t(`story.map.kindsPlural.${k}`) }}</v-btn>
@@ -53,6 +60,15 @@
       <div class="d-flex flex-wrap align-center ga-2 mb-2">
         <v-btn prepend-icon="mdi-sitemap-outline" variant="tonal" color="primary" size="small" :disabled="store.map.nodes.length < 2" @click="arrange">{{ $t('story.map.arrange') }}</v-btn>
         <v-btn prepend-icon="mdi-fit-to-screen-outline" variant="text" size="small" @click="fitView({ padding: 0.2 })">{{ $t('story.map.fit') }}</v-btn>
+        <!-- Bigger map: folds the main menu and the list on the left in one click -->
+        <v-btn
+          :prepend-icon="bigMap ? 'mdi-arrow-collapse-horizontal' : 'mdi-arrow-expand-horizontal'"
+          variant="text"
+          size="small"
+          @click="toggleBigMap"
+        >
+          {{ bigMap ? $t('story.map.smallerMap') : $t('story.map.biggerMap') }}
+        </v-btn>
         <v-divider vertical class="mx-1" />
         <span class="text-body-small text-medium-emphasis">{{ $t('story.filter.storylines') }}</span>
         <v-chip
@@ -171,7 +187,7 @@ import StoryClusterDialog from './StoryClusterDialog.vue'
 import QuestEditDialog from '~/components/quests/QuestEditDialog.vue'
 import {
   BEAT_KIND_ICONS, MAP_NODE_KINDS, NO_COLOR, QUEST_STATUS_ICONS,
-  type MapEdgeKind, type MapNodeKind, type StoryBeat, type StoryCluster, type StoryMapNode,
+  type LinkedEntity, type MapEdgeKind, type MapNodeKind, type StoryBeat, type StoryCluster, type StoryMapNode,
 } from '~~/types/story'
 
 /**
@@ -200,7 +216,7 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
       kind, title: q.name, icon: QUEST_STATUS_ICONS[q.status], color: lineColor(q.storyline_id), storylineId: q.storyline_id,
       chips: [t(`quests.statuses.${q.status}`), ...givers, ...(q.optional ? [t('quests.optional')] : [])],
       optional: !!q.optional, minor: q.importance === 'minor', done: q.status === 'completed' || q.status === 'failed',
-      details: q.description, list: [],
+      details: q.description, list: [], links: [],
     }
   }
   if (kind === 'cluster') {
@@ -212,6 +228,7 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
       chips: [t('story.map.beatCount', { done: beats.filter(b => b.status === 'played').length, total: beats.length }), t(`story.heat.${c.heat}`)],
       optional: false, minor: false, done: c.status === 'resolved',
       details: c.notes, list: beats.map(x => (x.status === 'played' ? `✓ ${x.title}` : x.title)),
+      links: placeLink(c.location_id, c.location_name),
     }
   }
   const b = store.beats.find(x => x.id === refId)
@@ -221,8 +238,13 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
     kind, title: b.title, icon: BEAT_KIND_ICONS[b.kind], color: lineColor(c?.storyline_id), storylineId: c?.storyline_id ?? null,
     chips: [c ? c.title : t('story.sparks.title'), t(`story.beatStatus.${b.status}`)],
     optional: false, minor: false, done: b.status === 'played' || b.status === 'cut',
-    details: b.body, list: b.entities.map(e => e.name),
+    details: b.body, list: [],
+    links: [...placeLink(b.location_id, b.location_name), ...b.entities],
   }
+}
+/** Where it happens, as a clickable link (if it has a place) */
+function placeLink(id: number | null, name: string | null): LinkedEntity[] {
+  return id && name ? [{ id, name, type: 'Location' }] : []
 }
 
 // --- acts ------------------------------------------------------------------
@@ -300,6 +322,39 @@ function toggleStoryline(id: number) {
   storylineFilter.value = storylineFilter.value.includes(id) ? storylineFilter.value.filter(x => x !== id) : [...storylineFilter.value, id]
 }
 const isDim = (storylineId: number | null) => storylineFilter.value.length > 0 && !(storylineId && storylineFilter.value.includes(storylineId))
+
+// --- room for the map: fold the list and the main menu ---------------------
+const SIDE_KEY = 'dmhero.storyMap.sideOpen'
+const sideOpen = ref(true)
+const navRail = useState<boolean>('navRail', () => false)
+onMounted(() => {
+  try {
+    sideOpen.value = localStorage.getItem(SIDE_KEY) !== 'false'
+  }
+  catch {
+    // storage blocked — stays open
+  }
+})
+function refit() {
+  // after the panels finish sliding
+  setTimeout(() => fitView({ padding: 0.2 }), 250)
+}
+function setSide(open: boolean) {
+  sideOpen.value = open
+  try {
+    localStorage.setItem(SIDE_KEY, String(open))
+  }
+  catch {
+    // storage blocked — works for this visit
+  }
+  refit()
+}
+const bigMap = computed(() => !sideOpen.value && navRail.value)
+function toggleBigMap() {
+  const big = !bigMap.value
+  navRail.value = big
+  setSide(!big)
+}
 
 // --- side list -----------------------------------------------------------
 const sideKind = ref<MapNodeKind>('quest')
@@ -444,10 +499,19 @@ function editItem(kind: MapNodeKind, refId: number) {
   gap: 12px;
   container-type: inline-size;
 }
+.map-layout--side-closed {
+  grid-template-columns: 40px minmax(0, 1fr);
+}
 @container (max-width: 700px) {
   .map-layout {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+.map-side-strip {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 8px;
 }
 .map-side {
   display: flex;
