@@ -69,9 +69,8 @@ export function loadReputation(db: Database.Database, campaignId: number, subjec
     return { ...r, points, player_name: r.player_id ? r.player_name : null, tier: tierOf(points, r.subject_type, r.kind).key }
   })
   const met = db.prepare(`
-    SELECT e.id, e.name FROM entities e JOIN entity_types et ON et.id = e.type_id
-    WHERE e.campaign_id = ? AND et.name = 'NPC' AND e.deleted_at IS NULL AND json_extract(e.metadata, '$.met') = 1
-    ${subjectId ? 'AND e.id = ?' : ''}
+    SELECT e.id, e.name FROM npc_met m JOIN entities e ON e.id = m.npc_id AND e.deleted_at IS NULL
+    WHERE m.campaign_id = ? ${subjectId ? 'AND e.id = ?' : ''}
     ORDER BY e.name COLLATE NOCASE
   `).all(...(subjectId ? [campaignId, subjectId] : [campaignId])) as Array<{ id: number, name: string }>
   return { tracks, met }
@@ -205,22 +204,13 @@ function newestSession(db: Database.Database, campaignId: number): number | null
 
 /** Mark an NPC as met (and in which session) — or not */
 export function setMet(db: Database.Database, campaignId: number, npcId: number, met: boolean, sessionId: number | null = null) {
-  const row = db.prepare(`
-    SELECT e.metadata FROM entities e JOIN entity_types et ON et.id = e.type_id
+  const npc = db.prepare(`
+    SELECT e.id FROM entities e JOIN entity_types et ON et.id = e.type_id
     WHERE e.id = ? AND e.campaign_id = ? AND et.name = 'NPC' AND e.deleted_at IS NULL
-  `).get(npcId, campaignId) as { metadata: string | null } | undefined
-  if (!row) return false
-  const m = meta(row.metadata)
-  if (!!m.met === met) return true
-  if (met) {
-    m.met = true
-    m.met_session_id = sessionId ?? newestSession(db, campaignId)
-  }
-  else {
-    delete m.met
-    delete m.met_session_id
-  }
-  db.prepare('UPDATE entities SET metadata = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(m), npcId)
+  `).get(npcId, campaignId)
+  if (!npc) return false
+  if (met) db.prepare('INSERT OR IGNORE INTO npc_met (campaign_id, npc_id, session_id) VALUES (?, ?, ?)').run(campaignId, npcId, sessionId ?? newestSession(db, campaignId))
+  else db.prepare('DELETE FROM npc_met WHERE npc_id = ? AND campaign_id = ?').run(npcId, campaignId)
   return true
 }
 

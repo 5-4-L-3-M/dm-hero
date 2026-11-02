@@ -3210,6 +3210,17 @@ export const migrations: Migration[] = [
           FOREIGN KEY (subject_id) REFERENCES entities(id) ON DELETE CASCADE
         )
       `)
+      // NPCs the party has met (and in which session)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS npc_met (
+          campaign_id INTEGER NOT NULL,
+          npc_id INTEGER NOT NULL PRIMARY KEY,
+          session_id INTEGER,
+          met_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (npc_id) REFERENCES entities(id) ON DELETE CASCADE
+        )
+      `)
       // World automation switches
       db.exec('ALTER TABLE story_board_settings ADD COLUMN rep_consequences INTEGER NOT NULL DEFAULT 1')
       db.exec('ALTER TABLE story_board_settings ADD COLUMN rep_rumors INTEGER NOT NULL DEFAULT 1')
