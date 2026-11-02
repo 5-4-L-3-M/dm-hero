@@ -1,5 +1,12 @@
 # @dm-hero/app
 
+## 1.12.0
+
+### Minor Changes
+
+- Quest board search looks everywhere now: names, descriptions, rewards, objectives, givers, places, involved entries, and the clusters and story beats tied to each quest. Search "Renata" or "Honesty House" and every quest she or it touches shows up.
+- New People & places picker on the quest board: pick one or more NPCs, places, items or factions to see only the quests tied to all of them.
+
 ## 1.11.1
 
 ### Patch Changes

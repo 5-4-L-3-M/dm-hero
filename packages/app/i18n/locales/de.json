@@ -3356,7 +3356,10 @@
     "major": "Haupt",
     "minor": "Neben",
     "optional": "Optional",
-    "required": "Pflicht"
+    "required": "Pflicht",
+    "searchPlaceholder": "Wörter, Orte, Personen suchen…",
+    "searchHint": "Durchsucht Namen, Beschreibungen, Belohnungen, Ziele, Auftraggeber, Orte und die Story-Beats jeder Quest",
+    "peoplePlaces": "Personen & Orte"
   },
   "formattingGuide": {
     "title": "Textformatierung",
