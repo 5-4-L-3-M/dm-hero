@@ -3677,6 +3677,12 @@
         "title": "Musik",
         "notConnected": "Spotify ist noch nicht verbunden.",
         "setUp": "Einrichten"
+      },
+      "todos": {
+        "title": "To-dos",
+        "add": "To-do hinzufügen…",
+        "done": "{count} erledigt",
+        "all": "Alle ansehen"
       }
     }
   },
@@ -3727,6 +3733,14 @@
       "track": "Song",
       "show": "Podcast",
       "episode": "Folge"
+    }
+  },
+  "stats": {
+    "passives": "Passive Werte",
+    "passive": {
+      "perception": "Wahrnehmung",
+      "insight": "Motiv erkennen",
+      "investigation": "Nachforschungen"
     }
   }
 }

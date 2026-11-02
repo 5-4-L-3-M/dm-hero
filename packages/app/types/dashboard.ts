@@ -5,7 +5,7 @@ export type DashboardBoardKey = typeof DASHBOARD_BOARDS[number]
 
 export const CARD_TYPES = [
   'search', 'party', 'sessionNpcs', 'sessionQuests', 'nextSession', 'reputation', 'map',
-  'pinned', 'clocks', 'openRoles', 'scratchpad', 'recap', 'calendar', 'music',
+  'pinned', 'clocks', 'openRoles', 'scratchpad', 'recap', 'calendar', 'music', 'todos',
 ] as const
 export type CardType = typeof CARD_TYPES[number]
 
@@ -24,6 +24,7 @@ export const CARD_ICONS: Record<CardType, string> = {
   recap: 'mdi-book-open-page-variant',
   calendar: 'mdi-calendar',
   music: 'mdi-spotify',
+  todos: 'mdi-checkbox-marked-outline',
 }
 
 /** Size a card gets when added (12-column grid, 60px rows) */
@@ -42,6 +43,7 @@ export const CARD_SIZES: Record<CardType, { w: number, h: number }> = {
   recap: { w: 4, h: 4 },
   calendar: { w: 4, h: 4 },
   music: { w: 4, h: 4 },
+  todos: { w: 4, h: 5 },
 }
 
 export interface DashboardCard {
@@ -78,6 +80,7 @@ export const DEFAULT_LAYOUTS: Record<DashboardBoardKey, DashboardCard[]> = {
     card('recap', 'recap', 4, 5),
     card('pinned', 'pinned', 8, 5),
     card('pad', 'scratchpad', 4, 9),
+    card('todos', 'todos', 0, 11),
     card('calendar', 'calendar', 8, 9),
   ],
 }

@@ -260,6 +260,17 @@
             class="mb-4 rounded preview-image"
           />
           <PlayerCharacterSummary :metadata="entity.metadata" class="mb-4" />
+          <!-- Inventory right here: purse, load, items (add, equip, mark stolen/missing …) -->
+          <v-expansion-panels v-model="inventoryOpen" variant="accordion" class="mb-4 panel-inventory">
+            <v-expansion-panel value="inv">
+              <v-expansion-panel-title>
+                <v-icon class="mr-2" size="small">mdi-bag-personal</v-icon>{{ $t('inventory.tab') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <PlayerInventoryTab v-if="inventoryOpen === 'inv' && entityId" :player-id="entityId" />
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
           <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <v-divider class="my-4" />
           <div class="text-body-medium">
@@ -403,6 +414,7 @@
 <script setup lang="ts">
 import LocationShopTab from '~/components/locations/LocationShopTab.vue'
 import PlayerCharacterSummary from '~/components/players/PlayerCharacterSummary.vue'
+import PlayerInventoryTab from '~/components/players/PlayerInventoryTab.vue'
 import { isShopLocationType } from '~~/types/shop'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
@@ -512,6 +524,8 @@ const npcAgeParts = computed(() => {
   return { own: clean(own), human: clean(human) }
 })
 const npcAge = computed(() => npcAgeParts.value.own || ageText(null, npcAgeParts.value.human, t('npcs.humanWord')))
+// Player inventory in the panel (opened on demand, remembered per visit)
+const inventoryOpen = ref<string | null>(null)
 const npcHumanAge = computed(() => (npcAgeParts.value.own ? npcAgeParts.value.human : ''))
 
 // Quests: status + objectives (tick them off right here)
