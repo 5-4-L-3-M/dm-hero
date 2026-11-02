@@ -3,12 +3,12 @@
 
 export const NAV_KEYS = [
   'search', 'story', 'quests', 'npcs', 'roster', 'locations', 'items', 'factions', 'lore', 'players', 'sessions',
-  'gameTable', 'encounters', 'calendar', 'maps', 'music', 'groups', 'notes',
+  'gameTable', 'encounters', 'rollTables', 'calendar', 'maps', 'music', 'groups', 'notes',
 ] as const
 export type NavKey = typeof NAV_KEYS[number]
 
 /** Entries added after the first release → the entry they sit below by default. */
-const NAV_ANCHORS: Partial<Record<NavKey, NavKey>> = { story: 'search', quests: 'story', roster: 'npcs' }
+const NAV_ANCHORS: Partial<Record<NavKey, NavKey>> = { story: 'search', quests: 'story', roster: 'npcs', rollTables: 'encounters' }
 
 /** A nav entry key or a divider ("divider:<id>") */
 export type NavLayoutEntry = NavKey | `divider:${string}`

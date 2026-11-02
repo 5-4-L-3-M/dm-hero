@@ -63,6 +63,7 @@
             <RecapCard v-else-if="c.type === 'recap'" :sessions="sessions" />
             <MusicCard v-else-if="c.type === 'music'" />
             <TodosCard v-else-if="c.type === 'todos'" :campaign-id="campaignId" />
+            <DiceTablesCard v-else-if="c.type === 'rollTables'" :campaign-id="campaignId" :sessions="sessions" />
             <DashboardCalendarWidget
               v-else-if="c.type === 'calendar'"
               :calendar="ctx?.calendar ?? null"
@@ -94,6 +95,7 @@ import ScratchpadCard from './ScratchpadCard.vue'
 import RecapCard from './RecapCard.vue'
 import MusicCard from './MusicCard.vue'
 import TodosCard from './TodosCard.vue'
+import DiceTablesCard from './DiceTablesCard.vue'
 import { toPreviewType } from '~/stores/entityTabs'
 import type { SessionRow } from '~/composables/useSessionPlan'
 import type { PinboardItem } from '~~/types/pinboard'

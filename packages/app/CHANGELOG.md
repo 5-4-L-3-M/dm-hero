@@ -1,5 +1,14 @@
 # @dm-hero/app
 
+## 1.19.0
+
+### Minor Changes
+
+- Roll tables: a new page for random encounters, rumors, loot, weather — anything you roll for. Paste a table from your notes ("1-4 | result", Markdown tables, or plain lines) and it's read for you, with a live preview and a warning for numbers nothing covers.
+- One-click rolls: the result shows big and its row lights up; any die ("d20", "2d6"), or sized to the rows.
+- Tags: tag a table to quests, places, NPCs, factions or sessions. Tagged tables show up in that entry's side panel and in the session's new Roll tables tab (where you can make one on the spot).
+- Dashboard: a Roll tables card — the tables tagged to the next session, plus any other one you pick.
+
 ## 1.18.2
 
 ### Patch Changes

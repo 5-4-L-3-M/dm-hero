@@ -173,6 +173,10 @@
             <v-icon start> mdi-music </v-icon>
             {{ $t('sessions.music.title') }}
           </v-tab>
+          <v-tab value="rolls">
+            <v-icon start>mdi-dice-multiple</v-icon>
+            {{ $t('rollTables.title') }}
+          </v-tab>
           <v-tab value="attendance">
             <v-icon start> mdi-account-check </v-icon>
             {{ $t('sessions.attendance') }} ({{ attendanceCount }})
@@ -366,6 +370,11 @@
                 :session-id="editingSession.id"
                 @updated="reloadSessions"
               />
+            </v-tabs-window-item>
+
+            <!-- Roll tables tagged to this session -->
+            <v-tabs-window-item value="rolls">
+              <RollTablesSection v-if="editingSession" :session-id="editingSession.id" allow-add />
             </v-tabs-window-item>
 
             <!-- Attendance Tab -->

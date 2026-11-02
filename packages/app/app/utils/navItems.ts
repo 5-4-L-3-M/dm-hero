@@ -25,6 +25,7 @@ export const NAV_ITEMS: Record<NavKey, NavItem> = {
   sessions: { icon: fixed('mdi-book-open-page-variant'), title: 'nav.sessions', to: '/sessions', needsCampaign: true },
   gameTable: { icon: fixed('mdi-table-furniture'), title: 'nav.gameTable', to: '/game-table', needsCampaign: true },
   encounters: { icon: fixed('mdi-sword-cross'), title: 'nav.encounters', to: '/encounters', needsCampaign: true },
+  rollTables: { icon: fixed('mdi-dice-multiple'), title: 'nav.rollTables', to: '/roll-tables', needsCampaign: true },
   calendar: { icon: fixed('mdi-calendar'), title: 'calendar.title', to: '/calendar', needsCampaign: true },
   maps: { icon: fixed('mdi-map'), title: 'nav.maps', to: '/maps', needsCampaign: true },
   music: { icon: music => (music.isPlaying.value ? 'mdi-music-note' : 'mdi-music'), title: 'nav.music', to: '/music', needsCampaign: false },

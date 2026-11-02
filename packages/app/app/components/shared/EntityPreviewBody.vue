@@ -401,6 +401,8 @@
 
         <!-- Stats -->
         <SharedEntityPreviewStats v-if="entityId && (type === 'npc' || type === 'player')" :entity-id="entityId" />
+        <!-- Roll tables tagged here (rumors at this place, encounters on this quest …) -->
+        <RollTablesSection v-if="entityId && type !== 'player'" :entity-id="entityId" class="mt-4" />
       </div>
     </template>
 
