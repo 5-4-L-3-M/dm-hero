@@ -61,6 +61,7 @@
         <div class="d-flex flex-column ga-1 ml-2">
           <v-btn color="success" variant="flat" size="small" prepend-icon="mdi-check" @click="markPlayed(beat)">{{ $t('story.run.played') }}</v-btn>
           <v-btn variant="text" size="small" prepend-icon="mdi-arrow-u-left-top" @click="skip(beat)">{{ $t('story.run.skip') }}</v-btn>
+          <v-btn v-if="repSubjects(beat).length" variant="text" size="small" prepend-icon="mdi-scale-balance" @click="openRep(beat)">{{ $t('reputation.short') }}</v-btn>
         </div>
       </div>
     </v-card>
@@ -81,6 +82,8 @@
       </v-card>
     </div>
 
+    <RepLogDialog v-model="repOpen" :subjects="repFor" :reason="repReason" />
+
     <v-snackbar v-model="undoOpen" :timeout="8000" location="bottom">
       {{ undoText }}
       <template #actions>
@@ -91,6 +94,8 @@
 </template>
 
 <script setup lang="ts">
+import RepLogDialog from '~/components/reputation/RepLogDialog.vue'
+import type { RepSubjectType } from '~~/types/reputation'
 import { BEAT_KIND_ICONS, clusterColor, NO_COLOR, type StoryBeat } from '~~/types/story'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
@@ -121,6 +126,21 @@ function colorOfBeat(b: StoryBeat) {
 function iconFor(type: string) {
   const p = toPreviewType(type)
   return p ? ENTITY_PREVIEW_CONFIG[p].icon : 'mdi-link'
+}
+
+// Reputation nudges for the people / factions / places in a beat
+const repOpen = ref(false)
+const repFor = ref<Array<{ id: number, name: string, type: RepSubjectType }>>([])
+const repReason = ref('')
+function repSubjects(beat: StoryBeat) {
+  const list = beat.entities.filter(e => ['NPC', 'Faction', 'Location'].includes(e.type)).map(e => ({ id: e.id, name: e.name, type: e.type as RepSubjectType }))
+  if (beat.location_id && beat.location_name && !list.some(x => x.id === beat.location_id)) list.push({ id: beat.location_id, name: beat.location_name, type: 'Location' })
+  return list
+}
+function openRep(beat: StoryBeat) {
+  repFor.value = repSubjects(beat)
+  repReason.value = beat.title
+  repOpen.value = true
 }
 
 // What the last Played / Skip changed, so Undo can put it back exactly

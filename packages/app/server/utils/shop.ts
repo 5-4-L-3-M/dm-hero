@@ -8,6 +8,7 @@ import {
   type Purse,
 } from '~~/types/coins'
 import { serializeInventoryNotes } from '~~/types/inventory'
+import { priceAdjustment } from './reputation'
 import { isShopCategory, type ShopItem, type ShopItemInput, type ShopSaleResult } from '~~/types/shop'
 import { getInventoryEntries } from './inventory'
 
@@ -182,7 +183,8 @@ export function sellShopItem(db: Database.Database, options: SellOptions): ShopS
     const quantity = Math.max(1, Math.floor(Number(options.quantity) || 1))
     if (row.stock !== null && row.stock < quantity) throw new ShopError(409, 'Not enough in stock')
 
-    const each = options.priceEachCp ?? row.price_cp ?? 0
+    // No price given → the listed price, moved by how the place feels about the party
+    const each = options.priceEachCp ?? Math.max(0, Math.round((row.price_cp ?? 0) * (1 + priceAdjustment(db, campaignId, row.location_id).pct / 100)))
     if (!Number.isFinite(each) || each < 0) throw new ShopError(400, 'Price must be 0 or more')
     const total = Math.round(each * quantity)
     const charge = options.charge !== false

@@ -3340,6 +3340,17 @@
       "smallerMap": "Show side panels",
       "addAct": "Add an act",
       "actsHint": "Acts are stages of the world, not a strict order — cards can skip acts and lines can cross between them."
+    },
+    "archive": {
+      "title": "Archive",
+      "hint": "Put away, not deleted. Restore anything with one click — nothing lands here on its own.",
+      "empty": "The archive is empty.",
+      "clusters": "Clusters",
+      "beats": "Beats & sparks",
+      "quests": "Quests",
+      "restore": "Restore",
+      "put": "Archive",
+      "beatCount": "{n} beats"
     }
   },
   "quests": {
@@ -3429,5 +3440,145 @@
     "place": "Place",
     "category": "Heading",
     "categoryHint": "Your own grouping, e.g. Shops & Services"
+  },
+  "reputation": {
+    "title": "Reputation",
+    "short": "Reputation",
+    "party": "The party",
+    "met": "Met the party",
+    "notMet": "Not met yet",
+    "history": "History",
+    "noHistory": "Nothing logged yet.",
+    "change": "Change",
+    "rippled": "rippled",
+    "undo": "Remove this change",
+    "split": "Split off a player",
+    "removeSplit": "Remove this player's tracker",
+    "track": "Track another…",
+    "kinds": {
+      "rep": "Reputation",
+      "notoriety": "Notoriety with the guard"
+    },
+    "types": {
+      "NPC": "NPC",
+      "Faction": "Faction",
+      "Location": "Place"
+    },
+    "sections": {
+      "factions": "Factions",
+      "places": "Places",
+      "people": "People"
+    },
+    "empty": {
+      "Faction": "No factions yet.",
+      "Location": "No places yet.",
+      "NPC": "Nobody met yet — NPCs show up here once the party meets them or you log something with them."
+    },
+    "why": {
+      "faction": "their faction",
+      "settlement": "their city",
+      "ally": "an ally",
+      "rival": "a rival"
+    },
+    "tiers": {
+      "hostile": "Hostile",
+      "unfriendly": "Unfriendly",
+      "indifferent": "Indifferent",
+      "friendly": "Friendly",
+      "allied": "Allied",
+      "hated": "Hated",
+      "disliked": "Disliked",
+      "neutral": "Neutral",
+      "liked": "Liked",
+      "honored": "Honored",
+      "revered": "Revered",
+      "unknown": "Not on their radar",
+      "noticed": "Noticed",
+      "suspected": "Suspected",
+      "wanted": "Wanted",
+      "hunted": "Hunted"
+    },
+    "presets": {
+      "small": {
+        "label": "Small kindness",
+        "example": "Paid fairly, kind word, bought from their shop"
+      },
+      "help": {
+        "label": "Real help",
+        "example": "Did a job for them, stood up for them"
+      },
+      "big": {
+        "label": "Big deed",
+        "example": "Saved someone they care about, got their stolen goods back"
+      },
+      "life": {
+        "label": "Life-changing",
+        "example": "Saved their life or their faction"
+      },
+      "rude": {
+        "label": "Rude",
+        "example": "Haggled hard, insulted them, ignored a request"
+      },
+      "trouble": {
+        "label": "Trouble",
+        "example": "Caught lying, petty theft, made a scene in their place"
+      },
+      "betrayal": {
+        "label": "Betrayal",
+        "example": "Broke a deal, hurt one of their people"
+      },
+      "unforgivable": {
+        "label": "Unforgivable",
+        "example": "Killed someone close to them, burned their place down"
+      },
+      "petty": {
+        "label": "Petty crime",
+        "example": "Pickpocketing, trespassing, a bar fight"
+      },
+      "crime": {
+        "label": "Crime",
+        "example": "Burglary, assault, bribing a guard"
+      },
+      "serious": {
+        "label": "Serious crime",
+        "example": "Breaking someone out, robbing a noble"
+      },
+      "outrage": {
+        "label": "Outrage",
+        "example": "Murder in the street, attacking the guard"
+      },
+      "cooldown": {
+        "label": "Cooled down",
+        "example": ""
+      }
+    },
+    "log": {
+      "title": "What happened?",
+      "short": "Log",
+      "who": "Who reacts",
+      "toward": "Toward",
+      "reason": "What they did (shows in the history)",
+      "reasonPlaceholder": "Got Wisp home safe",
+      "session": "Session",
+      "ripples": "The world reacts too",
+      "save": "Log it",
+      "worldReacted": "The world reacted: {list}"
+    },
+    "world": {
+      "title": "The world moves",
+      "hint": "Reputation changes ripple out on their own; big moments become rumors on your sparks shelf.",
+      "consequences": "Reactions",
+      "rumors": "Rumors",
+      "advance": "Advance the world",
+      "turnTitle": "Between sessions",
+      "quiet": "A quiet stretch — nothing moved this time.",
+      "cooled": "Things cooled down a little in {place}",
+      "sparks": "{n} new sparks are waiting on the Story Board.",
+      "plansAndEvents": "Faction plans & world events"
+    },
+    "price": {
+      "cheaper": "Prices here are {pct}% lower — {from} is {tier} toward the party.",
+      "dearer": "Prices here are {pct}% higher — {from} is {tier} toward the party."
+    }
   }
 }

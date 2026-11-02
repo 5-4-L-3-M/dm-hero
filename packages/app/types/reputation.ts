@@ -36,18 +36,18 @@ export interface RepTier {
 }
 export const NPC_TIERS: RepTier[] = [
   { key: 'hostile', min: -Infinity, color: 'red' },
-  { key: 'unfriendly', min: -9, color: 'orange' },
+  { key: 'unfriendly', min: -7, color: 'orange' },
   { key: 'indifferent', min: -2, color: 'grey' },
   { key: 'friendly', min: 3, color: 'light-green' },
-  { key: 'allied', min: 10, color: 'green' },
+  { key: 'allied', min: 8, color: 'green' },
 ]
 export const GROUP_TIERS: RepTier[] = [
   { key: 'hated', min: -Infinity, color: 'red' },
   { key: 'disliked', min: -19, color: 'orange' },
-  { key: 'neutral', min: -5, color: 'grey' },
-  { key: 'liked', min: 6, color: 'light-green' },
-  { key: 'honored', min: 20, color: 'green' },
-  { key: 'revered', min: 40, color: 'teal' },
+  { key: 'neutral', min: -3, color: 'grey' },
+  { key: 'liked', min: 4, color: 'light-green' },
+  { key: 'honored', min: 15, color: 'green' },
+  { key: 'revered', min: 30, color: 'teal' },
 ]
 export const NOTORIETY_TIERS: RepTier[] = [
   { key: 'unknown', min: -Infinity, color: 'grey' },
@@ -68,7 +68,7 @@ export function tierOf(points: number, type: RepSubjectType, kind: RepKind = 're
 /** Bar range shown (points beyond it just fill the bar) */
 export function barRange(type: RepSubjectType, kind: RepKind = 'rep'): number {
   if (kind === 'notoriety') return 12
-  return type === 'NPC' ? 15 : 50
+  return type === 'NPC' ? 10 : 30
 }
 
 /** Shop prices follow how a place feels about the party (percent change) */

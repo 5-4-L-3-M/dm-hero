@@ -10,6 +10,11 @@
 
     <v-progress-linear v-if="loading" indeterminate class="mb-2" />
 
+    <!-- Prices follow how this place (or its city) feels about the party -->
+    <v-alert v-if="priceAdjust.pct" :type="priceAdjust.pct < 0 ? 'success' : 'warning'" variant="tonal" density="compact" class="mb-3">
+      {{ $t(priceAdjust.pct < 0 ? 'reputation.price.cheaper' : 'reputation.price.dearer', { pct: Math.abs(priceAdjust.pct), from: priceAdjust.from, tier: $t(`reputation.tiers.${priceAdjust.tier}`) }) }}
+    </v-alert>
+
     <v-table v-if="sorted.length > 0" density="comfortable">
       <thead>
         <tr>
@@ -34,7 +39,13 @@
             </div>
           </td>
           <td class="text-right text-no-wrap">{{ row.weight !== null ? formatWeight(row.weight) : '—' }}</td>
-          <td class="text-right text-no-wrap">{{ priceLabel(row) }}</td>
+          <td class="text-right text-no-wrap">
+            <template v-if="priceAdjust.pct && row.price_cp">
+              <span class="text-decoration-line-through text-medium-emphasis mr-1">{{ priceLabel(row) }}</span>
+              <strong :class="priceAdjust.pct < 0 ? 'text-success' : 'text-warning'">{{ formatCoins(adjusted(row.price_cp), denominations) }}</strong>
+            </template>
+            <template v-else>{{ priceLabel(row) }}</template>
+          </td>
           <td class="text-center">{{ row.stock ?? '∞' }}</td>
           <td class="text-right text-no-wrap">
             <v-btn
@@ -440,8 +451,17 @@ const canSell = computed(() => {
   return !s.charge || saleTotal.value === 0 || purseAfter.value !== null
 })
 
+const priceAdjust = ref<{ pct: number, tier: string | null, from: string | null }>({ pct: 0, tier: null, from: null })
+async function loadPriceAdjust() {
+  const campaignId = campaignStore.activeCampaignIdNumber
+  if (!campaignId) return
+  priceAdjust.value = await $fetch<typeof priceAdjust.value>('/api/reputation/price', { query: { campaignId, locationId: props.locationId } }).catch(() => ({ pct: 0, tier: null, from: null }))
+}
+watch(() => props.locationId, loadPriceAdjust, { immediate: true })
+const adjusted = (cp: number) => Math.max(0, Math.round(cp * (1 + priceAdjust.value.pct / 100)))
+
 function openSell(row: ShopItem) {
-  const price = bestUnit(row.price_cp ?? 0, denominations.value)
+  const price = bestUnit(adjusted(row.price_cp ?? 0), denominations.value)
   selling.value = row
   sell.value = { ...sell.value, quantity: 1, priceAmount: price.amount, priceCode: price.code, charge: true }
   sellOpen.value = true

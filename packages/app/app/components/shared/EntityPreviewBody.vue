@@ -285,6 +285,11 @@
           </div>
         </SharedPreviewSection>
 
+        <!-- Reputation: how they feel about the party (and met, for NPCs) -->
+        <SharedPreviewSection v-if="repSubject" id="reputation" :title="$t('reputation.title')" icon="mdi-scale-balance">
+          <RepSection :subject="repSubject" />
+        </SharedPreviewSection>
+
         <!-- Roster: the roles at this place, or the roles this NPC fills -->
         <SharedPreviewSection v-if="rosterRoles.length" id="roster" :title="type === 'npc' ? $t('roster.rolesTitle') : $t('roster.title')" icon="mdi-account-box-multiple" :count="rosterRoles.length">
           <div v-for="r in rosterRoles" :key="r.id" class="py-1 roster-row">
@@ -382,6 +387,7 @@ import FactionAgendaList from '~/components/story/FactionAgendaList.vue'
 import { ageText } from '~~/types/age'
 import type { PlayerInventory } from '~~/types/inventory'
 import type { Roster, RosterRole } from '~~/types/roster'
+import RepSection from '~/components/reputation/RepSection.vue'
 import { NPC_LOYALTY_COLORS, readLoyalty } from '~~/types/npc'
 import { QUEST_STATUS_ICONS, readQuestMetadata, type LinkedEntity, type QuestObjective, type QuestStatus } from '~~/types/story'
 import type { EntityPreviewType } from './EntityPreviewDialog.vue'
@@ -545,6 +551,11 @@ const gallery = ref<GalleryImage[]>([])
 const inventory = ref<PlayerInventory | null>(null)
 const npcNotes = ref<{ id: number, content: string }[]>([])
 const rosterRoles = ref<RosterRole[]>([])
+const REP_TYPES = { npc: 'NPC', faction: 'Faction', location: 'Location' } as const
+const repSubject = computed(() => {
+  const t = REP_TYPES[type.value as keyof typeof REP_TYPES]
+  return t && entity.value ? { id: Number(entity.value.id), name: String(entity.value.name), type: t } : null
+})
 
 async function loadExtras(id: number, t: EntityPreviewType) {
   const rosterQuery = t === 'npc' ? { npcId: id } : t === 'location' ? { locationId: id } : null

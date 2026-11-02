@@ -26,5 +26,10 @@ export default defineEventHandler(async (event) => {
     row.id,
   )
   if (has('entity_ids')) setClusterEntities(db, row.campaign_id, row.id, body.entity_ids)
+  // Archive / restore (its beats stay with it and leave the next-session tray)
+  if (has('archived')) {
+    db.prepare(`UPDATE story_clusters SET archived_at = ${body.archived ? 'CURRENT_TIMESTAMP' : 'NULL'} WHERE id = ?`).run(row.id)
+    if (body.archived) db.prepare('UPDATE story_beats SET tray_order = NULL WHERE cluster_id = ?').run(row.id)
+  }
   return loadBoard(db, row.campaign_id).clusters.find(x => x.id === row.id)
 })

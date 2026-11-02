@@ -1,6 +1,7 @@
 import { getDb } from '../../../utils/db'
 import { clusterInCampaign, entityInCampaign, loadBeat, nextSortOrder, requireRow, setBeatEntities } from '../../../utils/storyBoard'
 import { BEAT_KINDS, BEAT_STATUSES, oneOf } from '../../../../types/story'
+import { setMet } from '../../../utils/reputation'
 
 /**
  * PATCH /api/story/beats/:id — only the fields sent change.
@@ -64,6 +65,18 @@ export default defineEventHandler(async (event) => {
       row.id,
     )
     if (has('entity_ids')) setBeatEntities(db, campaignId, row.id, body.entity_ids)
+    // Archive / restore (archived beats leave the next-session tray)
+    if (has('archived')) {
+      db.prepare(`UPDATE story_beats SET archived_at = ${body.archived ? 'CURRENT_TIMESTAMP' : 'NULL'}${body.archived ? ', tray_order = NULL' : ''} WHERE id = ?`).run(row.id)
+    }
+    // Just played → the NPCs in it have now met the party
+    if (status === 'played' && b.status !== 'played') {
+      const npcs = db.prepare(`
+        SELECT be.entity_id FROM story_beat_entities be JOIN entities e ON e.id = be.entity_id
+        JOIN entity_types et ON et.id = e.type_id AND et.name = 'NPC' WHERE be.beat_id = ?
+      `).all(row.id) as { entity_id: number }[]
+      for (const n of npcs) setMet(db, campaignId, n.entity_id, true, played)
+    }
   })()
   return loadBeat(db, row.id)
 })

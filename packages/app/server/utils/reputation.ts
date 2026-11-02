@@ -269,10 +269,12 @@ export function priceAdjustment(db: Database.Database, campaignId: number, locat
   const has = (id: number) => !!db.prepare("SELECT 1 FROM rep_events WHERE campaign_id = ? AND subject_id = ? AND player_id = 0 AND kind = 'rep' LIMIT 1").get(campaignId, id)
   const shop = repSubject(db, campaignId, locationId)
   if (!shop) return { pct: 0, tier: null, from: null }
-  const source = has(shop.id) ? shop : (() => {
-    const city = settlementOf(db, campaignId, shop.parent_entity_id)
-    return city && has(city.id) ? city : null
-  })()
+  const source = has(shop.id)
+    ? shop
+    : (() => {
+        const city = settlementOf(db, campaignId, shop.parent_entity_id)
+        return city && has(city.id) ? city : null
+      })()
   if (!source) return { pct: 0, tier: null, from: null }
   const tier = tierOf(trackPoints(db, campaignId, source.id, 0, 'rep'), source.type, 'rep').key
   return { pct: PRICE_BY_TIER[tier] ?? 0, tier, from: source.name }

@@ -69,7 +69,7 @@ export function setBeatEntities(db: Database.Database, campaignId: number, beatI
 }
 
 export function getSettings(db: Database.Database, campaignId: number): StoryBoard['settings'] {
-  const row = db.prepare('SELECT color_by, party_location_id, group_by, compact, acts FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number, acts: string | null } | undefined
+  const row = db.prepare('SELECT color_by, party_location_id, group_by, compact, acts, rep_consequences, rep_rumors FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number, acts: string | null, rep_consequences: number, rep_rumors: number } | undefined
   let acts: string[] | null = null
   try {
     const parsed = row?.acts ? JSON.parse(row.acts) : null
@@ -80,6 +80,8 @@ export function getSettings(db: Database.Database, campaignId: number): StoryBoa
   }
   return {
     acts,
+    rep_consequences: row ? !!row.rep_consequences : true,
+    rep_rumors: row ? !!row.rep_rumors : true,
     color_by: oneOf(COLOR_BY, row?.color_by, 'storyline'),
     party_location_id: row?.party_location_id ?? null,
     group_by: oneOf(GROUP_BY, row?.group_by, 'storyline'),
@@ -100,8 +102,8 @@ export function loadBoard(db: Database.Database, campaignId: number): StoryBoard
     LEFT JOIN entities q ON q.id = c.quest_id AND q.deleted_at IS NULL
     WHERE c.campaign_id = ?
     ORDER BY c.sort_order, c.id
-  `).all(campaignId) as Array<Omit<StoryCluster, 'collapsed'> & { collapsed: number, campaign_id?: number, created_at?: string, updated_at?: string }>)
-    .map(({ campaign_id: _c, created_at: _a, updated_at: _u, ...c }): StoryCluster => ({ ...c, entities: [], collapsed: !!c.collapsed, quest_id: c.quest_name ? c.quest_id : null }))
+  `).all(campaignId) as Array<Omit<StoryCluster, 'collapsed' | 'archived'> & { collapsed: number, archived_at: string | null, campaign_id?: number, created_at?: string, updated_at?: string }>)
+    .map(({ campaign_id: _c, created_at: _a, updated_at: _u, archived_at, ...c }): StoryCluster => ({ ...c, entities: [], collapsed: !!c.collapsed, archived: !!archived_at, quest_id: c.quest_name ? c.quest_id : null }))
 
   const clusterLinks = db.prepare(`
     SELECT ce.cluster_id, e.id, e.name, et.name AS type
@@ -128,13 +130,14 @@ export function loadBoard(db: Database.Database, campaignId: number): StoryBoard
 
   const beats = (db.prepare(`
     SELECT b.id, b.cluster_id, b.title, b.body, b.kind, b.status, b.location_id, l.name AS location_name,
-           b.sort_order, b.tray_order, b.played_session_id
+           b.sort_order, b.tray_order, b.played_session_id, b.archived_at
     FROM story_beats b
     LEFT JOIN entities l ON l.id = b.location_id AND l.deleted_at IS NULL
     WHERE b.campaign_id = ?
     ORDER BY b.sort_order, b.id
-  `).all(campaignId) as Omit<StoryBeat, 'entities'>[]).map(b => ({
+  `).all(campaignId) as Array<Omit<StoryBeat, 'entities' | 'archived'> & { archived_at: string | null }>).map(({ archived_at, ...b }) => ({
     ...b,
+    archived: !!archived_at,
     kind: oneOf(BEAT_KINDS, b.kind, 'scene'),
     status: oneOf(BEAT_STATUSES, b.status, 'idea'),
     entities: linksByBeat.get(b.id) ?? [],
@@ -161,12 +164,12 @@ export function questTypeId(db: Database.Database): number {
 
 export function loadQuests(db: Database.Database, campaignId: number, id?: number): Quest[] {
   const rows = db.prepare(`
-    SELECT e.id, e.name, e.description, e.metadata, e.location_id, l.name AS location_name, e.updated_at
+    SELECT e.id, e.name, e.description, e.metadata, e.location_id, l.name AS location_name, e.updated_at, e.archived_at
     FROM entities e
     LEFT JOIN entities l ON l.id = e.location_id AND l.deleted_at IS NULL
     WHERE e.type_id = ? AND e.campaign_id = ? AND e.deleted_at IS NULL ${id ? 'AND e.id = ?' : ''}
     ORDER BY e.name COLLATE NOCASE
-  `).all(...(id ? [questTypeId(db), campaignId, id] : [questTypeId(db), campaignId])) as Array<{ id: number, name: string, description: string | null, metadata: string | null, location_id: number | null, location_name: string | null, updated_at: string }>
+  `).all(...(id ? [questTypeId(db), campaignId, id] : [questTypeId(db), campaignId])) as Array<{ id: number, name: string, description: string | null, metadata: string | null, location_id: number | null, location_name: string | null, updated_at: string, archived_at: string | null }>
   const giverName = db.prepare('SELECT e.name, et.name AS type FROM entities e JOIN entity_types et ON et.id = e.type_id WHERE e.id = ? AND e.deleted_at IS NULL')
   const questlineIds = new Set((db.prepare('SELECT id FROM story_questlines WHERE campaign_id = ?').all(campaignId) as { id: number }[]).map(q => q.id))
   const involved = db.prepare(`
@@ -200,6 +203,7 @@ export function loadQuests(db: Database.Database, campaignId: number, id?: numbe
       location_id: r.location_name ? r.location_id : null,
       location_name: r.location_name,
       updated_at: r.updated_at,
+      archived: !!r.archived_at,
     }
   }).sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
 }

@@ -10,6 +10,7 @@ export const reputationRoutes: SubRoutes = {
   'tracks': { POST: rep.addTrack, DELETE: rep.removeTrack },
   'met': { POST: rep.markMet },
   'advance': { POST: rep.advance },
+  'price': { GET: rep.price },
 }
 
 export default defineEventHandler(event => dispatchSubRoute(event, reputationRoutes, getRouterParam(event, 'path') ?? ''))

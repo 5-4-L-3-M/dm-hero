@@ -132,7 +132,7 @@ describe('story board API', () => {
     // Settings
     await story('PATCH', 'settings', { campaignId, color_by: 'region', party_location_id: harbor })
     b = await board()
-    expect(b.settings).toEqual({ color_by: 'region', party_location_id: harbor, group_by: 'storyline', compact: false, acts: null })
+    expect(b.settings).toEqual({ color_by: 'region', party_location_id: harbor, group_by: 'storyline', compact: false, acts: null, rep_consequences: true, rep_rumors: true })
     await story('PATCH', 'settings', { campaignId, acts: [' Prologue ', '', 'The Spire'] })
     expect((await board()).settings.acts).toEqual(['Prologue', 'The Spire'])
     await story('PATCH', 'settings', { campaignId, acts: [] })
@@ -183,6 +183,21 @@ describe('story board API', () => {
     expect(filled.clock_filled).toBe(4)
     expect(await story<FactionAgenda[]>('GET', 'agendas', undefined, { campaignId, factionId: faction })).toHaveLength(1)
     await expect(story('POST', 'agendas', { campaignId, faction_id: entity('NPC', 'Not a faction'), goal: 'x' })).rejects.toMatchObject({ statusCode: 400 })
+  })
+})
+
+describe('archive', () => {
+  it('archives clusters and beats (out of the tray) and restores them', async () => {
+    const cluster = await story<StoryCluster>('POST', 'clusters', { campaignId, title: 'Old thread' })
+    const beat = await story<StoryBeat>('POST', 'beats', { campaignId, title: 'Planned', cluster_id: cluster.id, in_tray: true })
+    const spark = await story<StoryBeat>('POST', 'beats', { campaignId, title: 'Loose idea', in_tray: true })
+    expect((await story<StoryCluster>('PATCH', `clusters/${cluster.id}`, { archived: true })).archived).toBe(true)
+    expect((await story<StoryBeat>('PATCH', `beats/${spark.id}`, { archived: true })).archived).toBe(true)
+    const b = await board()
+    expect(b.beats.find(x => x.id === beat.id)!.tray_order).toBeNull()
+    expect(b.beats.find(x => x.id === spark.id)).toMatchObject({ archived: true, tray_order: null })
+    expect((await story<StoryCluster>('PATCH', `clusters/${cluster.id}`, { archived: false })).archived).toBe(false)
+    expect((await story<StoryBeat>('PATCH', `beats/${spark.id}`, { archived: false })).archived).toBe(false)
   })
 })
 

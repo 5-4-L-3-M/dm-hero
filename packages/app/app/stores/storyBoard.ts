@@ -26,10 +26,18 @@ export const useStoryBoardStore = defineStore('storyBoard', {
 
   getters: {
     storylines: s => s.board?.storylines ?? [],
-    clusters: s => s.board?.clusters ?? [],
-    beats: s => s.board?.beats ?? [],
+    /** Board clusters and beats (the archive is kept out; see archivedClusters / archivedBeats) */
+    clusters: s => (s.board?.clusters ?? []).filter(c => !c.archived),
+    beats(s): StoryBeat[] {
+      const hidden = new Set((s.board?.clusters ?? []).filter(c => c.archived).map(c => c.id))
+      return (s.board?.beats ?? []).filter(b => !b.archived && !(b.cluster_id && hidden.has(b.cluster_id)))
+    },
+    archivedClusters: s => (s.board?.clusters ?? []).filter(c => c.archived),
+    archivedBeats: s => (s.board?.beats ?? []).filter(b => b.archived),
+    /** Quests not in the archive */
+    activeQuests: s => s.quests.filter(q => !q.archived),
     questlines: (s): Questline[] => s.board?.questlines ?? [],
-    settings: (s): StoryBoardSettings => s.board?.settings ?? { color_by: 'storyline', party_location_id: null, group_by: 'storyline', compact: false, acts: null },
+    settings: (s): StoryBoardSettings => s.board?.settings ?? { color_by: 'storyline', party_location_id: null, group_by: 'storyline', compact: false, acts: null, rep_consequences: true, rep_rumors: true },
     sparks(): StoryBeat[] {
       return this.beats.filter(b => b.cluster_id === null)
     },
@@ -157,11 +165,13 @@ export const useStoryBoardStore = defineStore('storyBoard', {
       return cluster
     },
     async updateCluster(id: number, changes: Partial<StoryCluster>) {
-      const local = this.clusters.find(c => c.id === id)
+      const local = this.board?.clusters.find(c => c.id === id)
       if (local) Object.assign(local, changes)
       const cluster = await $fetch<StoryCluster>(`/api/story/clusters/${id}`, { method: 'PATCH', body: changes })
-      const i = this.clusters.findIndex(c => c.id === id)
+      const i = this.board?.clusters.findIndex(c => c.id === id) ?? -1
       if (i >= 0 && this.board) this.board.clusters[i] = cluster
+      // Archiving takes its beats out of the tray
+      if ('archived' in changes) await this.reload()
     },
     async deleteCluster(id: number, withBeats = false) {
       await $fetch(`/api/story/clusters/${id}`, { method: 'DELETE', query: { withBeats } })
@@ -176,7 +186,7 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     },
     async updateBeat(id: number, changes: Partial<StoryBeat> & { entity_ids?: number[], in_tray?: boolean }) {
       const beat = await $fetch<StoryBeat>(`/api/story/beats/${id}`, { method: 'PATCH', body: changes })
-      const i = this.beats.findIndex(b => b.id === id)
+      const i = this.board?.beats.findIndex(b => b.id === id) ?? -1
       if (i >= 0 && this.board) this.board.beats[i] = beat
       return beat
     },
@@ -228,6 +238,13 @@ export const useStoryBoardStore = defineStore('storyBoard', {
       if (!id) this.entities.push({ id: quest.id, name: quest.name, type: 'Quest' })
       this.questVersion++
       return quest
+    },
+    /** Put a quest in the archive (hidden from the quest board) or take it out */
+    async setQuestArchived(id: number, archived: boolean) {
+      await $fetch(`/api/entities/${id}/archive`, { method: 'PATCH', body: { archive: archived } })
+      const q = this.quests.find(x => x.id === id)
+      if (q) q.archived = archived
+      this.questVersion++
     },
     async deleteQuest(id: number) {
       await $fetch(`/api/quests/${id}`, { method: 'DELETE' })

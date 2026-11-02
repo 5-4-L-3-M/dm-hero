@@ -1,6 +1,6 @@
 import { getDb } from '../../utils/db'
 import { requireCampaign } from '../../utils/storyBoard'
-import { advanceWorld, loadRepEvents, loadReputation, logRepEvent, repSubject, setMet, suggestRipples } from '../../utils/reputation'
+import { advanceWorld, priceAdjustment, loadRepEvents, loadReputation, logRepEvent, repSubject, setMet, suggestRipples } from '../../utils/reputation'
 import type { RepKind } from '../../../types/reputation'
 
 /**
@@ -89,6 +89,12 @@ export const markMet = defineEventHandler(async (event) => {
   const campaignId = requireCampaign(db, body?.campaignId)
   if (!setMet(db, campaignId, Number(body.npc_id), !!body.met)) throw createError({ statusCode: 400, message: 'Unknown NPC' })
   return { ok: true }
+})
+
+export const price = defineEventHandler((event) => {
+  const db = getDb()
+  const q = getQuery(event)
+  return priceAdjustment(db, requireCampaign(db, q.campaignId), Number(q.locationId))
 })
 
 export const advance = defineEventHandler(async (event) => {

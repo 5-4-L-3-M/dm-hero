@@ -1,5 +1,23 @@
 # @dm-hero/app
 
+## 1.14.0
+
+### Minor Changes
+
+- Reputation: log what the party did with one click — eight presets from "Small kindness" to "Unforgivable", each with an example — and the hidden points turn into a word on a red-to-green bar (NPCs: Hostile → Allied; factions and places: Hated → Revered). Every NPC, faction and place has it in the side panel.
+- Ripples: a change with an NPC also moves their faction and city; a change with a faction moves its allies (and its rivals the other way). Pre-checked, untick what shouldn't move.
+- Per-player trackers: the party bar is the default; split off a player when someone feels differently about one of them.
+- History: click any bar for a colour-coded log — green ups, red downs, which session, what rippled — and remove a mistake from there.
+- The world reacts on its own: when a bar crosses into a new tier, a reaction lands on your sparks shelf ("The Hold Guard starts giving the party trouble"); big moments turn into rumors. Both can be switched off.
+- Notoriety: crimes raise how wanted the party is in a place (Noticed → Hunted); it cools down by itself.
+- Advance the world: one button between sessions — faction plans may tick forward (full clocks come to a head), notoriety cools, and you get a short summary plus rumor sparks.
+- Shop prices follow reputation: cheaper where the party is liked, dearer where they're not.
+- Met the party: one-click on any NPC, set automatically when you log something with them or play a beat they're in; shown on the roster.
+- World tab reorganised: Reputation first, then faction plans and world events.
+- Run sheet: a Reputation button on each beat for the people, factions and places in it.
+- Archive: put clusters, beats/sparks and quests away (hidden from the board and quest board, out of the next-session tray) and restore them any time. Nothing goes there on its own.
+- AI connector: get_reputation, log_reputation, advance_world.
+
 ## 1.13.0
 
 ### Minor Changes

@@ -37,6 +37,7 @@
         </template>
         <v-list density="compact">
           <v-list-item prepend-icon="mdi-pencil" :title="$t('common.edit')" @click="$emit('edit', cluster)" />
+          <v-list-item prepend-icon="mdi-archive-arrow-down-outline" :title="$t('story.archive.put')" @click="store.updateCluster(cluster.id, { archived: true })" />
           <v-list-item prepend-icon="mdi-delete" base-color="error" :title="$t('common.delete')" @click="$emit('delete', cluster)" />
         </v-list>
       </v-menu>
