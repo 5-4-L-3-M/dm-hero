@@ -3278,7 +3278,9 @@
       "add": "Für die nächste Sitzung",
       "remove": "Aus der nächsten Sitzung entfernen",
       "inTray": "In der nächsten Sitzung",
-      "empty": "Klick auf das Kalender-Symbol eines Beats, um ihn für die nächste Sitzung einzuplanen."
+      "empty": "Klick auf das Kalender-Symbol eines Beats, um ihn für die nächste Sitzung einzuplanen.",
+      "openAll": "Alle öffnen",
+      "foldAll": "Alle einklappen"
     },
     "run": {
       "open": "Ablaufplan",
@@ -3291,7 +3293,9 @@
       "restore": "Zurück in die nächste Sitzung",
       "undo": "Rückgängig",
       "markedPlayed": "„{title}“ als gespielt markiert",
-      "skipped": "„{title}“ aus der nächsten Sitzung genommen"
+      "skipped": "„{title}“ aus der nächsten Sitzung genommen",
+      "progress": "{left} offen · {played} gespielt",
+      "listHint": "Wählt aus, wohin sie gehen. Klick öffnet die Karte."
     },
     "world": {
       "today": "Heute in der Welt",

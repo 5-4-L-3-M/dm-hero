@@ -10,6 +10,9 @@
             <span v-else class="text-medium-emphasis">{{ $t('story.party.unknown') }}</span>
           </span>
         </div>
+        <span v-if="store.tray.length || playedHere.length" class="text-body-medium text-medium-emphasis">
+          {{ $t('story.run.progress', { left: store.tray.length, played: playedHere.length }) }}
+        </span>
         <v-spacer />
         <v-select
           v-model="sessionId"
@@ -31,40 +34,77 @@
       <div class="text-body-medium">{{ $t('story.run.emptyText') }}</div>
     </div>
 
-    <v-card
-      v-for="(beat, i) in store.tray"
-      :key="beat.id"
-      class="mb-3 run-beat"
-      :style="{ '--beat-color': colorCss(colorOfBeat(beat)) }"
-      variant="outlined"
-    >
-      <div class="d-flex align-start pa-3">
-        <div class="run-num text-headline-small mr-3">{{ i + 1 }}</div>
-        <div class="flex-grow-1 min-w-0">
-          <div class="d-flex align-center flex-wrap ga-2 mb-1">
-            <v-icon size="small">{{ BEAT_KIND_ICONS[beat.kind] }}</v-icon>
-            <span class="text-title-medium font-weight-bold">{{ beat.title }}</span>
-            <v-chip v-if="clusterOf(beat)" size="x-small" variant="tonal">{{ clusterOf(beat)!.title }}</v-chip>
+    <!-- One section per cluster; big pick-what-they-visit groups show as a short list -->
+    <section v-for="g in groups" :key="g.key" class="run-group mb-4" :style="{ '--group-color': colorCss(groupColor(g)) }">
+      <button type="button" class="run-group__head" @click="folds.toggle(g.key, g.beats.length)">
+        <v-icon size="small">{{ folds.isFolded(g.key, g.beats.length) ? 'mdi-chevron-right' : 'mdi-chevron-down' }}</v-icon>
+        <span class="run-group__dot" />
+        <span class="run-group__title">{{ g.cluster?.title ?? $t('story.sparks.title') }}</span>
+        <span class="run-group__count">{{ g.beats.length }}</span>
+        <span v-if="isList(g) && !folds.isFolded(g.key, g.beats.length)" class="run-group__hint">{{ $t('story.run.listHint') }}</span>
+      </button>
+
+      <template v-if="!folds.isFolded(g.key, g.beats.length)">
+        <template v-for="beat in g.beats" :key="beat.id">
+          <!-- Short row: click to open the full card -->
+          <div
+            v-if="isList(g) && !opened.has(beat.id)"
+            class="run-row"
+            role="button"
+            tabindex="0"
+            @click="toggleOpen(beat.id)"
+            @keydown.enter="toggleOpen(beat.id)"
+          >
+            <span class="run-row__num">{{ num.get(beat.id) }}</span>
+            <v-icon size="small" class="run-row__icon">{{ BEAT_KIND_ICONS[beat.kind] }}</v-icon>
+            <span class="run-row__title">{{ beat.title }}</span>
+            <span class="run-row__who">{{ whoOf(beat) }}</span>
+            <v-btn icon variant="text" size="small" color="success" @click.stop="markPlayed(beat)">
+              <v-icon>mdi-check</v-icon>
+              <v-tooltip activator="parent" location="top">{{ $t('story.run.played') }}</v-tooltip>
+            </v-btn>
+            <v-icon size="small" class="run-row__chevron">mdi-chevron-down</v-icon>
           </div>
-          <SharedFormattedText v-if="beat.body" :text="beat.body" class="text-body-medium mb-2" />
-          <div v-if="beat.location_name || beat.entities.length" class="d-flex flex-wrap ga-1">
-            <v-chip v-if="beat.location_name" size="small" variant="tonal" color="green">
-              <v-icon start size="small">mdi-map-marker</v-icon>
-              <SharedEntityLink :id="beat.location_id" type="Location" :name="beat.location_name" />
-            </v-chip>
-            <v-chip v-for="e in beat.entities" :key="e.id" size="small" variant="tonal">
-              <v-icon start size="small">{{ iconFor(e.type) }}</v-icon>
-              <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
-            </v-chip>
-          </div>
-        </div>
-        <div class="d-flex flex-column ga-1 ml-2">
-          <v-btn color="success" variant="flat" size="small" prepend-icon="mdi-check" @click="markPlayed(beat)">{{ $t('story.run.played') }}</v-btn>
-          <v-btn variant="text" size="small" prepend-icon="mdi-arrow-u-left-top" @click="skip(beat)">{{ $t('story.run.skip') }}</v-btn>
-          <v-btn v-if="repSubjects(beat).length" variant="text" size="small" prepend-icon="mdi-scale-balance" @click="openRep(beat)">{{ $t('reputation.short') }}</v-btn>
-        </div>
-      </div>
-    </v-card>
+
+          <!-- Full card -->
+          <v-card v-else class="mb-2 run-beat" :style="{ '--beat-color': colorCss(groupColor(g)) }" variant="outlined">
+            <div class="pa-3">
+              <div class="d-flex align-center ga-2 mb-1">
+                <span class="run-num">{{ num.get(beat.id) }}</span>
+                <v-icon size="small">{{ BEAT_KIND_ICONS[beat.kind] }}</v-icon>
+                <span class="text-title-medium font-weight-bold run-title" :class="{ 'cursor-pointer': isList(g) }" @click="isList(g) && toggleOpen(beat.id)">{{ beat.title }}</span>
+                <v-spacer />
+                <div class="run-actions">
+                  <v-btn color="success" variant="tonal" size="small" prepend-icon="mdi-check" @click="markPlayed(beat)">{{ $t('story.run.played') }}</v-btn>
+                  <v-btn icon variant="text" size="small" @click="skip(beat)">
+                    <v-icon>mdi-arrow-u-left-top</v-icon>
+                    <v-tooltip activator="parent" location="top">{{ $t('story.run.skip') }}</v-tooltip>
+                  </v-btn>
+                  <v-btn v-if="repSubjects(beat).length" icon variant="text" size="small" @click="openRep(beat)">
+                    <v-icon>mdi-scale-balance</v-icon>
+                    <v-tooltip activator="parent" location="top">{{ $t('reputation.short') }}</v-tooltip>
+                  </v-btn>
+                  <v-btn v-if="isList(g)" icon variant="text" size="small" @click="toggleOpen(beat.id)">
+                    <v-icon>mdi-chevron-up</v-icon>
+                  </v-btn>
+                </div>
+              </div>
+              <SharedFormattedText v-if="beat.body" :text="beat.body" class="text-body-medium run-body mb-2" />
+              <div v-if="beat.location_name || beat.entities.length" class="d-flex flex-wrap ga-1">
+                <v-chip v-if="beat.location_name" size="small" variant="tonal" color="green">
+                  <v-icon start size="small">mdi-map-marker</v-icon>
+                  <SharedEntityLink :id="beat.location_id" type="Location" :name="beat.location_name" />
+                </v-chip>
+                <v-chip v-for="e in beat.entities" :key="e.id" size="small" variant="tonal">
+                  <v-icon start size="small">{{ iconFor(e.type) }}</v-icon>
+                  <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
+                </v-chip>
+              </div>
+            </div>
+          </v-card>
+        </template>
+      </template>
+    </section>
 
     <!-- Played this session: nothing disappears for good, put it back with one click -->
     <div v-if="playedHere.length" class="mt-6">
@@ -99,6 +139,7 @@ import type { RepSubjectType } from '~~/types/reputation'
 import { BEAT_KIND_ICONS, clusterColor, colorCss, NO_COLOR, type StoryBeat } from '~~/types/story'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
+import { groupTray, TRAY_BIG_GROUP, trayNumbers, type TrayGroup } from '~/utils/storyTray'
 
 /** The next-session tray as a clean run sheet: read it at the table, tick beats off as they happen. */
 const { t } = useI18n()
@@ -118,10 +159,25 @@ onMounted(async () => {
 const sessionOptions = computed(() => sessions.value.map(s => ({ title: s.session_number ? `#${s.session_number} ${s.title}` : s.title, value: s.id })))
 const partyLocation = computed(() => store.locations.find(l => l.id === store.settings.party_location_id) ?? null)
 
-const clusterOf = (b: StoryBeat) => store.clusters.find(c => c.id === b.cluster_id) ?? null
-function colorOfBeat(b: StoryBeat) {
-  const c = clusterOf(b)
-  return c ? clusterColor(c, 'storyline', store.storylines) : NO_COLOR
+const groups = computed(() => groupTray(store.tray, store.clusters))
+const num = computed(() => trayNumbers(store.tray))
+const folds = useTrayFolds('runFolds', TRAY_BIG_GROUP)
+/** Big groups (open time: shops, places to visit) read as a short list */
+const isList = (g: TrayGroup) => g.beats.length > TRAY_BIG_GROUP
+const groupColor = (g: TrayGroup) => (g.cluster ? clusterColor(g.cluster, 'storyline', store.storylines) : NO_COLOR)
+
+const opened = ref(new Set<number>())
+function toggleOpen(id: number) {
+  const next = new Set(opened.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  opened.value = next
+}
+/** "Foxglove & Fennel · Rosalind, Wisp" for the short rows */
+function whoOf(beat: StoryBeat) {
+  const people = beat.entities.filter(e => e.type === 'NPC').map(e => e.name.split(' ')[0])
+  const shown = people.slice(0, 3).join(', ') + (people.length > 3 ? ` +${people.length - 3}` : '')
+  return shown
 }
 function iconFor(type: string) {
   const p = toPreviewType(type)
@@ -188,19 +244,112 @@ async function restore(beat: StoryBeat) {
 .run-sheet {
   max-width: 900px;
 }
+.run-group__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 2px;
+  margin-bottom: 6px;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid var(--group-color);
+  cursor: pointer;
+}
+.run-group__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--group-color);
+  flex-shrink: 0;
+}
+.run-group__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.run-group__count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(var(--v-theme-on-surface), 0.1);
+}
+.run-group__hint {
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+.run-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 6px 2px 10px;
+  margin-bottom: 2px;
+  border-radius: 8px;
+  border-left: 4px solid var(--group-color);
+  background: rgba(var(--v-theme-on-surface), 0.03);
+  cursor: pointer;
+}
+.run-row:hover,
+.run-row:focus-visible {
+  background: rgba(var(--v-theme-on-surface), 0.08);
+  outline: none;
+}
+.run-row__num {
+  min-width: 1.8em;
+  text-align: right;
+  font-weight: 700;
+  opacity: 0.45;
+}
+.run-row__icon,
+.run-row__chevron {
+  opacity: 0.6;
+}
+.run-row__title {
+  font-weight: 600;
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.run-row__who {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
 .run-beat {
   border-left: 5px solid var(--beat-color) !important;
 }
 .run-num {
-  opacity: 0.4;
-  min-width: 28px;
+  font-weight: 700;
+  opacity: 0.45;
+  min-width: 1.8em;
   text-align: right;
+}
+.run-title {
+  min-width: 0;
+}
+.run-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.run-body {
+  line-height: 1.55;
+  max-width: 72ch;
 }
 .session-field {
   max-width: 300px;
   min-width: 220px;
 }
-.min-w-0 {
-  min-width: 0;
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

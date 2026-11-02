@@ -3278,7 +3278,9 @@
       "add": "Add to next session",
       "remove": "Remove from next session",
       "inTray": "In the next session",
-      "empty": "Click the calendar icon on a beat to plan it for next session."
+      "empty": "Click the calendar icon on a beat to plan it for next session.",
+      "openAll": "Open all",
+      "foldAll": "Fold all"
     },
     "run": {
       "open": "Run sheet",
@@ -3291,7 +3293,9 @@
       "restore": "Back to next session",
       "undo": "Undo",
       "markedPlayed": "\"{title}\" marked played",
-      "skipped": "\"{title}\" taken off next session"
+      "skipped": "\"{title}\" taken off next session",
+      "progress": "{left} to go · {played} played",
+      "listHint": "Pick what they visit. Click one to open it."
     },
     "world": {
       "today": "Today in the world",
