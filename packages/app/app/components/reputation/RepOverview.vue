@@ -40,18 +40,25 @@
 
     <div v-if="!rows.length" class="text-body-medium text-medium-emphasis py-6 text-center">{{ $t(`reputation.empty.${section}`) }}</div>
     <div class="rep-grid">
-      <div v-for="r in rows" :key="r.id" class="rep-row">
-        <div class="d-flex align-center ga-1 mb-1">
-          <SharedEntityLink :id="r.id" :type="section" :name="r.name" class="font-weight-medium text-truncate" />
-          <v-icon v-if="section === 'NPC' && rep.isMet(r.id)" size="x-small" color="success" :title="$t('reputation.met')">mdi-handshake</v-icon>
-          <v-spacer />
-          <v-btn icon="mdi-plus" size="x-small" variant="tonal" color="primary" :title="$t('reputation.log.short')" @click="logFor(r)" />
-          <v-btn icon="mdi-history" size="x-small" variant="text" :title="$t('reputation.history')" @click="historyFor(r)" />
-        </div>
-        <div role="button" tabindex="0" class="cursor-pointer" @click="historyFor(r)" @keydown.enter="historyFor(r)">
-          <RepBar :points="r.points" :type="section" />
-          <RepBar v-for="sub in r.splits" :key="sub.player_id" class="mt-1 ml-3" small :points="sub.points" :type="section" :label="sub.player_name" />
-          <RepBar v-if="r.notoriety" class="mt-1" small :points="r.notoriety" :type="section" kind="notoriety" :label="$t('reputation.kinds.notoriety')" />
+      <div v-for="r in rows" :key="r.id" class="rep-row d-flex ga-3">
+        <!-- Portrait / crest -->
+        <v-avatar size="56" rounded="lg" :color="imageOf(r.id) ? undefined : 'surface-variant'" class="flex-shrink-0 cursor-pointer" @click="openSubject(r)">
+          <v-img v-if="imageOf(r.id)" :src="`/uploads/${imageOf(r.id)}`" cover />
+          <v-icon v-else>{{ PLACEHOLDER[section] }}</v-icon>
+        </v-avatar>
+        <div class="flex-grow-1 min-w-0">
+          <div class="d-flex align-center ga-1 mb-1">
+            <SharedEntityLink :id="r.id" :type="section" :name="r.name" class="font-weight-medium text-truncate" />
+            <v-icon v-if="section === 'NPC' && rep.isMet(r.id)" size="x-small" color="success" :title="$t('reputation.met')">mdi-handshake</v-icon>
+            <v-spacer />
+            <v-btn icon="mdi-plus" size="x-small" variant="tonal" color="primary" :title="$t('reputation.log.short')" @click="logFor(r)" />
+            <v-btn icon="mdi-history" size="x-small" variant="text" :title="$t('reputation.history')" @click="historyFor(r)" />
+          </div>
+          <div role="button" tabindex="0" class="cursor-pointer" @click="historyFor(r)" @keydown.enter="historyFor(r)">
+            <RepBar :points="r.points" :type="section" />
+            <RepBar v-for="sub in r.splits" :key="sub.player_id" class="mt-1 ml-3" small :points="sub.points" :type="section" :label="sub.player_name" />
+            <RepBar v-if="r.notoriety" class="mt-1" small :points="r.notoriety" :type="section" kind="notoriety" :label="$t('reputation.kinds.notoriety')" />
+          </div>
         </div>
       </div>
     </div>
@@ -100,6 +107,14 @@ watch(() => props.campaignId, (id) => {
 }, { immediate: true })
 
 const section = ref<RepSubjectType>('Faction')
+
+// Pictures from the linkable-entries list (NPC portraits, faction crests, place art)
+const tabs = useEntityTabsStore()
+const PLACEHOLDER: Record<RepSubjectType, string> = { NPC: 'mdi-account', Faction: 'mdi-shield-account', Location: 'mdi-map-marker' }
+const imageOf = (id: number) => story.entities.find(e => e.id === id)?.image_url ?? null
+function openSubject(r: { id: number, name: string }) {
+  tabs.open(section.value === 'NPC' ? 'npc' : section.value === 'Faction' ? 'faction' : 'location', r.id, r.name)
+}
 
 interface Row { id: number, name: string, type: RepSubjectType, points: number, notoriety: number, splits: RepTrack[] }
 const rows = computed<Row[]>(() => {
@@ -164,7 +179,7 @@ async function advance() {
 <style scoped>
 .rep-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 10px;
 }
 .rep-row {
@@ -193,5 +208,8 @@ async function advance() {
 }
 .turn-row--cool {
   background: rgba(var(--v-theme-primary), 0.08);
+}
+.min-w-0 {
+  min-width: 0;
 }
 </style>
