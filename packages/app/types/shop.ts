@@ -21,6 +21,17 @@ export interface ShopItem {
   /** null = plenty */
   stock: number | null
   sort_order: number
+  /** Under the counter: listed in the shop's black market */
+  secret: boolean
+  /** What it takes to buy it, in your words ("Thieves Guild contact") */
+  requirement: string | null
+  /** Optional reputation lock: this NPC / faction / place must feel at least req_tier */
+  req_subject_id: number | null
+  req_tier: string | null
+  req_subject_name: string | null
+  req_subject_type: 'NPC' | 'Faction' | 'Location' | null
+  /** Whether the party (or one of its players) meets the reputation lock; null = no lock */
+  req_met: boolean | null
 }
 
 export interface ShopItemInput {
@@ -32,6 +43,10 @@ export interface ShopItemInput {
   price_note?: string | null
   stock?: number | string | null
   item_id?: number | null
+  secret?: boolean
+  requirement?: string | null
+  req_subject_id?: number | null
+  req_tier?: string | null
 }
 
 export interface ShopSaleResult {

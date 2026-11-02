@@ -3063,6 +3063,33 @@
       "very_rare": "Sehr seltene Magie",
       "legendary": "Legendär",
       "lore": "Story-Gegenstand"
+    },
+    "blackMarket": {
+      "title": "Schwarzmarkt",
+      "hint": "Unter der Theke — nur für Eingeweihte",
+      "switch": "Schwarzmarkt (unter der Theke)"
+    },
+    "requirement": {
+      "label": "Voraussetzung",
+      "placeholder": "z. B. Kontakt zur Diebesgilde, kennt das Passwort",
+      "repLock": "Ruf-Sperre (optional): die Gruppe muss mindestens…",
+      "who": "Bei NSC, Fraktion oder Ort",
+      "atLeast": "Mindestens",
+      "met": "Die Gruppe erfüllt das",
+      "notMet": "Die Gruppe erfüllt das noch nicht"
+    },
+    "buyFrom": {
+      "button": "Von Charakter kaufen",
+      "title": "Der Laden kauft Beute",
+      "who": "Wer verkauft?",
+      "nothing": "Nichts zu verkaufen — das Inventar ist leer.",
+      "offer": "Bietet {offer} pro Stück (Wert {value})",
+      "noValue": "Kein Wert hinterlegt — Preis eintragen",
+      "equipped": "Ausgerüstet",
+      "toShelf": "Ins Regal des Ladens legen",
+      "theyGet": "Sie bekommen",
+      "confirm": "Verkaufen",
+      "done": "{name} hat {paid} bekommen"
     }
   },
   "purse": {

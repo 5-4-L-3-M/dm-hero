@@ -1,5 +1,13 @@
 # @dm-hero/app
 
+## 1.18.0
+
+### Minor Changes
+
+- Black market: mark any shop item as under the counter; it moves to its own darker "Black market" section of the shop.
+- Requirements: type what it takes to buy an item ("Knows the password") and it shows as a pill. Optionally lock it to reputation — pick an NPC, faction or place and a minimum level; the pill turns green when the party (or one of its players) is there, red when not.
+- Sell to a shop: "Buy from a character" lists a character's items with the shop's offer (half the item's value, better or worse with reputation). Change the price if you haggle; the coin goes into their purse, the item leaves their inventory and lands on the shop's shelf.
+
 ## 1.17.1
 
 ### Patch Changes

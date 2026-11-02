@@ -3300,6 +3300,19 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 76: Spotify scenes')
     },
   },
+  {
+    version: 77,
+    name: 'shop_black_market',
+    up: (db) => {
+      // Secret stock (black market) and what it takes to buy an item
+      const cols = (db.prepare('PRAGMA table_info(shop_items)').all() as { name: string }[]).map(c => c.name)
+      if (!cols.includes('secret')) db.exec('ALTER TABLE shop_items ADD COLUMN secret INTEGER NOT NULL DEFAULT 0')
+      if (!cols.includes('requirement')) db.exec('ALTER TABLE shop_items ADD COLUMN requirement TEXT')
+      if (!cols.includes('req_subject_id')) db.exec('ALTER TABLE shop_items ADD COLUMN req_subject_id INTEGER REFERENCES entities(id) ON DELETE SET NULL')
+      if (!cols.includes('req_tier')) db.exec('ALTER TABLE shop_items ADD COLUMN req_tier TEXT')
+      console.log('✅ Migration 77: Shop black market & requirements')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

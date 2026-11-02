@@ -3,6 +3,9 @@
     <div class="d-flex align-center mb-3 ga-2">
       <div class="text-body-medium text-medium-emphasis">{{ $t('shop.count', { n: items.length }) }}</div>
       <v-spacer />
+      <v-btn variant="tonal" prepend-icon="mdi-hand-coin" @click="openBuy">
+        {{ $t('shop.buyFrom.button') }}
+      </v-btn>
       <v-btn color="primary" variant="tonal" prepend-icon="mdi-plus" @click="openNew">
         {{ $t('shop.addItem') }}
       </v-btn>
@@ -15,56 +18,76 @@
       {{ $t(priceAdjust.pct < 0 ? 'reputation.price.cheaper' : 'reputation.price.dearer', { pct: Math.abs(priceAdjust.pct), from: priceAdjust.from, tier: $t(`reputation.tiers.${priceAdjust.tier}`) }) }}
     </v-alert>
 
-    <v-table v-if="sorted.length > 0" density="comfortable">
-      <thead>
-        <tr>
-          <th>{{ $t('shop.fields.name') }}</th>
-          <th class="text-right">{{ $t('shop.fields.weight') }}</th>
-          <th class="text-right">{{ $t('shop.fields.cost') }}</th>
-          <th class="text-center">{{ $t('shop.fields.stock') }}</th>
-          <th />
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in sorted" :key="row.id">
-          <td>
-            <div class="py-2">
-              <div class="d-flex align-center flex-wrap ga-2">
-                <span class="font-weight-medium"><SharedEntityLink v-if="row.item_id" :id="row.item_id" type="item" :name="row.name" /><template v-else>{{ row.name }}</template></span>
-                <v-chip v-if="row.category" size="x-small" label variant="tonal" :color="CATEGORY_COLORS[row.category]">
-                  {{ $t(`shop.categories.${row.category}`) }}
-                </v-chip>
+    <template v-for="section in sections" :key="section.key">
+      <div v-if="section.key === 'secret'" class="black-market-head d-flex align-center ga-2 mt-5 mb-1 px-2">
+        <v-icon size="small">mdi-incognito</v-icon>
+        <span class="font-weight-bold">{{ $t('shop.blackMarket.title') }}</span>
+        <span class="text-body-small text-medium-emphasis">{{ $t('shop.blackMarket.hint') }}</span>
+      </div>
+      <v-table v-if="section.items.length > 0" density="comfortable" :class="{ 'black-market': section.key === 'secret' }">
+        <thead>
+          <tr>
+            <th>{{ $t('shop.fields.name') }}</th>
+            <th class="text-right">{{ $t('shop.fields.weight') }}</th>
+            <th class="text-right">{{ $t('shop.fields.cost') }}</th>
+            <th class="text-center">{{ $t('shop.fields.stock') }}</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in section.items" :key="row.id">
+            <td>
+              <div class="py-2">
+                <div class="d-flex align-center flex-wrap ga-2">
+                  <span class="font-weight-medium"><SharedEntityLink v-if="row.item_id" :id="row.item_id" type="item" :name="row.name" /><template v-else>{{ row.name }}</template></span>
+                  <v-chip v-if="row.category" size="x-small" label variant="tonal" :color="CATEGORY_COLORS[row.category]">
+                    {{ $t(`shop.categories.${row.category}`) }}
+                  </v-chip>
+                </div>
+                <div v-if="row.requirement || row.req_subject_id" class="d-flex flex-wrap ga-1 mt-1">
+                  <v-chip v-if="row.requirement" size="x-small" variant="outlined" prepend-icon="mdi-lock-outline">{{ row.requirement }}</v-chip>
+                  <v-chip
+                    v-if="row.req_subject_id && row.req_tier"
+                    size="x-small"
+                    variant="flat"
+                    :color="row.req_met ? 'success' : 'error'"
+                    :prepend-icon="row.req_met ? 'mdi-lock-open-variant' : 'mdi-lock'"
+                    :title="row.req_met ? $t('shop.requirement.met') : $t('shop.requirement.notMet')"
+                  >
+                    {{ row.req_subject_name }} · {{ $t(`reputation.tiers.${row.req_tier}`) }}
+                  </v-chip>
+                </div>
+                <div v-if="row.description" class="text-body-small text-medium-emphasis shop-desc">{{ row.description }}</div>
               </div>
-              <div v-if="row.description" class="text-body-small text-medium-emphasis shop-desc">{{ row.description }}</div>
-            </div>
-          </td>
-          <td class="text-right text-no-wrap">{{ row.weight !== null ? formatWeight(row.weight) : '—' }}</td>
-          <td class="text-right text-no-wrap">
-            <template v-if="priceAdjust.pct && row.price_cp">
-              <span class="text-decoration-line-through text-medium-emphasis mr-1">{{ priceLabel(row) }}</span>
-              <strong :class="priceAdjust.pct < 0 ? 'text-success' : 'text-warning'">{{ formatCoins(adjusted(row.price_cp), denominations) }}</strong>
-            </template>
-            <template v-else>{{ priceLabel(row) }}</template>
-          </td>
-          <td class="text-center">{{ row.stock ?? '∞' }}</td>
-          <td class="text-right text-no-wrap">
-            <v-btn
-              icon="mdi-cart-plus"
-              size="small"
-              variant="text"
-              color="primary"
-              :title="$t('shop.addToInventory')"
-              :disabled="row.stock === 0"
-              @click="openSell(row)"
-            />
-            <v-btn icon="mdi-pencil" size="small" variant="text" :title="$t('common.edit')" @click="openEdit(row)" />
-            <v-btn icon="mdi-delete" size="small" variant="text" color="error" :title="$t('common.delete')" @click="remove(row)" />
-          </td>
-        </tr>
-      </tbody>
-    </v-table>
+            </td>
+            <td class="text-right text-no-wrap">{{ row.weight !== null ? formatWeight(row.weight) : '—' }}</td>
+            <td class="text-right text-no-wrap">
+              <template v-if="priceAdjust.pct && row.price_cp">
+                <span class="text-decoration-line-through text-medium-emphasis mr-1">{{ priceLabel(row) }}</span>
+                <strong :class="priceAdjust.pct < 0 ? 'text-success' : 'text-warning'">{{ formatCoins(adjusted(row.price_cp), denominations) }}</strong>
+              </template>
+              <template v-else>{{ priceLabel(row) }}</template>
+            </td>
+            <td class="text-center">{{ row.stock ?? '∞' }}</td>
+            <td class="text-right text-no-wrap">
+              <v-btn
+                icon="mdi-cart-plus"
+                size="small"
+                variant="text"
+                color="primary"
+                :title="$t('shop.addToInventory')"
+                :disabled="row.stock === 0"
+                @click="openSell(row)"
+              />
+              <v-btn icon="mdi-pencil" size="small" variant="text" :title="$t('common.edit')" @click="openEdit(row)" />
+              <v-btn icon="mdi-delete" size="small" variant="text" color="error" :title="$t('common.delete')" @click="remove(row)" />
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+    </template>
 
-    <div v-else-if="!loading" class="text-center text-medium-emphasis py-8">
+    <div v-if="!sorted.length && !loading" class="text-center text-medium-emphasis py-8">
       <v-icon size="48" class="mb-2">mdi-store-outline</v-icon>
       <div class="text-title-medium">{{ $t('shop.empty') }}</div>
       <div class="text-body-medium">{{ $t('shop.emptyHint') }}</div>
@@ -157,6 +180,50 @@
               />
             </v-col>
           </v-row>
+
+          <!-- Under the counter, and what it takes to buy -->
+          <v-switch v-model="form.secret" color="primary" density="compact" hide-details class="mt-2" prepend-icon="mdi-incognito" :label="$t('shop.blackMarket.switch')" />
+          <v-text-field
+            v-model="form.requirement"
+            :label="$t('shop.requirement.label')"
+            :placeholder="$t('shop.requirement.placeholder')"
+            prepend-inner-icon="mdi-lock-outline"
+            variant="outlined"
+            density="comfortable"
+            clearable
+            class="mt-3"
+          />
+          <div class="text-body-small text-medium-emphasis mb-1">{{ $t('shop.requirement.repLock') }}</div>
+          <v-row dense>
+            <v-col cols="7">
+              <v-autocomplete
+                v-model="form.reqSubjectId"
+                :items="repSubjects"
+                item-title="name"
+                item-value="id"
+                :label="$t('shop.requirement.who')"
+                variant="outlined"
+                density="comfortable"
+                clearable
+                hide-details
+              >
+                <template #item="{ props: itemProps, item }">
+                  <v-list-item v-bind="itemProps" :subtitle="$t(`reputation.types.${item.type}`)" />
+                </template>
+              </v-autocomplete>
+            </v-col>
+            <v-col cols="5">
+              <v-select
+                v-model="form.reqTier"
+                :items="tierOptions"
+                :label="$t('shop.requirement.atLeast')"
+                :disabled="!form.reqSubjectId"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+              />
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -233,6 +300,64 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- The shop buys from a character: coin into their purse, item onto the shelf -->
+    <v-dialog v-model="buyOpen" max-width="620" scrollable>
+      <v-card>
+        <v-card-title class="d-flex align-center"><v-icon class="mr-2">mdi-hand-coin</v-icon>{{ $t('shop.buyFrom.title') }}</v-card-title>
+        <v-card-text style="max-height: 70vh">
+          <v-select
+            v-model="buy.playerId"
+            :items="playerOptions"
+            item-title="name"
+            item-value="id"
+            :label="$t('shop.buyFrom.who')"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            class="mb-3"
+          />
+          <div v-if="buy.playerId && !offers.length" class="text-body-medium text-medium-emphasis">{{ $t('shop.buyFrom.nothing') }}</div>
+          <v-list v-else-if="buy.playerId" density="compact" class="pa-0">
+            <template v-for="o in offers" :key="o.relation_id">
+              <v-list-item :active="buy.relationId === o.relation_id" rounded @click="pickOffer(o)">
+                <v-list-item-title>{{ o.name }} <span v-if="o.quantity > 1" class="text-medium-emphasis">×{{ o.quantity }}</span></v-list-item-title>
+                <v-list-item-subtitle>
+                  <template v-if="o.offer_cp !== null">{{ $t('shop.buyFrom.offer', { offer: formatCoins(o.offer_cp, denominations), value: formatCoins(o.value_cp ?? 0, denominations) }) }}</template>
+                  <template v-else>{{ $t('shop.buyFrom.noValue') }}</template>
+                </v-list-item-subtitle>
+                <template #append>
+                  <v-icon v-if="o.equipped" size="small" class="text-medium-emphasis" :title="$t('shop.buyFrom.equipped')">mdi-shield-sword</v-icon>
+                </template>
+              </v-list-item>
+              <div v-if="buy.relationId === o.relation_id" class="px-4 pb-3">
+                <v-row dense class="mt-1">
+                  <v-col cols="3">
+                    <v-text-field v-model.number="buy.quantity" :label="$t('shop.quantity')" type="number" min="1" :max="o.quantity" variant="outlined" density="compact" hide-details />
+                  </v-col>
+                  <v-col cols="5">
+                    <v-text-field v-model.number="buy.priceAmount" :label="$t('shop.priceEach')" type="number" min="0" variant="outlined" density="compact" hide-details />
+                  </v-col>
+                  <v-col cols="4">
+                    <v-select v-model="buy.priceCode" :items="coinCodes" variant="outlined" density="compact" hide-details />
+                  </v-col>
+                </v-row>
+                <v-switch v-model="buy.addToStock" :label="$t('shop.buyFrom.toShelf')" color="primary" density="compact" hide-details />
+                <div class="d-flex align-center mt-1">
+                  <span class="text-body-medium">{{ $t('shop.buyFrom.theyGet') }} <strong>{{ formatCoins(buyTotal, denominations) }}</strong></span>
+                  <v-spacer />
+                  <v-btn color="primary" variant="flat" :loading="saving" prepend-icon="mdi-hand-coin" @click="confirmBuy">{{ $t('shop.buyFrom.confirm') }}</v-btn>
+                </div>
+              </div>
+            </template>
+          </v-list>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="buyOpen = false">{{ $t('common.close') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -254,6 +379,7 @@ import {
   type ShopItem,
   type ShopSaleResult,
 } from '~~/types/shop'
+import { tiersFor, type RepSubjectType } from '~~/types/reputation'
 
 const props = defineProps<{ locationId: number }>()
 
@@ -286,6 +412,11 @@ const loading = ref(false)
 const saving = ref(false)
 
 const sorted = computed(() => sortShopItems(items.value))
+// On the shelf, then under the counter (black market)
+const sections = computed(() => [
+  { key: 'shelf', items: sorted.value.filter(i => !i.secret) },
+  { key: 'secret', items: sorted.value.filter(i => i.secret) },
+].filter(x => x.key === 'shelf' || x.items.length))
 const denominations = computed<Denomination[]>(() =>
   currencies.value
     .map(c => ({ code: c.code, rate: c.exchange_rate, isDefault: c.is_default === 1 }))
@@ -347,6 +478,10 @@ function blankForm() {
     priceCode: 'GP',
     priceNote: '',
     stock: null as number | null,
+    secret: false,
+    requirement: '' as string | null,
+    reqSubjectId: null as number | null,
+    reqTier: null as string | null,
   }
 }
 
@@ -369,6 +504,10 @@ function openEdit(row: ShopItem) {
     priceCode: price?.code ?? mainCode.value,
     priceNote: row.price_note ?? '',
     stock: row.stock,
+    secret: row.secret,
+    requirement: row.requirement ?? '',
+    reqSubjectId: row.req_subject_id,
+    reqTier: row.req_tier,
   }
   editOpen.value = true
 }
@@ -410,6 +549,10 @@ async function save() {
     price_note: f.priceNote,
     stock: numberOrNull(f.stock),
     item_id: f.item_id,
+    secret: f.secret,
+    requirement: f.requirement ?? null,
+    req_subject_id: f.reqSubjectId,
+    req_tier: f.reqSubjectId ? f.reqTier : null,
   }
   saving.value = true
   try {
@@ -512,8 +655,69 @@ async function confirmSell() {
   }
 }
 
+// ---- Reputation lock: who, and how much they must like the party ----
+const story = useStoryBoardStore()
+const repSubjects = computed(() => story.entities
+  .filter(e => e.type === 'NPC' || e.type === 'Faction' || e.type === 'Location')
+  .map(e => ({ id: e.id, name: e.name, type: e.type as RepSubjectType })))
+const tierOptions = computed(() => {
+  const subj = repSubjects.value.find(x => x.id === form.value.reqSubjectId)
+  return subj ? tiersFor(subj.type).map(tier => ({ value: tier.key, title: t(`reputation.tiers.${tier.key}`) })).slice(1) : []
+})
+watch(() => form.value.reqSubjectId, () => {
+  if (form.value.reqSubjectId && !tierOptions.value.some(o => o.value === form.value.reqTier)) form.value.reqTier = tierOptions.value.find(o => ['friendly', 'liked'].includes(o.value))?.value ?? null
+})
+
+// ---- Buy from a character (they sell their loot here) ----
+interface SellOffer { relation_id: number, item_id: number, name: string, quantity: number, equipped: boolean, value_cp: number | null, offer_cp: number | null }
+const buyOpen = ref(false)
+const offers = ref<SellOffer[]>([])
+const buy = ref({ playerId: null as number | null, relationId: null as number | null, quantity: 1, priceAmount: 0, priceCode: 'GP', addToStock: true })
+const buyTotal = computed(() => toBaseUnits(Number(buy.value.priceAmount) || 0, buy.value.priceCode, denominations.value) * Math.max(1, Math.floor(Number(buy.value.quantity) || 1)))
+function openBuy() {
+  buy.value = { ...buy.value, relationId: null }
+  buyOpen.value = true
+  loadOffers()
+}
+async function loadOffers() {
+  offers.value = []
+  if (!buy.value.playerId) return
+  const r = await $fetch<{ offers: SellOffer[] }>('/api/shop/offers', { query: { locationId: props.locationId, playerId: buy.value.playerId } }).catch(() => ({ offers: [] }))
+  offers.value = r.offers
+}
+watch(() => buy.value.playerId, () => {
+  buy.value.relationId = null
+  if (buyOpen.value) loadOffers()
+})
+function pickOffer(o: SellOffer) {
+  const price = bestUnit(o.offer_cp ?? 0, denominations.value)
+  buy.value = { ...buy.value, relationId: o.relation_id, quantity: 1, priceAmount: price.amount, priceCode: price.code }
+}
+async function confirmBuy() {
+  const b = buy.value
+  if (!b.playerId || !b.relationId) return
+  saving.value = true
+  try {
+    const r = await $fetch<{ paid_cp: number }>('/api/shop/buy', {
+      method: 'POST',
+      body: { locationId: props.locationId, playerId: b.playerId, relationId: b.relationId, quantity: b.quantity, priceEachCp: toBaseUnits(Number(b.priceAmount) || 0, b.priceCode, denominations.value), addToStock: b.addToStock },
+    })
+    const player = playerOptions.value.find(p => p.id === b.playerId)?.name ?? ''
+    snackbarStore.success(t('shop.buyFrom.done', { name: player, paid: formatCoins(r.paid_cp, denominations.value) }))
+    buy.value.relationId = null
+    await Promise.all([loadOffers(), load()])
+  }
+  catch (error) {
+    snackbarStore.error((error as { data?: { message?: string } })?.data?.message ?? t('shop.saveError'))
+  }
+  finally {
+    saving.value = false
+  }
+}
+
 onMounted(() => {
   const campaignId = campaignStore.activeCampaignIdNumber
+  story.load(campaignId)
   if (campaignId) {
     entitiesStore.fetchItems(campaignId)
     entitiesStore.fetchPlayers(campaignId)
@@ -524,6 +728,14 @@ watch(() => props.locationId, load, { immediate: true })
 </script>
 
 <style scoped>
+.black-market-head {
+  border-top: 1px dashed rgba(var(--v-theme-on-surface), 0.25);
+  padding-top: 12px;
+}
+.black-market {
+  background: rgba(0, 0, 0, 0.28) !important;
+  border-radius: 8px;
+}
 .shop-desc {
   max-width: 420px;
   white-space: pre-line;
