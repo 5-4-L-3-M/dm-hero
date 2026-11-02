@@ -37,7 +37,7 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     /** Quests not in the archive */
     activeQuests: s => s.quests.filter(q => !q.archived),
     questlines: (s): Questline[] => s.board?.questlines ?? [],
-    settings: (s): StoryBoardSettings => s.board?.settings ?? { color_by: 'storyline', party_location_id: null, group_by: 'storyline', compact: false, acts: null, rep_consequences: true, rep_rumors: true },
+    settings: (s): StoryBoardSettings => s.board?.settings ?? { color_by: 'storyline', party_location_id: null, group_by: 'storyline', compact: false, acts: null, rep_consequences: true, rep_rumors: true, palette: { custom: [], hidden: [] } },
     sparks(): StoryBeat[] {
       return this.beats.filter(b => b.cluster_id === null)
     },
@@ -172,6 +172,11 @@ export const useStoryBoardStore = defineStore('storyBoard', {
       if (i >= 0 && this.board) this.board.clusters[i] = cluster
       // Archiving takes its beats out of the tray
       if ('archived' in changes) await this.reload()
+    },
+    /** Put a whole cluster's open beats into the next-session tray (or take them all out) */
+    async clusterToTray(id: number, on: boolean) {
+      await $fetch(`/api/story/clusters/${id}`, { method: 'PATCH', body: { in_tray: on } })
+      await this.reload()
     },
     async deleteCluster(id: number, withBeats = false) {
       await $fetch(`/api/story/clusters/${id}`, { method: 'DELETE', query: { withBeats } })

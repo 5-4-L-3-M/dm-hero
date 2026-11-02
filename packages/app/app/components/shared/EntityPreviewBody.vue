@@ -174,7 +174,7 @@
             <v-chip size="small" :color="QUEST_COLORS[quest.status]" variant="flat">
               <v-icon start size="small">{{ QUEST_STATUS_ICONS[quest.status] }}</v-icon>{{ $t(`quests.statuses.${quest.status}`) }}
             </v-chip>
-            <v-chip v-if="questStoryline" size="small" :color="`story-${questStoryline.color}`" variant="flat">{{ questStoryline.name }}</v-chip>
+            <v-chip v-if="questStoryline" size="small" :color="storylineColor(questStoryline)" variant="flat">{{ questStoryline.name }}</v-chip>
           </div>
 
           <div class="quest-facts text-body-medium mb-3">
@@ -428,7 +428,7 @@ import type { PlayerInventory } from '~~/types/inventory'
 import type { Roster, RosterRole } from '~~/types/roster'
 import RepSection from '~/components/reputation/RepSection.vue'
 import { NPC_LOYALTY_COLORS, readLoyalty } from '~~/types/npc'
-import { QUEST_STATUS_ICONS, readQuestMetadata, type LinkedEntity, type QuestObjective, type QuestStatus } from '~~/types/story'
+import { QUEST_STATUS_ICONS, readQuestMetadata, storylineColor, type LinkedEntity, type QuestObjective, type QuestStatus } from '~~/types/story'
 import type { EntityPreviewType } from './EntityPreviewDialog.vue'
 
 /**

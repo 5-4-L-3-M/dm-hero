@@ -75,7 +75,7 @@
           v-for="l in store.storylines"
           :key="l.id"
           size="small"
-          :color="`story-${l.color}`"
+          :color="storylineColor(l)"
           :variant="storylineFilter.includes(l.id) ? 'flat' : 'outlined'"
           @click="toggleStoryline(l.id)"
         >
@@ -109,6 +109,8 @@
                 @edit="editItem(data.kind, data.refId)"
                 @remove="store.removeMapNode(data.mapId)"
                 @set-act="store.setMapNodeAct(data.mapId, $event)"
+                @toggle-next="toggleCardNext(data.kind, data.refId, data.item.inTray)"
+                @edit-beat="editItem('beat', $event)"
               />
             </template>
             <Background :gap="24" pattern-color="rgba(128,128,128,0.25)" />
@@ -186,6 +188,7 @@ import StoryBeatDialog from './StoryBeatDialog.vue'
 import StoryClusterDialog from './StoryClusterDialog.vue'
 import QuestEditDialog from '~/components/quests/QuestEditDialog.vue'
 import {
+  storylineColor,
   BEAT_KIND_ICONS, MAP_NODE_KINDS, NO_COLOR, QUEST_STATUS_ICONS,
   type LinkedEntity, type MapEdgeKind, type MapNodeKind, type StoryBeat, type StoryCluster, type StoryMapNode,
 } from '~~/types/story'
@@ -203,7 +206,7 @@ const { fitView, screenToFlowCoordinate, getNodes, vueFlowRef } = useVueFlow('st
 // --- what each card shows ------------------------------------------------
 const lineColor = (id: number | null | undefined) => {
   const l = id ? store.storylines.find(s => s.id === id) : null
-  return l ? `story-${l.color}` : NO_COLOR
+  return l ? storylineColor(l) : NO_COLOR
 }
 const clusterOf = (id: number | null) => (id ? store.clusters.find(c => c.id === id) ?? null : null)
 
@@ -216,7 +219,7 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
       kind, title: q.name, icon: QUEST_STATUS_ICONS[q.status], color: lineColor(q.storyline_id), storylineId: q.storyline_id,
       chips: [t(`quests.statuses.${q.status}`), ...givers, ...(q.optional ? [t('quests.optional')] : [])],
       optional: !!q.optional, minor: q.importance === 'minor', done: q.status === 'completed' || q.status === 'failed',
-      details: q.description, list: [], links: [],
+      details: q.description, beats: [], links: [], inTray: null,
     }
   }
   if (kind === 'cluster') {
@@ -227,8 +230,10 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
       kind, title: c.title, icon: 'mdi-vector-square', color: lineColor(c.storyline_id), storylineId: c.storyline_id,
       chips: [t('story.map.beatCount', { done: beats.filter(b => b.status === 'played').length, total: beats.length }), t(`story.heat.${c.heat}`)],
       optional: false, minor: false, done: c.status === 'resolved',
-      details: c.notes, list: beats.map(x => (x.status === 'played' ? `✓ ${x.title}` : x.title)),
+      details: c.notes,
+      beats: beats.map(x => ({ id: x.id, title: x.title, done: x.status === 'played' || x.status === 'cut', inTray: x.tray_order != null, body: x.body, links: [...placeLink(x.location_id, x.location_name), ...x.entities] })),
       links: placeLink(c.location_id, c.location_name),
+      inTray: beats.some(x => x.tray_order != null),
     }
   }
   const b = store.beats.find(x => x.id === refId)
@@ -238,8 +243,9 @@ function describe(kind: MapNodeKind, refId: number): (MapCardItem & { storylineI
     kind, title: b.title, icon: BEAT_KIND_ICONS[b.kind], color: lineColor(c?.storyline_id), storylineId: c?.storyline_id ?? null,
     chips: [c ? c.title : t('story.sparks.title'), t(`story.beatStatus.${b.status}`)],
     optional: false, minor: false, done: b.status === 'played' || b.status === 'cut',
-    details: b.body, list: [],
+    details: b.body, beats: [],
     links: [...placeLink(b.location_id, b.location_name), ...b.entities],
+    inTray: b.tray_order != null,
   }
 }
 /** Where it happens, as a clickable link (if it has a place) */
@@ -266,6 +272,12 @@ async function saveActs() {
 }
 
 // --- next session ------------------------------------------------------------
+/** A card's calendar button: a cluster goes into the tray whole; a beat on its own */
+async function toggleCardNext(kind: MapNodeKind, refId: number, inTray: boolean | null) {
+  if (kind === 'cluster') await store.clusterToTray(refId, !inTray)
+  else if (kind === 'beat') await store.updateBeat(refId, { in_tray: !inTray })
+}
+
 // Only the beats in the next-session tray, plus the "what if" branches hanging off
 // them (follow the lines out of the tray through beats that haven't happened yet).
 const nextOnly = ref(false)
@@ -278,7 +290,12 @@ const nextSessionNodeIds = computed(() => {
     const n = store.map.nodes.find(x => x.id === nodeId)
     return n?.kind === 'beat' ? store.beats.find(b => b.id === n.ref_id) : undefined
   }
-  const keep = new Set(store.map.nodes.filter(n => beatOf(n.id)?.tray_order != null).map(n => n.id))
+  // Beats in the tray, and clusters with any beat in it
+  const clusterInTray = (nodeId: number) => {
+    const n = store.map.nodes.find(x => x.id === nodeId)
+    return n?.kind === 'cluster' && store.beatsOf(n.ref_id).some(b => b.tray_order != null)
+  }
+  const keep = new Set(store.map.nodes.filter(n => beatOf(n.id)?.tray_order != null || clusterInTray(n.id)).map(n => n.id))
   const queue = [...keep]
   while (queue.length) {
     const from = queue.shift()!

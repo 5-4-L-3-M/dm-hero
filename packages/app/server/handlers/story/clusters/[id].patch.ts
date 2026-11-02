@@ -26,6 +26,18 @@ export default defineEventHandler(async (event) => {
     row.id,
   )
   if (has('entity_ids')) setClusterEntities(db, row.campaign_id, row.id, body.entity_ids)
+  // The whole cluster into (or out of) the next-session tray: every beat not played, cut or archived
+  if (has('in_tray')) {
+    if (body.in_tray) {
+      const top = (db.prepare('SELECT COALESCE(MAX(tray_order), -1) AS m FROM story_beats WHERE campaign_id = ?').get(row.campaign_id) as { m: number }).m
+      const beats = db.prepare('SELECT id FROM story_beats WHERE cluster_id = ? AND tray_order IS NULL AND archived_at IS NULL AND status NOT IN (\'played\', \'cut\') ORDER BY sort_order, id').all(row.id) as { id: number }[]
+      const set = db.prepare('UPDATE story_beats SET tray_order = ? WHERE id = ?')
+      beats.forEach((x, i) => set.run(top + 1 + i, x.id))
+    }
+    else {
+      db.prepare('UPDATE story_beats SET tray_order = NULL WHERE cluster_id = ?').run(row.id)
+    }
+  }
   // Archive / restore (its beats stay with it and leave the next-session tray)
   if (has('archived')) {
     db.prepare(`UPDATE story_clusters SET archived_at = ${body.archived ? 'CURRENT_TIMESTAMP' : 'NULL'} WHERE id = ?`).run(row.id)

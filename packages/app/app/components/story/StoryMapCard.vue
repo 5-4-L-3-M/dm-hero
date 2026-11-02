@@ -2,7 +2,7 @@
   <div
     class="map-card"
     :class="[`map-card--${item.kind}`, { 'map-card--optional': item.optional, 'map-card--minor': item.minor, 'map-card--done': item.done, 'map-card--dim': dim }]"
-    :style="{ '--card-color': `rgb(var(--v-theme-${item.color}))` }"
+    :style="{ '--card-color': colorCss(item.color) }"
   >
     <Handle type="target" :position="Position.Left" class="map-handle" />
     <div class="map-card__head">
@@ -20,6 +20,16 @@
           <v-list-item :title="$t('story.map.noAct')" :active="!act" @click="$emit('set-act', null)" />
         </v-list>
       </v-menu>
+      <button
+        v-if="item.inTray !== null"
+        type="button"
+        class="map-card__x nodrag"
+        :class="{ 'map-card__x--on': item.inTray }"
+        :title="item.inTray ? $t('story.map.outOfNext') : $t('story.map.intoNext')"
+        @click.stop="$emit('toggle-next')"
+      >
+        <v-icon size="x-small">{{ item.inTray ? 'mdi-calendar-check' : 'mdi-calendar-plus' }}</v-icon>
+      </button>
       <button type="button" class="map-card__x nodrag" :title="$t('common.edit')" @click.stop="$emit('edit')">
         <v-icon size="x-small">mdi-pencil</v-icon>
       </button>
@@ -33,10 +43,27 @@
     <!-- Details: unfold with a click on the title (quests open in the side panel instead) -->
     <div v-if="open" class="map-card__details nodrag nowheel">
       <SharedFormattedText v-if="item.details" :text="item.details" />
-      <div v-else-if="!item.list.length && !item.links.length" class="text-medium-emphasis">{{ $t('story.beat.noDetails') }}</div>
-      <ul v-if="item.list.length" class="map-card__list">
-        <li v-for="(l, i) in item.list" :key="i">{{ l }}</li>
-      </ul>
+      <div v-else-if="!item.beats.length && !item.links.length" class="text-medium-emphasis">{{ $t('story.beat.noDetails') }}</div>
+      <!-- A cluster's beats: click one to read it -->
+      <div v-if="item.beats.length" class="map-card__beats">
+        <div v-for="b in item.beats" :key="b.id" class="map-beat">
+          <div class="map-beat__head" role="button" tabindex="0" @click.stop="toggleBeat(b.id)" @keydown.enter="toggleBeat(b.id)">
+            <v-icon size="x-small" class="mr-1">{{ b.done ? 'mdi-check-circle' : b.inTray ? 'mdi-calendar-check' : 'mdi-circle-outline' }}</v-icon>
+            <span :class="{ 'map-beat--done': b.done }">{{ b.title }}</span>
+            <v-spacer />
+            <v-icon v-if="b.body || b.links.length" size="x-small">{{ openBeats.has(b.id) ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+          </div>
+          <div v-if="openBeats.has(b.id)" class="map-beat__body">
+            <SharedFormattedText v-if="b.body" :text="b.body" />
+            <div v-if="b.links.length" class="map-card__links">
+              <v-chip v-for="e in b.links" :key="`${e.type}-${e.id}`" size="x-small" variant="tonal" @click.stop>
+                <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
+              </v-chip>
+            </div>
+            <button type="button" class="map-beat__edit" @click.stop="$emit('edit-beat', b.id)"><v-icon size="x-small">mdi-pencil</v-icon> {{ $t('common.edit') }}</button>
+          </div>
+        </div>
+      </div>
       <!-- Linked people, places, items…: click one to open it in the side panel -->
       <div v-if="item.links.length" class="map-card__links">
         <v-chip v-for="e in item.links" :key="`${e.type}-${e.id}`" size="small" variant="tonal" @click.stop>
@@ -54,7 +81,7 @@
 
 <script setup lang="ts">
 import { Handle, Position } from '@vue-flow/core'
-import type { LinkedEntity, MapNodeKind } from '~~/types/story'
+import { colorCss, type LinkedEntity, type MapNodeKind } from '~~/types/story'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
 
@@ -70,8 +97,10 @@ export interface MapCardItem {
   done: boolean
   /** Text shown when unfolded (beat body, cluster notes) */
   details: string | null
-  /** Lines shown when unfolded (a cluster's beats) */
-  list: string[]
+  /** A cluster's beats, each readable on a click */
+  beats: Array<{ id: number, title: string, done: boolean, inTray: boolean, body: string | null, links: LinkedEntity[] }>
+  /** In the next-session tray (clusters: any of its beats); null = can't be (quests) */
+  inTray: boolean | null
   /** Linked entries shown when unfolded (a beat's place, people, items…) */
   links: LinkedEntity[]
 }
@@ -80,7 +109,15 @@ function linkIcon(type: string) {
   return t ? ENTITY_PREVIEW_CONFIG[t].icon : 'mdi-link'
 }
 const props = defineProps<{ item: MapCardItem, dim: boolean, act: number | null, acts: string[] }>()
-const emit = defineEmits<{ 'open': [], 'edit': [], 'remove': [], 'set-act': [act: number | null] }>()
+const emit = defineEmits<{ 'open': [], 'edit': [], 'remove': [], 'set-act': [act: number | null], 'toggle-next': [], 'edit-beat': [id: number] }>()
+
+const openBeats = ref(new Set<number>())
+function toggleBeat(id: number) {
+  const next = new Set(openBeats.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  openBeats.value = next
+}
 
 const open = ref(false)
 function titleClick() {
@@ -185,9 +222,42 @@ function titleClick() {
   cursor: default;
   white-space: normal;
 }
-.map-card__list {
-  padding-left: 16px;
-  margin: 4px 0 0;
+.map-card__x--on {
+  opacity: 1;
+  color: rgb(var(--v-theme-primary));
+}
+.map-card__beats {
+  margin-top: 4px;
+}
+.map-beat__head {
+  display: flex;
+  align-items: flex-start;
+  padding: 2px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1.3;
+}
+.map-beat__head:hover {
+  background: rgba(var(--v-theme-on-surface), 0.06);
+}
+.map-beat--done {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+.map-beat__body {
+  margin: 2px 0 6px 18px;
+  padding-left: 8px;
+  border-left: 2px solid var(--card-color);
+  font-size: 0.85rem;
+}
+.map-beat__edit {
+  border: 0;
+  background: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-top: 4px;
 }
 .map-card__links {
   display: flex;

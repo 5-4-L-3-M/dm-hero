@@ -17,7 +17,7 @@
           <template #item="{ props: itemProps, item }">
             <v-list-item v-bind="itemProps">
               <template #prepend>
-                <span class="swatch mr-3" :style="{ background: `rgb(var(--v-theme-story-${item.color}))` }" />
+                <span class="swatch mr-3" :style="{ background: colorCss(storylineColor(item)) }" />
               </template>
             </v-list-item>
           </template>
@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { CLUSTER_HEATS, CLUSTER_STATUSES, heatColor, type ClusterHeat, type ClusterStatus, type StoryCluster } from '~~/types/story'
+import { CLUSTER_HEATS, CLUSTER_STATUSES, colorCss, heatColor, storylineColor, type ClusterHeat, type ClusterStatus, type StoryCluster } from '~~/types/story'
 
 /** Create or edit a cluster: its storyline (= color), heat, status, place and quest. */
 const props = defineProps<{ modelValue: boolean, cluster: StoryCluster | null }>()

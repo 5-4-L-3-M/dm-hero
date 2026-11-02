@@ -3432,6 +3432,18 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 79: Monsters, stat blocks, monster combatants')
     },
   },
+  {
+    version: 80,
+    name: 'storyline_custom_colors',
+    up: (db) => {
+      // Storylines can have their own color; the campaign keeps its own color presets
+      const lineCols = (db.prepare('PRAGMA table_info(story_lines)').all() as { name: string }[]).map(c => c.name)
+      if (!lineCols.includes('custom_color')) db.exec('ALTER TABLE story_lines ADD COLUMN custom_color TEXT')
+      const setCols = (db.prepare('PRAGMA table_info(story_board_settings)').all() as { name: string }[]).map(c => c.name)
+      if (!setCols.includes('palette')) db.exec('ALTER TABLE story_board_settings ADD COLUMN palette TEXT')
+      console.log('✅ Migration 80: Storyline custom colors')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {
