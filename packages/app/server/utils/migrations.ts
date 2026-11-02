@@ -3354,6 +3354,84 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 78: Roll tables')
     },
   },
+  {
+    version: 79,
+    name: 'monsters_and_stat_blocks',
+    up: (db) => {
+      // The monster library (official SRD creatures + homebrew), and stat blocks for NPCs
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS monsters (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          srd_key TEXT,
+          name TEXT NOT NULL,
+          description TEXT,
+          image_url TEXT,
+          tags TEXT,
+          cr_num REAL,
+          block TEXT NOT NULL DEFAULT '{}',
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_monsters_campaign ON monsters(campaign_id, name);
+        CREATE TABLE IF NOT EXISTS monsters_seeded (
+          campaign_id INTEGER PRIMARY KEY,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS entity_statblocks (
+          entity_id INTEGER PRIMARY KEY,
+          block TEXT NOT NULL,
+          source_text TEXT,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE
+        );
+      `)
+
+      // Combatants can now be library monsters (no entry of their own): entity_id becomes optional.
+      // Rebuild participants + effects in an order that never cascades the effects away.
+      db.exec(`
+        CREATE TABLE encounter_participants_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          encounter_id INTEGER NOT NULL,
+          entity_id INTEGER,
+          monster_id INTEGER,
+          display_name TEXT NOT NULL,
+          duplicate_index INTEGER NOT NULL DEFAULT 0,
+          initiative INTEGER,
+          current_hp INTEGER NOT NULL DEFAULT 0,
+          max_hp INTEGER NOT NULL DEFAULT 0,
+          temp_hp INTEGER NOT NULL DEFAULT 0,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          is_ko INTEGER NOT NULL DEFAULT 0,
+          notes TEXT,
+          FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE,
+          FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE,
+          FOREIGN KEY (monster_id) REFERENCES monsters(id) ON DELETE CASCADE
+        );
+        INSERT INTO encounter_participants_new (id, encounter_id, entity_id, display_name, duplicate_index, initiative, current_hp, max_hp, temp_hp, sort_order, is_ko, notes)
+          SELECT id, encounter_id, entity_id, display_name, duplicate_index, initiative, current_hp, max_hp, temp_hp, sort_order, is_ko, notes FROM encounter_participants;
+        CREATE TABLE encounter_effects_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          participant_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          icon TEXT,
+          duration_type TEXT NOT NULL DEFAULT 'infinite',
+          duration_rounds INTEGER,
+          remaining_rounds INTEGER,
+          FOREIGN KEY (participant_id) REFERENCES encounter_participants_new(id) ON DELETE CASCADE
+        );
+        INSERT INTO encounter_effects_new SELECT id, participant_id, name, icon, duration_type, duration_rounds, remaining_rounds FROM encounter_effects;
+        DROP TABLE encounter_effects;
+        DROP TABLE encounter_participants;
+        ALTER TABLE encounter_participants_new RENAME TO encounter_participants;
+        ALTER TABLE encounter_effects_new RENAME TO encounter_effects;
+        CREATE INDEX IF NOT EXISTS idx_encounter_participants_encounter_id ON encounter_participants(encounter_id);
+        CREATE INDEX IF NOT EXISTS idx_encounter_effects_participant_id ON encounter_effects(participant_id);
+      `)
+      console.log('✅ Migration 79: Monsters, stat blocks, monster combatants')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

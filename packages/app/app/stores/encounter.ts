@@ -130,6 +130,18 @@ export const useEncounterStore = defineStore('encounter', {
       }
     },
 
+    /** Library monsters: [{ monsterId, count, rollHp }] — each gets its own HP and rolled initiative */
+    async addMonsters(encounterId: number, monsters: Array<{ monsterId: number, count: number, rollHp: boolean }>): Promise<boolean> {
+      try {
+        this.activeEncounter = await $fetch<EncounterWithParticipants>(`/api/encounters/${encounterId}/participants`, { method: 'POST', body: { monsters } })
+        return true
+      }
+      catch (error) {
+        console.error('Failed to add monsters:', error)
+        return false
+      }
+    },
+
     async removeParticipant(encounterId: number, participantId: number): Promise<boolean> {
       try {
         await $fetch(`/api/encounters/${encounterId}/participants/${participantId}`, {

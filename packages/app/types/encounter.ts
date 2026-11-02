@@ -31,7 +31,11 @@ export interface EncounterEffect {
 export interface EncounterParticipant {
   id: number
   encounter_id: number
-  entity_id: number
+  /** null for library monsters */
+  entity_id: number | null
+  monster_id?: number | null
+  /** The monster's stat block, or the NPC's own */
+  statblock?: import('./statblock').StatBlock | null
   display_name: string
   duplicate_index: number
   initiative: number | null

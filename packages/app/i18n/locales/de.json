@@ -56,7 +56,8 @@
     },
     "story": "Story-Board",
     "roster": "Besetzung",
-    "rollTables": "Würfeltabellen"
+    "rollTables": "Würfeltabellen",
+    "monsters": "Monster"
   },
   "themes": {
     "dark": "Dunkel (Mitternachts-Taverne)",
@@ -1505,7 +1506,31 @@
     "durationRounds": "Runden",
     "durationConcentration": "Konzentration",
     "effectsExpired": "Effekte abgelaufen",
-    "roll": "Würfeln"
+    "roll": "Würfeln",
+    "monsters": {
+      "rollHp": "Trefferpunkte auswürfeln (statt Durchschnitt)",
+      "add": "Hinzufügen",
+      "added": "{n} × {name} im Kampf"
+    },
+    "noStatblock": "Noch kein Werteblock.",
+    "openToAdd": "Öffnen zum Hinzufügen",
+    "conditions": {
+      "title": "Zustände",
+      "prone": "Liegend",
+      "grappled": "Gepackt",
+      "restrained": "Festgesetzt",
+      "poisoned": "Vergiftet",
+      "frightened": "Verängstigt",
+      "charmed": "Bezaubert",
+      "blinded": "Blind",
+      "deafened": "Taub",
+      "invisible": "Unsichtbar",
+      "incapacitated": "Kampfunfähig",
+      "stunned": "Betäubt",
+      "paralyzed": "Gelähmt",
+      "unconscious": "Bewusstlos",
+      "concentrating": "Konzentration"
+    }
   },
   "documents": {
     "title": "Dokumente",
@@ -3816,6 +3841,74 @@
       "Faction": "Fraktion",
       "Lore": "Lore",
       "Item": "Gegenstand"
+    }
+  },
+  "monsters": {
+    "title": "Monster",
+    "subtitle": "Die offiziellen 5e-Kreaturen und deine eigenen — lesbare Werteblöcke, bereit für den Kampf.",
+    "new": "Neues Monster",
+    "edit": "Monster bearbeiten",
+    "search": "Name oder Typ suchen",
+    "none": "Keine Monster gefunden.",
+    "count": "{n} von {total}",
+    "pick": "Wähle eine Kreatur, um ihren Werteblock zu sehen.",
+    "official": "Offiziell (SRD)",
+    "lore": "Hintergrund",
+    "copy": "Kopieren",
+    "copyHint": "Eigene Version zum Anpassen",
+    "confirmDelete": "{name} löschen?",
+    "sources": {
+      "all": "Alle",
+      "homebrew": "Eigene",
+      "official": "Offiziell"
+    },
+    "fields": {
+      "name": "Name",
+      "tags": "Tags"
+    }
+  },
+  "statblock": {
+    "title": "Werteblock",
+    "add": "Werteblock hinzufügen",
+    "remove": "Werteblock entfernen",
+    "fromNotes": "Werte aus den Notizen lesen",
+    "fromNotesHint": "Diese Werte wurden aus den Notizen gelesen. Prüfen, dann speichern — die ursprünglichen Notizen bleiben als Sicherung erhalten.",
+    "trimNotes": "Wertezeilen aus den Notizen entfernen",
+    "rollCheck": "Probe würfeln",
+    "toHit": "Treffer",
+    "addFeature": "Hinzufügen",
+    "featureName": "Name",
+    "featureText": "Was es tut (z. B. +4 zum Treffen, 1d6 + 2 Stich)",
+    "notesHint": "Taktik, wie dieser Kampf läuft, was sie wollen",
+    "paste": {
+      "title": "Werteblock einfügen",
+      "placeholder": "AC 16 - HP 22 - Speed 30 ft\nSTR 14 DEX 12 CON 13 INT 10 WIS 11 CHA 10\n**Speer:** +4 to hit, 1d6 + 2 piercing",
+      "apply": "Einlesen",
+      "nothing": "In dem Text wurden keine Werte gefunden."
+    },
+    "sections": {
+      "traits": "Merkmale",
+      "actions": "Aktionen",
+      "bonus_actions": "Bonusaktionen",
+      "reactions": "Reaktionen",
+      "legendary": "Legendäre Aktionen",
+      "notes": "Notizen"
+    },
+    "fields": {
+      "size": "Größe",
+      "kind": "Typ",
+      "alignment": "Gesinnung",
+      "ac_note": "Rüstung",
+      "hp_formula": "Trefferwürfel",
+      "speed": "Bewegung",
+      "saves": "Rettungswürfe",
+      "skills": "Fertigkeiten",
+      "vulnerabilities": "Anfälligkeiten",
+      "resistances": "Resistenzen",
+      "immunities": "Immunitäten",
+      "condition_immunities": "Zustandsimmunitäten",
+      "senses": "Sinne",
+      "languages": "Sprachen"
     }
   }
 }
