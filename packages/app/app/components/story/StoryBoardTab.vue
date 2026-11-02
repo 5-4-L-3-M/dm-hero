@@ -73,7 +73,21 @@
           @update:model-value="store.saveSettings({ party_location_id: $event ?? null })"
         />
         <v-switch v-model="onlyNear" :disabled="!store.settings.party_location_id" :label="$t('story.party.onlyNear')" color="primary" density="compact" hide-details />
-        <v-switch v-model="hidePlayed" :label="$t('story.hidePlayed')" color="primary" density="compact" hide-details />
+        <!-- Which beats show: idea / ready / played / cut -->
+        <div class="d-flex align-center flex-wrap ga-1">
+          <span class="text-body-small text-medium-emphasis mr-1">{{ $t('story.filter.statuses') }}</span>
+          <v-chip
+            v-for="st in BEAT_STATUSES"
+            :key="st"
+            size="small"
+            :variant="shownStatuses.includes(st) ? 'flat' : 'outlined'"
+            :color="shownStatuses.includes(st) ? 'primary' : undefined"
+            @click="toggleStatus(st)"
+          >
+            {{ $t(`story.beatStatus.${st}`) }}
+          </v-chip>
+          <v-btn v-if="shownStatuses.length !== BEAT_STATUSES.length" size="x-small" variant="text" @click="shownStatuses = [...BEAT_STATUSES]">{{ $t('story.filter.all') }}</v-btn>
+        </div>
       </div>
 
       <!-- Storyline filter: click to show only those (none selected = all) -->
@@ -96,7 +110,7 @@
       <div v-if="legend.length" class="d-flex flex-wrap align-center ga-3 mt-3">
         <span class="text-body-small text-medium-emphasis">{{ $t('story.colorBy.legend') }}</span>
         <span v-for="l in legend" :key="l.key" class="d-flex align-center text-body-small">
-          <span class="legend-dot mr-1" :style="{ background: `rgb(var(--v-theme-${l.color}))` }" />{{ l.label }}
+          <span class="legend-dot mr-1" :style="{ background: colorCss(l.color) }" />{{ l.label }}
         </span>
       </div>
     </v-card>
@@ -111,7 +125,7 @@
           <v-btn color="primary" prepend-icon="mdi-plus" @click="editCluster(null)">{{ $t('story.cluster.new') }}</v-btn>
         </div>
 
-        <section v-for="lane in laneLists" v-else :key="lane.key" class="lane" :style="{ '--lane-color': `rgb(var(--v-theme-${lane.color}))` }">
+        <section v-for="lane in laneLists" v-else :key="lane.key" class="lane" :style="{ '--lane-color': colorCss(lane.color) }">
           <button type="button" class="lane__head" :aria-expanded="!foldedLanes.includes(lane.key)" @click="toggleLane(lane.key)">
             <span class="lane__dot" />
             <span class="text-title-small font-weight-bold">{{ lane.title }}</span>
@@ -140,7 +154,7 @@
                   :color="colorOf(element)"
                   :near="isNear(element)"
                   :faded="false"
-                  :hide-played="hidePlayed"
+                  :statuses="shownStatuses"
                   :compact="store.settings.compact"
                   @edit="editCluster"
                   @delete="askDeleteCluster"
@@ -209,6 +223,8 @@ import StoryClusterDialog from './StoryClusterDialog.vue'
 import StorylineManager from './StorylineManager.vue'
 import StoryArchiveDialog from './StoryArchiveDialog.vue'
 import {
+  BEAT_STATUSES,
+  colorCss, storylineColor,
   BEAT_KIND_ICONS, CLUSTER_HEATS, CLUSTER_STATUSES, COLOR_BY, GROUP_BY, NO_COLOR, clusterColor, heatColor, statusColor,
   type BeatKind, type StoryBeat, type StoryCluster,
 } from '~~/types/story'
@@ -223,7 +239,6 @@ const { t } = useI18n()
 const store = useStoryBoardStore()
 
 const onlyNear = ref(false)
-const hidePlayed = ref(false)
 const newSpark = ref('')
 const dragging = ref(false)
 
@@ -252,6 +267,11 @@ function remember<T>(name: string, fallback: T) {
 }
 const foldedLanes = remember<string[]>('foldedLanes', [])
 const storylineFilter = remember<string[]>('storylineFilter', [])
+const shownStatuses = remember<string[]>('statuses', [...BEAT_STATUSES])
+function toggleStatus(st: string) {
+  const next = shownStatuses.value.includes(st) ? shownStatuses.value.filter(x => x !== st) : [...shownStatuses.value, st]
+  shownStatuses.value = next.length ? next : [...BEAT_STATUSES]
+}
 
 function toggleLane(key: string) {
   foldedLanes.value = foldedLanes.value.includes(key) ? foldedLanes.value.filter(k => k !== key) : [...foldedLanes.value, key]
@@ -260,7 +280,7 @@ function toggleStorylineFilter(key: string) {
   storylineFilter.value = storylineFilter.value.includes(key) ? storylineFilter.value.filter(k => k !== key) : [...storylineFilter.value, key]
 }
 const storylineFilterOptions = computed(() => [
-  ...store.storylines.map(s => ({ key: String(s.id), label: s.name, color: `story-${s.color}` })),
+  ...store.storylines.map(s => ({ key: String(s.id), label: s.name, color: storylineColor(s) })),
   { key: 'none', label: t('story.storyline.noneShort'), color: undefined },
 ])
 
@@ -277,7 +297,7 @@ const legend = computed(() => {
       color: clusterColor({ location_id: id, storyline_id: null, heat: 'warm', status: 'active' }, 'region', store.storylines, regionIds.value),
       label: store.locations.find(l => l.id === id)?.name ?? '?',
     }))
-    default: return store.storylines.map(s => ({ key: String(s.id), color: `story-${s.color}`, label: s.name }))
+    default: return store.storylines.map(s => ({ key: String(s.id), color: storylineColor(s), label: s.name }))
   }
 })
 
@@ -313,7 +333,7 @@ const lanes = computed<Lane[]>(() => {
       return [{ key: 'all', title: t('story.lane.all'), color: 'primary', value: null }]
     default: {
       const shown = store.storylines.filter(s => !storylineFilter.value.length || storylineFilter.value.includes(String(s.id)))
-      const lines: Lane[] = shown.map(s => ({ key: `line-${s.id}`, title: s.name, color: `story-${s.color}`, value: s.id }))
+      const lines: Lane[] = shown.map(s => ({ key: `line-${s.id}`, title: s.name, color: storylineColor(s), value: s.id }))
       if (!storylineFilter.value.length || storylineFilter.value.includes('none')) {
         lines.push({ key: 'line-none', title: t('story.storyline.noneShort'), color: NO_COLOR, value: null })
       }
@@ -363,7 +383,7 @@ function saveTray() {
   store.saveOrder({ tray: trayList.value.map(b => b.id) })
 }
 
-const sparks = computed(() => (hidePlayed.value ? store.sparks.filter(b => b.status !== 'played' && b.status !== 'cut') : store.sparks))
+const sparks = computed(() => store.sparks.filter(b => shownStatuses.value.includes(b.status)))
 
 async function addSpark() {
   const title = newSpark.value.trim()

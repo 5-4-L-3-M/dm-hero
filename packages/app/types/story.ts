@@ -52,6 +52,8 @@ export interface StoryLine {
   id: number
   name: string
   color: number // 1..12 → theme color "story-N"
+  /** Own color ("#a03cd8") instead of a theme one */
+  custom_color?: string | null
   sort_order: number
 }
 
@@ -102,6 +104,8 @@ export interface StoryBoardSettings {
   rep_consequences: boolean
   /** World automation: big moments and faction moves drop rumor sparks */
   rep_rumors: boolean
+  /** The campaign's own color presets (hex), and theme presets it hid */
+  palette: { custom: string[], hidden: number[] }
 }
 
 export const QUEST_IMPORTANCE = ['major', 'minor'] as const
@@ -188,6 +192,20 @@ export function clampStoryColor(value: unknown): number {
   return Number.isFinite(n) && n >= 1 && n <= STORY_COLOR_COUNT ? n : 1
 }
 
+/** A storyline's color: its own hex, or the theme's "story-N" */
+export function storylineColor(line: Pick<StoryLine, 'color' | 'custom_color'>): string {
+  return line.custom_color && /^#[0-9a-f]{6}$/i.test(line.custom_color) ? line.custom_color : `story-${clampStoryColor(line.color)}`
+}
+/** CSS for a color that's either a theme name or a hex */
+export function colorCss(c: string): string {
+  return c.startsWith('#') ? c : `rgb(var(--v-theme-${c}))`
+}
+/** A hex color, or null */
+export function cleanHex(v: unknown): string | null {
+  const s = typeof v === 'string' ? v.trim() : ''
+  return /^#[0-9a-f]{6}$/i.test(s) ? s.toLowerCase() : null
+}
+
 /** Clock segments filled, kept within 0..size. */
 export function clampClock(filled: unknown, size: unknown): { size: number, filled: number } {
   const s = (CLOCK_SIZES as readonly number[]).includes(Number(size)) ? Number(size) : 6
@@ -214,7 +232,7 @@ export const NO_COLOR = 'surface-variant'
 export function clusterColor(
   cluster: Pick<StoryCluster, 'storyline_id' | 'heat' | 'status' | 'location_id'>,
   colorBy: ColorBy,
-  storylines: Pick<StoryLine, 'id' | 'color'>[],
+  storylines: Pick<StoryLine, 'id' | 'color' | 'custom_color'>[],
   regionIds: number[] = [],
 ): string {
   switch (colorBy) {
@@ -227,7 +245,7 @@ export function clusterColor(
     }
     default: {
       const line = storylines.find(s => s.id === cluster.storyline_id)
-      return line ? `story-${clampStoryColor(line.color)}` : NO_COLOR
+      return line ? storylineColor(line) : NO_COLOR
     }
   }
 }

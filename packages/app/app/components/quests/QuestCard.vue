@@ -2,7 +2,7 @@
   <v-card
     class="quest-card"
     :class="{ 'quest-card--highlight': highlight }"
-    :style="{ '--quest-color': `rgb(var(--v-theme-${color}))` }"
+    :style="{ '--quest-color': colorCss(color) }"
     variant="outlined"
     @click="$emit('open', quest)"
   >
@@ -14,7 +14,7 @@
       </div>
 
       <div class="d-flex flex-wrap ga-1 mt-1">
-        <v-chip v-if="storyline" size="x-small" :color="`story-${storyline.color}`" variant="flat">{{ storyline.name }}</v-chip>
+        <v-chip v-if="storyline" size="x-small" :color="storylineColor(storyline)" variant="flat">{{ storyline.name }}</v-chip>
         <v-chip v-for="g in quest.givers" :key="g.id" size="x-small" variant="tonal" @click.stop>
           <v-icon start size="x-small">{{ quest.giver_hidden ? 'mdi-eye-off' : 'mdi-account-voice' }}</v-icon>
           <SharedEntityLink :id="g.id" :type="g.type" :name="g.name" />
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { NO_COLOR, type Quest } from '~~/types/story'
+import { colorCss, NO_COLOR, storylineColor, type Quest } from '~~/types/story'
 
 /** A quest on the quest board. Click → side panel; pencil → edit. */
 const props = defineProps<{ quest: Quest, highlight?: boolean }>()
@@ -48,7 +48,7 @@ defineEmits<{ open: [quest: Quest], edit: [quest: Quest] }>()
 
 const store = useStoryBoardStore()
 const storyline = computed(() => store.storylines.find(s => s.id === props.quest.storyline_id) ?? null)
-const color = computed(() => (storyline.value ? `story-${storyline.value.color}` : NO_COLOR))
+const color = computed(() => (storyline.value ? storylineColor(storyline.value) : NO_COLOR))
 const done = computed(() => props.quest.objectives.filter(o => o.done).length)
 </script>
 

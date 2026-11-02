@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3'
 import {
   BEAT_KINDS, BEAT_STATUSES, COLOR_BY, GROUP_BY, QUEST_IMPORTANCE, QUEST_INVOLVED_RELATION, oneOf, readQuestMetadata,
-  MAP_NODE_KINDS,
+  MAP_NODE_KINDS, STORY_COLOR_COUNT, cleanHex,
   type FactionAgenda, type LinkedEntity, type MapNodeKind, type StoryMap, type StoryMapEdge, type StoryMapNode, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine,
 } from '../../types/story'
 
@@ -69,7 +69,7 @@ export function setBeatEntities(db: Database.Database, campaignId: number, beatI
 }
 
 export function getSettings(db: Database.Database, campaignId: number): StoryBoard['settings'] {
-  const row = db.prepare('SELECT color_by, party_location_id, group_by, compact, acts, rep_consequences, rep_rumors FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number, acts: string | null, rep_consequences: number, rep_rumors: number } | undefined
+  const row = db.prepare('SELECT color_by, party_location_id, group_by, compact, acts, rep_consequences, rep_rumors, palette FROM story_board_settings WHERE campaign_id = ?').get(campaignId) as { color_by: string, party_location_id: number | null, group_by: string, compact: number, acts: string | null, rep_consequences: number, rep_rumors: number, palette: string | null } | undefined
   let acts: string[] | null = null
   try {
     const parsed = row?.acts ? JSON.parse(row.acts) : null
@@ -78,8 +78,17 @@ export function getSettings(db: Database.Database, campaignId: number): StoryBoa
   catch {
     acts = null
   }
+  let palette: StoryBoard['settings']['palette'] = { custom: [], hidden: [] }
+  try {
+    const p = row?.palette ? JSON.parse(row.palette) as Partial<typeof palette> : null
+    if (p) palette = { custom: (p.custom ?? []).map(cleanHex).filter((x): x is string => !!x), hidden: (p.hidden ?? []).map(Number).filter(n => n >= 1 && n <= STORY_COLOR_COUNT) }
+  }
+  catch {
+    // keep the default palette
+  }
   return {
     acts,
+    palette,
     rep_consequences: row ? !!row.rep_consequences : true,
     rep_rumors: row ? !!row.rep_rumors : true,
     color_by: oneOf(COLOR_BY, row?.color_by, 'storyline'),
@@ -90,7 +99,7 @@ export function getSettings(db: Database.Database, campaignId: number): StoryBoa
 }
 
 export function loadStorylines(db: Database.Database, campaignId: number): StoryLine[] {
-  return db.prepare('SELECT id, name, color, sort_order FROM story_lines WHERE campaign_id = ? ORDER BY sort_order, id').all(campaignId) as StoryLine[]
+  return db.prepare('SELECT id, name, color, custom_color, sort_order FROM story_lines WHERE campaign_id = ? ORDER BY sort_order, id').all(campaignId) as StoryLine[]
 }
 
 /** The whole board in one go: settings, storylines, clusters, beats with links. */

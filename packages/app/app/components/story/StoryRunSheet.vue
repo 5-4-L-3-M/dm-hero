@@ -35,7 +35,7 @@
       v-for="(beat, i) in store.tray"
       :key="beat.id"
       class="mb-3 run-beat"
-      :style="{ '--beat-color': `rgb(var(--v-theme-${colorOfBeat(beat)}))` }"
+      :style="{ '--beat-color': colorCss(colorOfBeat(beat)) }"
       variant="outlined"
     >
       <div class="d-flex align-start pa-3">
@@ -96,7 +96,7 @@
 <script setup lang="ts">
 import RepLogDialog from '~/components/reputation/RepLogDialog.vue'
 import type { RepSubjectType } from '~~/types/reputation'
-import { BEAT_KIND_ICONS, clusterColor, NO_COLOR, type StoryBeat } from '~~/types/story'
+import { BEAT_KIND_ICONS, clusterColor, colorCss, NO_COLOR, type StoryBeat } from '~~/types/story'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
 

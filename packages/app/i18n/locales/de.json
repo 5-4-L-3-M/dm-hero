@@ -3220,7 +3220,15 @@
       "color": "Farbe",
       "none": "Noch keine Handlungsstränge.",
       "newPlaceholder": "Neuer Handlungsstrang, z. B. Die versunkene Krone",
-      "noneShort": "Kein Handlungsstrang"
+      "noneShort": "Kein Handlungsstrang",
+      "ownColor": "Oder eine beliebige Farbe",
+      "useColor": "Verwenden",
+      "savePreset": "Verwenden + als Vorgabe speichern",
+      "presets": "Farbvorgaben",
+      "addPreset": "Farbe hinzufügen",
+      "hidePreset": "Diese Vorgabe ausblenden",
+      "showPreset": "Wieder zeigen",
+      "presetsHint": "Theme-Farben lassen sich ausblenden (und zurückholen); eigene Farben lassen sich löschen."
     },
     "cluster": {
       "new": "Neuer Cluster",
@@ -3329,7 +3337,8 @@
     "compact": "Kompakt",
     "filter": {
       "storylines": "Handlungsstränge zeigen",
-      "all": "Alle zeigen"
+      "all": "Alle zeigen",
+      "statuses": "Zeigen"
     },
     "lane": {
       "dropHere": "Cluster hierher ziehen",
@@ -3394,7 +3403,9 @@
       "biggerMap": "Größere Karte",
       "smallerMap": "Seitenleisten zeigen",
       "addAct": "Akt hinzufügen",
-      "actsHint": "Akte sind Phasen der Welt, keine feste Reihenfolge – Karten können Akte überspringen und Linien zwischen ihnen verlaufen."
+      "actsHint": "Akte sind Phasen der Welt, keine feste Reihenfolge – Karten können Akte überspringen und Linien zwischen ihnen verlaufen.",
+      "intoNext": "Ganz in die nächste Sitzung legen",
+      "outOfNext": "Aus der nächsten Sitzung nehmen"
     },
     "archive": {
       "title": "Archiv",

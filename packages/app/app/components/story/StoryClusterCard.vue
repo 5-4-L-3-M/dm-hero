@@ -2,7 +2,7 @@
   <v-card
     class="cluster-card"
     :class="{ 'cluster-card--near': near, 'cluster-card--faded': faded, 'cluster-card--compact': compact }"
-    :style="{ '--cluster-color': `rgb(var(--v-theme-${color}))` }"
+    :style="{ '--cluster-color': colorCss(color) }"
     variant="flat"
     border
   >
@@ -37,6 +37,11 @@
         </template>
         <v-list density="compact">
           <v-list-item prepend-icon="mdi-pencil" :title="$t('common.edit')" @click="$emit('edit', cluster)" />
+          <v-list-item
+            :prepend-icon="inTray ? 'mdi-calendar-remove' : 'mdi-calendar-plus'"
+            :title="inTray ? $t('story.map.outOfNext') : $t('story.map.intoNext')"
+            @click="store.clusterToTray(cluster.id, !inTray)"
+          />
           <v-list-item prepend-icon="mdi-archive-arrow-down-outline" :title="$t('story.archive.put')" @click="store.updateCluster(cluster.id, { archived: true })" />
           <v-list-item prepend-icon="mdi-delete" base-color="error" :title="$t('common.delete')" @click="$emit('delete', cluster)" />
         </v-list>
@@ -45,7 +50,7 @@
 
     <!-- What this cluster is: storyline, heat, status, place, quest -->
     <div v-if="!compact || peek" class="d-flex flex-wrap ga-1 px-3 pb-2">
-      <v-chip v-if="storyline" size="x-small" :color="`story-${storyline.color}`" variant="flat">{{ storyline.name }}</v-chip>
+      <v-chip v-if="storyline" size="x-small" :color="storylineColor(storyline)" variant="flat">{{ storyline.name }}</v-chip>
       <v-chip size="x-small" :color="heatColor(cluster.heat)" variant="tonal">
         <v-icon start size="x-small">{{ HEAT_ICONS[cluster.heat] }}</v-icon>{{ $t(`story.heat.${cluster.heat}`) }}
       </v-chip>
@@ -98,10 +103,10 @@
 
 <script setup lang="ts">
 import StoryBeatList from './StoryBeatList.vue'
-import { heatColor, type ClusterHeat, type StoryBeat, type StoryCluster } from '~~/types/story'
+import { colorCss, heatColor, storylineColor, type ClusterHeat, type StoryBeat, type StoryCluster } from '~~/types/story'
 
 /** A folding cluster of beats, color-coded by the board's color-by parameter. */
-const props = defineProps<{ cluster: StoryCluster, color: string, near: boolean, faded: boolean, hidePlayed: boolean, compact?: boolean }>()
+const props = defineProps<{ cluster: StoryCluster, color: string, near: boolean, faded: boolean, statuses?: string[], compact?: boolean }>()
 defineEmits<{
   'edit': [cluster: StoryCluster]
   'delete': [cluster: StoryCluster]
@@ -116,7 +121,8 @@ const store = useStoryBoardStore()
 const cluster = computed(() => store.clusters.find(c => c.id === props.cluster.id) ?? props.cluster)
 const storyline = computed(() => store.storylines.find(s => s.id === cluster.value.storyline_id) ?? null)
 const beats = computed(() => store.beatsOf(cluster.value.id))
-const visibleBeats = computed(() => (props.hidePlayed ? beats.value.filter(b => b.status !== 'played' && b.status !== 'cut') : beats.value))
+const visibleBeats = computed(() => (props.statuses ? beats.value.filter(b => props.statuses!.includes(b.status)) : beats.value))
+const inTray = computed(() => beats.value.some(b => b.tray_order != null))
 const playedCount = computed(() => beats.value.filter(b => b.status === 'played').length)
 
 // Title click: compact view shows the beats for a moment; otherwise fold / unfold

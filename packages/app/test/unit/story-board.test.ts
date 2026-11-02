@@ -132,7 +132,7 @@ describe('story board API', () => {
     // Settings
     await story('PATCH', 'settings', { campaignId, color_by: 'region', party_location_id: harbor })
     b = await board()
-    expect(b.settings).toEqual({ color_by: 'region', party_location_id: harbor, group_by: 'storyline', compact: false, acts: null, rep_consequences: true, rep_rumors: true })
+    expect(b.settings).toEqual({ color_by: 'region', party_location_id: harbor, group_by: 'storyline', compact: false, acts: null, rep_consequences: true, rep_rumors: true, palette: { custom: [], hidden: [] } })
     await story('PATCH', 'settings', { campaignId, acts: [' Prologue ', '', 'The Spire'] })
     expect((await board()).settings.acts).toEqual(['Prologue', 'The Spire'])
     await story('PATCH', 'settings', { campaignId, acts: [] })
@@ -333,5 +333,25 @@ describe('story board export / import', () => {
     expect(copyMap.edges).toMatchObject([{ label: 'if they win' }])
     expect(copy.questlines).toMatchObject([{ name: 'Main chain', optional: true, storyline_id: copy.storylines[0]!.id }])
     expect(await quests<Quest>('GET', String(quest2))).toMatchObject({ giver_id: npc2, giver_ids: [npc2], storyline_id: copy.storylines[0]!.id, questline_id: copy.questlines[0]!.id })
+  })
+
+  it('puts a whole cluster in the next session and keeps own storyline colors and presets', async () => {
+    const line = await story<{ id: number }>('POST', 'storylines', { campaignId, name: 'Main', color: 2 })
+    const cluster = await story<{ id: number }>('POST', 'clusters', { campaignId, title: 'Festival night', storyline_id: line.id })
+    const a = await story<{ id: number }>('POST', 'beats', { campaignId, cluster_id: cluster.id, title: 'Sneak in' })
+    const b = await story<{ id: number }>('POST', 'beats', { campaignId, cluster_id: cluster.id, title: 'Meet Wren', status: 'played' })
+    await story('PATCH', `clusters/${cluster.id}`, { in_tray: true })
+    let beats = (await board()).beats
+    expect(beats.find(x => x.id === a.id)!.tray_order).not.toBeNull()
+    expect(beats.find(x => x.id === b.id)!.tray_order).toBeNull()
+    await story('PATCH', `clusters/${cluster.id}`, { in_tray: false })
+    beats = (await board()).beats
+    expect(beats.find(x => x.id === a.id)!.tray_order).toBeNull()
+
+    expect(await story('PATCH', `storylines/${line.id}`, { custom_color: '#A03CD8' })).toMatchObject({ custom_color: '#a03cd8' })
+    expect(clusterColor({ storyline_id: line.id, heat: 'warm', status: 'active', location_id: null }, 'storyline', [{ id: line.id, color: 2, custom_color: '#a03cd8' }])).toBe('#a03cd8')
+    expect(await story('PATCH', `storylines/${line.id}`, { color: 5 })).toMatchObject({ color: 5, custom_color: null })
+    const settings = await story<{ palette: unknown }>('PATCH', 'settings', { campaignId, palette: { custom: ['#112233', 'nope', '#112233'], hidden: [3, 99] } })
+    expect(settings.palette).toEqual({ custom: ['#112233'], hidden: [3] })
   })
 })

@@ -1,5 +1,14 @@
 # @dm-hero/app
 
+## 1.21.0
+
+### Minor Changes
+
+- Story map: a calendar button on cluster (and beat) cards puts the whole cluster into the next session — every beat not played, cut or archived — or takes it back out. Clusters with beats in the tray show under the Next session filter. The same option sits in a cluster's menu on the board.
+- Story map: a cluster's beats are clickable — each one opens up to show its text, place and who's involved, with a shortcut to edit it.
+- Storyline colors: pick any color for a storyline, save colors as presets, add and delete your own presets, and hide theme colors you don't use.
+- Story board: show beats by status — Idea, Ready, Played, Cut — in any mix (replaces "Hide played"); remembered per campaign.
+
 ## 1.20.0
 
 ### Minor Changes

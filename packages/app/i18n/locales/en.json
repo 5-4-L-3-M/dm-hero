@@ -3220,7 +3220,15 @@
       "color": "Color",
       "none": "No storylines yet.",
       "newPlaceholder": "New storyline, e.g. The Drowned Crown",
-      "noneShort": "No storyline"
+      "noneShort": "No storyline",
+      "ownColor": "Or any color",
+      "useColor": "Use it",
+      "savePreset": "Use + save as preset",
+      "presets": "Color presets",
+      "addPreset": "Add color",
+      "hidePreset": "Hide this preset",
+      "showPreset": "Show it again",
+      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted."
     },
     "cluster": {
       "new": "New cluster",
@@ -3329,7 +3337,8 @@
     "compact": "Compact",
     "filter": {
       "storylines": "Show storylines",
-      "all": "Show all"
+      "all": "Show all",
+      "statuses": "Show"
     },
     "lane": {
       "dropHere": "Drag a cluster here",
@@ -3394,7 +3403,9 @@
       "biggerMap": "Bigger map",
       "smallerMap": "Show side panels",
       "addAct": "Add an act",
-      "actsHint": "Acts are stages of the world, not a strict order — cards can skip acts and lines can cross between them."
+      "actsHint": "Acts are stages of the world, not a strict order — cards can skip acts and lines can cross between them.",
+      "intoNext": "Put the whole thing in the next session",
+      "outOfNext": "Take it out of the next session"
     },
     "archive": {
       "title": "Archive",
