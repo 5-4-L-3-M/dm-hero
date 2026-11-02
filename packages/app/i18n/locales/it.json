@@ -3228,7 +3228,8 @@
       "addPreset": "Add color",
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
-      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted."
+      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
+      "reorder": "Trascina per riordinare"
     },
     "cluster": {
       "new": "New cluster",
@@ -3338,7 +3339,8 @@
     "filter": {
       "storylines": "Show storylines",
       "all": "Show all",
-      "statuses": "Show"
+      "statuses": "Show",
+      "showingAll": "Tutte visibili"
     },
     "lane": {
       "dropHere": "Drag a cluster here",
@@ -3405,7 +3407,9 @@
       "addAct": "Add an act",
       "actsHint": "Acts are stages of the world, not a strict order — cards can skip acts and lines can cross between them.",
       "intoNext": "Put the whole thing in the next session",
-      "outOfNext": "Take it out of the next session"
+      "outOfNext": "Take it out of the next session",
+      "inNext": "Nella prossima sessione",
+      "addToNext": "Aggiungi alla prossima sessione"
     },
     "archive": {
       "title": "Archive",
@@ -3509,7 +3513,17 @@
     "faction": "Faction",
     "placeOrFaction": "Place or faction",
     "dragHint": "Drag to reorder",
-    "doneEditing": "Done"
+    "doneEditing": "Done",
+    "newBook": "Nuovo elenco",
+    "renameBook": "Rinomina elenco",
+    "deleteBook": "Elimina elenco",
+    "bookActions": "Azioni elenco",
+    "bookName": "Nome dell'elenco",
+    "bookNameHint": "Una città, una regione, una rete di gilde…",
+    "deleteBookTitle": "Eliminare «{name}»?",
+    "deleteBookText": "I suoi luoghi e ruoli passano a «{other}». Nient'altro viene eliminato.",
+    "moveToBook": "Sposta in elenco",
+    "addingTo": "Aggiunto a {name}"
   },
   "reputation": {
     "title": "Reputation",
@@ -3695,7 +3709,9 @@
         "title": "NPCs this session",
         "empty": "Nobody linked to the next-session tray yet.",
         "met": "Has met the party",
-        "notMet": "Hasn't met the party"
+        "notMet": "Hasn't met the party",
+        "search": "Cerca tutti i PNG…",
+        "noMatch": "Nessun PNG con quel nome."
       },
       "sessionQuests": {
         "title": "This session's questline",
@@ -3712,7 +3728,9 @@
       },
       "reputation": {
         "title": "Reputation",
-        "empty": "Nothing logged yet."
+        "empty": "Nothing logged yet.",
+        "search": "Cerca reputazione…",
+        "noMatch": "Nessun risultato."
       },
       "map": {
         "title": "Map",

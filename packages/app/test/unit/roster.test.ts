@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest'
 import type Database from 'better-sqlite3'
 import { getTestDb } from '../utils/test-db'
-import type { Roster, RosterPlace, RosterRole } from '../../types/roster'
+import type { Roster, RosterBook, RosterPlace, RosterRole } from '../../types/roster'
 
 // NPC roster: places under category headings, roles filled by NPCs or open
 let db: Database.Database
@@ -117,5 +117,40 @@ describe('NPC roster', () => {
     const back = await places<{ locations: Array<{ id: number, category_id: number | null, explicit: boolean }> }>('GET', '', undefined, { campaignId })
     expect(back.locations.find(l => l.id === inn)).toMatchObject({ category_id: named('Inns & Taverns'), explicit: false })
     expect((await places<{ category_id: number }>('PUT', 'location', { campaignId, location_id: inn, category_id: named('Settlements') })).category_id).toBe(named('Settlements'))
+  })
+
+  it('keeps separate named rosters, one per city', async () => {
+    const vaelrun = entity('Location', 'Vaelrun City', null, { type: 'city' })
+    const inn = entity('Location', 'The Gatehouse Inn', vaelrun, { type: 'inn' })
+    const port = entity('Location', 'Saltmere', null, { type: 'city' })
+    const docks = entity('Location', 'The Docks', port, { type: 'district' })
+
+    // A first roster exists from the start; places land there by default
+    await roster('POST', 'roles', { campaignId, location_id: inn, role: 'Barkeep' })
+    let all = await roster<Roster>('GET', '', undefined, { campaignId })
+    expect(all.books.map(b => b.name)).toEqual(['Main roster'])
+    const main = all.books[0]!
+    expect(all.places[0]!.book_id).toBe(main.id)
+
+    await roster('PATCH', `books/${main.id}`, { name: 'Vaelrun City' })
+    const salt = await roster<RosterBook>('POST', 'books', { campaignId, name: ' Saltmere ' })
+    expect(salt.name).toBe('Saltmere')
+    await expect(roster('POST', 'books', { campaignId, name: '  ' })).rejects.toMatchObject({ statusCode: 400 })
+
+    // Add straight into the second roster; adding a role later keeps it there
+    expect((await roster<RosterPlace>('POST', 'places', { campaignId, location_id: docks, book_id: salt.id })).book_id).toBe(salt.id)
+    await roster('POST', 'roles', { campaignId, location_id: docks, role: 'Harbourmaster' })
+    all = await roster<Roster>('GET', '', undefined, { campaignId })
+    expect(all.books.map(b => b.name)).toEqual(['Vaelrun City', 'Saltmere'])
+    expect(all.places.find(p => p.location_id === docks)!.book_id).toBe(salt.id)
+
+    // Move a place across, then delete a roster: its places move to the other one
+    expect((await roster<RosterPlace>('PATCH', `places/${inn}`, { book_id: salt.id })).book_id).toBe(salt.id)
+    expect((await roster<{ moved_to: number }>('DELETE', `books/${salt.id}`)).moved_to).toBe(main.id)
+    all = await roster<Roster>('GET', '', undefined, { campaignId })
+    expect(all.books).toHaveLength(1)
+    expect(all.places.every(p => p.book_id === main.id)).toBe(true)
+    expect(all.roles).toHaveLength(2)
+    await expect(roster('DELETE', `books/${main.id}`)).rejects.toMatchObject({ statusCode: 400 })
   })
 })

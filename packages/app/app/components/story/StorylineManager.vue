@@ -4,49 +4,55 @@
       <v-card-title>{{ $t('story.storyline.manage') }}</v-card-title>
       <v-card-subtitle class="text-wrap">{{ $t('story.storyline.manageHint') }}</v-card-subtitle>
       <v-card-text>
-        <div v-for="line in store.storylines" :key="line.id" class="d-flex align-center ga-2 mb-2">
-          <v-menu :close-on-content-click="false">
-            <template #activator="{ props: menu }">
-              <button v-bind="menu" class="swatch" :style="{ background: colorCss(storylineColor(line)) }" :aria-label="$t('story.storyline.color')" />
-            </template>
-            <v-card class="pa-3" width="280">
-              <div class="d-flex flex-wrap ga-2">
-                <button
-                  v-for="p in presets"
-                  :key="p.key"
-                  class="swatch"
-                  :class="{ 'swatch--active': isCurrent(line, p) }"
-                  :style="{ background: colorCss(p.color) }"
-                  :aria-label="$t('story.storyline.color')"
-                  @click="pick(line.id, p)"
-                />
-              </div>
-              <v-divider class="my-3" />
-              <div class="text-body-small text-medium-emphasis mb-1">{{ $t('story.storyline.ownColor') }}</div>
-              <v-color-picker
-                :model-value="line.custom_color ?? '#8a5cf6'"
-                mode="hex"
-                :modes="['hex']"
-                hide-inputs
-                elevation="0"
-                width="256"
-                @update:model-value="draftColor[line.id] = $event"
+        <!-- Drag the handle to reorder; the order carries to the board lanes and filters -->
+        <draggable :model-value="store.storylines" item-key="id" handle=".line-drag" :animation="180" @update:model-value="reorder">
+          <template #item="{ element: line }: { element: StoryLine }">
+            <div class="d-flex align-center ga-2 mb-2">
+              <v-icon class="line-drag text-medium-emphasis" :aria-label="$t('story.storyline.reorder')">mdi-drag-vertical</v-icon>
+              <v-menu :close-on-content-click="false" @update:model-value="open => open && startDraft(line)">
+                <template #activator="{ props: menu }">
+                  <button v-bind="menu" class="swatch" :style="{ background: colorCss(storylineColor(line)) }" :aria-label="$t('story.storyline.color')" />
+                </template>
+                <v-card class="pa-3" width="280">
+                  <div class="d-flex flex-wrap ga-2">
+                    <button
+                      v-for="p in presets"
+                      :key="p.key"
+                      class="swatch"
+                      :class="{ 'swatch--active': isCurrent(line, p) }"
+                      :style="{ background: colorCss(p.color) }"
+                      :aria-label="$t('story.storyline.color')"
+                      @click="pick(line.id, p)"
+                    />
+                  </div>
+                  <v-divider class="my-3" />
+                  <div class="text-body-small text-medium-emphasis mb-1">{{ $t('story.storyline.ownColor') }}</div>
+                  <!-- Starts on the storyline's current color; the circle shows what you're picking -->
+                  <v-color-picker
+                    v-model="draftColor[line.id]"
+                    mode="hex"
+                    :modes="['hex']"
+                    hide-inputs
+                    elevation="0"
+                    width="256"
+                  />
+                  <div class="d-flex ga-2 mt-2">
+                    <v-btn size="small" color="primary" variant="flat" :disabled="!changed(line)" @click="useOwn(line.id)">{{ $t('story.storyline.useColor') }}</v-btn>
+                    <v-btn size="small" variant="tonal" :disabled="!draftColor[line.id]" @click="saveAsPreset(line.id)">{{ $t('story.storyline.savePreset') }}</v-btn>
+                  </div>
+                </v-card>
+              </v-menu>
+              <v-text-field
+                :model-value="line.name"
+                variant="outlined"
+                density="compact"
+                hide-details
+                @change="(e: Event) => store.updateStoryline(line.id, { name: (e.target as HTMLInputElement).value })"
               />
-              <div class="d-flex ga-2 mt-2">
-                <v-btn size="small" color="primary" variant="flat" :disabled="!draftColor[line.id]" @click="useOwn(line.id)">{{ $t('story.storyline.useColor') }}</v-btn>
-                <v-btn size="small" variant="tonal" :disabled="!draftColor[line.id]" @click="saveAsPreset(line.id)">{{ $t('story.storyline.savePreset') }}</v-btn>
-              </div>
-            </v-card>
-          </v-menu>
-          <v-text-field
-            :model-value="line.name"
-            variant="outlined"
-            density="compact"
-            hide-details
-            @change="(e: Event) => store.updateStoryline(line.id, { name: (e.target as HTMLInputElement).value })"
-          />
-          <v-btn icon="mdi-delete" variant="text" size="small" color="error" :aria-label="$t('common.delete')" @click="store.deleteStoryline(line.id)" />
-        </div>
+              <v-btn icon="mdi-delete" variant="text" size="small" color="error" :aria-label="$t('common.delete')" @click="store.deleteStoryline(line.id)" />
+            </div>
+          </template>
+        </draggable>
         <div v-if="store.storylines.length === 0" class="text-medium-emphasis text-body-medium mb-3">{{ $t('story.storyline.none') }}</div>
 
         <div class="d-flex ga-2 mt-4">
@@ -95,6 +101,8 @@
 </template>
 
 <script setup lang="ts">
+import draggable from 'vuedraggable'
+import { useTheme } from 'vuetify'
 import { STORY_COLOR_COUNT, colorCss, storylineColor, type StoryLine } from '~~/types/story'
 
 /** Storylines and their colors: theme presets, your own presets, or any color. Deleting one keeps its clusters. */
@@ -122,6 +130,20 @@ function pick(id: number, p: Preset) {
   else store.updateStoryline(id, { custom_color: p.color })
 }
 const hex = (v: string) => v.slice(0, 7).toLowerCase()
+const theme = useTheme()
+/** The line's color as a hex (theme colors are looked up in the current theme) */
+function currentHex(line: StoryLine): string {
+  if (line.custom_color) return hex(line.custom_color)
+  const c = theme.current.value.colors[`story-${line.color}`]
+  return typeof c === 'string' && c.startsWith('#') ? hex(c) : '#8a5cf6'
+}
+function startDraft(line: StoryLine) {
+  draftColor.value[line.id] = currentHex(line)
+}
+const changed = (line: StoryLine) => !!draftColor.value[line.id] && hex(draftColor.value[line.id]!) !== currentHex(line)
+function reorder(list: StoryLine[]) {
+  store.reorderStorylines(list.map(l => l.id))
+}
 function useOwn(id: number) {
   const c = draftColor.value[id]
   if (c) store.updateStoryline(id, { custom_color: hex(c) })
@@ -163,6 +185,9 @@ async function add() {
   border: 2px solid rgba(var(--v-theme-on-surface), 0.15);
   cursor: pointer;
   display: inline-block;
+}
+.line-drag {
+  cursor: grab;
 }
 .swatch--static {
   cursor: default;

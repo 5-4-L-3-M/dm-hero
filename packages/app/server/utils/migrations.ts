@@ -3444,6 +3444,31 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 80: Storyline custom colors')
     },
   },
+  {
+    version: 81,
+    name: 'roster_books',
+    up: (db) => {
+      // Separate rosters (one per city or region); every place on the roster sits in one
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS roster_books (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        )
+      `)
+      const cols = (db.prepare('PRAGMA table_info(roster_places)').all() as { name: string }[]).map(c => c.name)
+      if (!cols.includes('book_id')) db.exec('ALTER TABLE roster_places ADD COLUMN book_id INTEGER REFERENCES roster_books(id) ON DELETE SET NULL')
+      // Existing rosters become the first book of their campaign
+      const campaigns = db.prepare('SELECT DISTINCT campaign_id FROM roster_places').all() as { campaign_id: number }[]
+      for (const c of campaigns) {
+        const id = Number(db.prepare('INSERT INTO roster_books (campaign_id, name) VALUES (?, ?)').run(c.campaign_id, 'Main roster').lastInsertRowid)
+        db.prepare('UPDATE roster_places SET book_id = ? WHERE campaign_id = ?').run(id, c.campaign_id)
+      }
+      console.log('✅ Migration 81: Roster books')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

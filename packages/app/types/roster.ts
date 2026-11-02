@@ -14,6 +14,15 @@ export interface RosterPlace {
   /** Nearest city / town / village above it (or the top place), for the settlement tabs */
   settlement_id: number | null
   settlement_name: string | null
+  /** Which roster it's on */
+  book_id: number | null
+}
+
+/** One roster — a city, a region, a guild network */
+export interface RosterBook {
+  id: number
+  name: string
+  sort_order: number
 }
 
 export interface RosterNpc {
@@ -38,6 +47,7 @@ export interface RosterRole {
 }
 
 export interface Roster {
+  books: RosterBook[]
   places: RosterPlace[]
   roles: RosterRole[]
 }

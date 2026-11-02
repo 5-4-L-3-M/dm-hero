@@ -1,5 +1,16 @@
 # @dm-hero/app
 
+## 1.22.0
+
+### Minor Changes
+
+- Roster: separate named rosters — one per city or region — as tabs. Add a new roster any time, rename or delete one (its places move to another roster), and move a place to another roster from its menu. Your current roster becomes "Main roster".
+- Dashboard: the Reputation card lists everyone A to Z, split into people, factions and places, with a search box and photos. The NPCs card gets a search box that finds any NPC in the campaign.
+- Story board: the storyline filter and the color legend fold up to one line (the storylines you've picked stay visible); remembered per campaign.
+- Story map: cluster cards show a plain "Add to next session" button under the title (it was a small calendar icon in the corner).
+- Storylines: drag to reorder them in Manage storylines; the color picker opens on the storyline's current color.
+- Stat blocks from notes: "Multiattack" counts as an action, and the stat block stops at the first line that isn't part of it, so rules and notes below it stay in the notes.
+
 ## 1.21.0
 
 ### Minor Changes

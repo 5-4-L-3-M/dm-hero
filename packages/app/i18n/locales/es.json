@@ -3228,7 +3228,8 @@
       "addPreset": "Add color",
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
-      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted."
+      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
+      "reorder": "Arrastra para reordenar"
     },
     "cluster": {
       "new": "New cluster",
@@ -3338,7 +3339,8 @@
     "filter": {
       "storylines": "Show storylines",
       "all": "Show all",
-      "statuses": "Show"
+      "statuses": "Show",
+      "showingAll": "Mostrando todas"
     },
     "lane": {
       "dropHere": "Drag a cluster here",
@@ -3405,7 +3407,9 @@
       "addAct": "Add an act",
       "actsHint": "Acts are stages of the world, not a strict order — cards can skip acts and lines can cross between them.",
       "intoNext": "Put the whole thing in the next session",
-      "outOfNext": "Take it out of the next session"
+      "outOfNext": "Take it out of the next session",
+      "inNext": "En la próxima sesión",
+      "addToNext": "Añadir a la próxima sesión"
     },
     "archive": {
       "title": "Archive",
@@ -3509,7 +3513,17 @@
     "faction": "Faction",
     "placeOrFaction": "Place or faction",
     "dragHint": "Drag to reorder",
-    "doneEditing": "Done"
+    "doneEditing": "Done",
+    "newBook": "Nueva plantilla",
+    "renameBook": "Renombrar plantilla",
+    "deleteBook": "Eliminar plantilla",
+    "bookActions": "Acciones de plantilla",
+    "bookName": "Nombre de la plantilla",
+    "bookNameHint": "Una ciudad, una región, una red de gremios…",
+    "deleteBookTitle": "¿Eliminar «{name}»?",
+    "deleteBookText": "Sus lugares y roles pasan a «{other}». No se elimina nada más.",
+    "moveToBook": "Mover a plantilla",
+    "addingTo": "Se añade a {name}"
   },
   "reputation": {
     "title": "Reputation",
@@ -3695,7 +3709,9 @@
         "title": "NPCs this session",
         "empty": "Nobody linked to the next-session tray yet.",
         "met": "Has met the party",
-        "notMet": "Hasn't met the party"
+        "notMet": "Hasn't met the party",
+        "search": "Buscar todos los PNJ…",
+        "noMatch": "Ningún PNJ con ese nombre."
       },
       "sessionQuests": {
         "title": "This session's questline",
@@ -3712,7 +3728,9 @@
       },
       "reputation": {
         "title": "Reputation",
-        "empty": "Nothing logged yet."
+        "empty": "Nothing logged yet.",
+        "search": "Buscar reputación…",
+        "noMatch": "Sin resultados."
       },
       "map": {
         "title": "Map",
