@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3'
 import { getTestDb } from '../utils/test-db'
 import { bestUnit, DEFAULT_DENOMINATIONS as D, formatCoins, payFromPurse, purseTotal } from '../../types/coins'
 import { isShopLocationType } from '../../types/shop'
-import { createShopItem, getPurse, ShopError, sellShopItem, setPurse } from '../../server/utils/shop'
+import { buyFromPlayer, createShopItem, getPurse, listShopItems, sellOffers, ShopError, sellShopItem, setPurse, updateShopItem } from '../../server/utils/shop'
 import { getPlayerInventory } from '../../server/utils/inventory'
 
 describe('coins', () => {
@@ -70,5 +70,36 @@ describe('selling from a shop', () => {
     expect(() => sellShopItem(db, { shopItemId: tea.id, playerId })).toThrow(ShopError)
     expect(() => sellShopItem(db, { shopItemId: tea.id, playerId, quantity: 2, charge: false })).toThrow('Not enough in stock')
     expect(purseTotal(getPurse(db, playerId, D), D)).toBe(5000)
+  })
+
+  it('keeps black-market stock apart and checks a reputation lock', () => {
+    const typeId = (name: string) => (db.prepare('SELECT id FROM entity_types WHERE name = ?').get(name) as { id: number }).id
+    const guild = Number(db.prepare('INSERT INTO entities (type_id, campaign_id, name) VALUES (?, ?, ?)').run(typeId('Faction'), campaignId, 'Thieves Guild').lastInsertRowid)
+    const lockpicks = createShopItem(db, shopId, { name: 'Masterwork lockpicks', price_cp: 5000, secret: true, requirement: 'Knows the password', req_subject_id: guild, req_tier: 'liked' })
+    let row = listShopItems(db, shopId).find(i => i.id === lockpicks.id)!
+    expect(row).toMatchObject({ secret: true, requirement: 'Knows the password', req_subject_name: 'Thieves Guild', req_tier: 'liked', req_met: false })
+    db.prepare('INSERT INTO rep_events (campaign_id, subject_id, player_id, kind, delta) VALUES (?, ?, ?, ?, ?)').run(campaignId, guild, playerId, 'rep', 5)
+    row = listShopItems(db, shopId).find(i => i.id === lockpicks.id)!
+    expect(row.req_met).toBe(true)
+    updateShopItem(db, lockpicks.id, { secret: false, req_subject_id: null })
+    expect(listShopItems(db, shopId).find(i => i.id === lockpicks.id)).toMatchObject({ secret: false, req_met: null })
+  })
+
+  it('buys loot from a character for half its value and shelves it', () => {
+    const typeId = (name: string) => (db.prepare('SELECT id FROM entity_types WHERE name = ?').get(name) as { id: number }).id
+    const gp = db.prepare('SELECT id FROM currencies WHERE campaign_id = ? AND code = ?').get(campaignId, 'GP') as { id: number }
+    const ruby = Number(db.prepare('INSERT INTO entities (type_id, campaign_id, name, metadata) VALUES (?, ?, ?, ?)').run(typeId('Item'), campaignId, 'Ruby', JSON.stringify({ value: 50, currency_id: gp.id })).lastInsertRowid)
+    db.prepare('INSERT INTO entity_relations (from_entity_id, to_entity_id, relation_type, notes) VALUES (?, ?, ?, ?)').run(playerId, ruby, 'owns', JSON.stringify({ quantity: 2 }))
+    const before = purseTotal(getPurse(db, playerId, D), D)
+    const offer = sellOffers(db, shopId, playerId).offers.find(o => o.item_id === ruby)!
+    expect(offer).toMatchObject({ value_cp: 5000, offer_cp: 2500, quantity: 2 })
+    const r = buyFromPlayer(db, { locationId: shopId, playerId, relationId: offer.relation_id })
+    expect(r.paid_cp).toBe(2500)
+    expect(purseTotal(getPurse(db, playerId, D), D)).toBe(before + 2500)
+    expect(sellOffers(db, shopId, playerId).offers.find(o => o.item_id === ruby)!.quantity).toBe(1)
+    expect(listShopItems(db, shopId).find(i => i.item_id === ruby)).toMatchObject({ name: 'Ruby', stock: 1, price_cp: 5000 })
+    buyFromPlayer(db, { locationId: shopId, playerId, relationId: offer.relation_id, priceEachCp: 3000 })
+    expect(sellOffers(db, shopId, playerId).offers.find(o => o.item_id === ruby)).toBeUndefined()
+    expect(listShopItems(db, shopId).find(i => i.item_id === ruby)!.stock).toBe(2)
   })
 })

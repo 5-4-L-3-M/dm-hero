@@ -3063,6 +3063,33 @@
       "very_rare": "Magia muy rara",
       "legendary": "Legendario",
       "lore": "Objeto de historia"
+    },
+    "blackMarket": {
+      "title": "Black market",
+      "hint": "Under the counter — only for those in the know",
+      "switch": "Black market (under the counter)"
+    },
+    "requirement": {
+      "label": "Requirement",
+      "placeholder": "e.g. Thieves Guild contact, knows the password",
+      "repLock": "Reputation lock (optional): the party must be at least…",
+      "who": "With NPC, faction or place",
+      "atLeast": "At least",
+      "met": "The party meets this",
+      "notMet": "The party doesn't meet this yet"
+    },
+    "buyFrom": {
+      "button": "Buy from a character",
+      "title": "The shop buys loot",
+      "who": "Who's selling?",
+      "nothing": "Nothing to sell — their inventory is empty.",
+      "offer": "Offers {offer} each (worth {value})",
+      "noValue": "No value set — name a price",
+      "equipped": "Equipped",
+      "toShelf": "Put it on the shop's shelf",
+      "theyGet": "They get",
+      "confirm": "Sell",
+      "done": "{name} got {paid}"
     }
   },
   "purse": {
