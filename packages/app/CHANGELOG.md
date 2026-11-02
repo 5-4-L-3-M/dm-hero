@@ -1,5 +1,15 @@
 # @dm-hero/app
 
+## 1.20.0
+
+### Minor Changes
+
+- Monsters: a new page with the official 5e creatures (SRD, about 330 — goblins to dragons) ready to use, plus your own. Search by name or type, filter by CR and official/homebrew, copy an official one to make your own version.
+- Stat blocks that read at a glance: AC/HP/speed/CR pills, the six abilities, then traits, actions, reactions and legendary actions. Click an attack's "+4 to hit" or "1d6+2 slashing" to roll it, an ability to roll a check, the hit dice to roll HP — the result shows big (crits green, ones red).
+- NPCs get the same stat block in their side panel. Stats already written in an NPC's notes ("AC 16 - HP 22 …", "**Spear:** +4 to hit …") can be read in with one click — check them, save, and the stat lines leave the notes (the original notes are kept as a backup). Or paste a stat block in anywhere.
+- Encounters: add monsters straight from the library — how many, average or rolled HP; each rolls its own initiative. NPCs with a stat block can join even without a stat template.
+- Combat: whoever's turn it is shows their full stat block beside the HP controls, with click-to-roll attacks; one-click conditions (Prone, Grappled, Poisoned, Concentrating …) that light up and show as icons on the turn tiles.
+
 ## 1.19.0
 
 ### Minor Changes

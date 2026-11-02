@@ -8,6 +8,7 @@ interface EntityRow {
   type_name: string
   values_json: string | null
   template_id: number | null
+  statblock: string | null
 }
 
 interface ResourceField {
@@ -38,10 +39,11 @@ export default defineEventHandler((event) => {
 
   let sql = `
     SELECT e.id, e.name, e.description, ei.image_url, et.name as type_name,
-           es.values_json, es.template_id
+           es.values_json, es.template_id, sb.block AS statblock
     FROM entities e
     JOIN entity_types et ON et.id = e.type_id
-    JOIN entity_stats es ON es.entity_id = e.id
+    LEFT JOIN entity_stats es ON es.entity_id = e.id
+    LEFT JOIN entity_statblocks sb ON sb.entity_id = e.id
     LEFT JOIN (
       SELECT entity_id, image_url
       FROM entity_images
@@ -50,6 +52,7 @@ export default defineEventHandler((event) => {
     WHERE e.campaign_id = ?
       AND e.deleted_at IS NULL
       AND et.name IN ('NPC', 'Player')
+      AND (es.entity_id IS NOT NULL OR sb.entity_id IS NOT NULL)
   `
   const params: unknown[] = [campaignId]
 
@@ -102,6 +105,17 @@ export default defineEventHandler((event) => {
       }
       catch {
         // ignore parse errors
+      }
+    }
+
+    // No HP in the stat template? Use the stat block's
+    if (!resources.length && e.statblock) {
+      try {
+        const hp = Number((JSON.parse(e.statblock) as { hp?: number }).hp)
+        if (hp > 0) resources.push({ name: 'hp', label: 'HP', current: hp, max: hp })
+      }
+      catch {
+        // no usable stat block
       }
     }
 

@@ -3,9 +3,9 @@
     <v-list v-if="participants.length > 0" lines="one" density="compact">
       <v-list-item v-for="p in participants" :key="p.id">
         <template #prepend>
-          <v-avatar :color="p.entity_type === 'Player' ? 'cyan-lighten-4' : 'blue-lighten-4'" size="36" class="mr-3">
+          <v-avatar :color="p.entity_type === 'Player' ? 'cyan-lighten-4' : p.entity_type === 'Monster' ? 'red-lighten-4' : 'blue-lighten-4'" size="36" class="mr-3">
             <v-img v-if="p.entity_image" :src="`/uploads/${p.entity_image}`" />
-            <v-icon v-else size="20">{{ p.entity_type === 'Player' ? 'mdi-account-star' : 'mdi-account' }}</v-icon>
+            <v-icon v-else size="20">{{ p.entity_type === 'Player' ? 'mdi-account-star' : p.entity_type === 'Monster' ? 'mdi-paw' : 'mdi-account' }}</v-icon>
           </v-avatar>
         </template>
 

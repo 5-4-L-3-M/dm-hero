@@ -30,6 +30,7 @@
             {{ participant.initiative }}
           </div>
           <v-btn
+            v-if="participant.entity_id"
             icon="mdi-eye"
             variant="flat"
             class="combat-tile__view combat-tile__btn"
@@ -58,6 +59,9 @@
             {{ participant.current_hp }}/{{ participant.max_hp }}
             <span v-if="participant.temp_hp > 0" class="text-info">(+{{ participant.temp_hp }})</span>
           </div>
+          <div v-if="participant.effects?.length" class="d-flex justify-center flex-wrap tile-effects">
+            <v-icon v-for="e in participant.effects.slice(0, 5)" :key="e.id" size="14" :title="e.name">{{ e.icon || effectIcon(e) }}</v-icon>
+          </div>
         </div>
       </div>
     </div>
@@ -65,160 +69,192 @@
     <!-- Active participant detail panel -->
     <v-card v-if="activeParticipant" variant="outlined" class="mb-3">
       <v-card-text>
-        <div class="d-flex align-center ga-3 mb-3">
-          <v-avatar :color="getAvatarColor(activeParticipant.entity_type)" size="48">
-            <v-img v-if="activeParticipant.entity_image" :src="`/uploads/${activeParticipant.entity_image}`" />
-            <v-icon v-else>{{ getEntityIcon(activeParticipant.entity_type) }}</v-icon>
-          </v-avatar>
-          <div>
-            <div class="text-headline-small">
-              {{ activeParticipant.display_name }}
-              <span v-if="activeParticipant.duplicate_index > 0" class="text-medium-emphasis">({{ activeParticipant.duplicate_index + 1 }})</span>
+        <div class="turn-layout">
+          <div class="turn-left">
+            <div class="d-flex align-center ga-3 mb-3">
+              <v-avatar :color="getAvatarColor(activeParticipant.entity_type)" size="48">
+                <v-img v-if="activeParticipant.entity_image" :src="`/uploads/${activeParticipant.entity_image}`" />
+                <v-icon v-else>{{ getEntityIcon(activeParticipant.entity_type) }}</v-icon>
+              </v-avatar>
+              <div>
+                <div class="text-headline-small">
+                  {{ activeParticipant.display_name }}
+                  <span v-if="activeParticipant.duplicate_index > 0" class="text-medium-emphasis">({{ activeParticipant.duplicate_index + 1 }})</span>
+                </div>
+                <div class="d-flex ga-2">
+                  <v-chip size="x-small" variant="tonal">{{ activeParticipant.entity_type }}</v-chip>
+                  <v-chip v-if="activeParticipant.initiative != null" size="x-small" variant="tonal" color="info" prepend-icon="mdi-lightning-bolt">
+                    {{ activeParticipant.initiative }}
+                  </v-chip>
+                  <v-chip v-if="activeParticipant.is_ko" size="x-small" color="error" prepend-icon="mdi-skull">{{ $t('encounters.ko') }}</v-chip>
+                </div>
+              </div>
             </div>
-            <div class="d-flex ga-2">
-              <v-chip size="x-small" variant="tonal">{{ activeParticipant.entity_type }}</v-chip>
-              <v-chip v-if="activeParticipant.initiative != null" size="x-small" variant="tonal" color="info" prepend-icon="mdi-lightning-bolt">
-                {{ activeParticipant.initiative }}
-              </v-chip>
-              <v-chip v-if="activeParticipant.is_ko" size="x-small" color="error" prepend-icon="mdi-skull">{{ $t('encounters.ko') }}</v-chip>
+
+            <!-- HP Section -->
+            <div class="mb-3">
+              <div class="d-flex align-center ga-2 mb-1">
+                <v-text-field
+                  v-model.number="liveCurrentHp"
+                  type="number"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  :label="$t('encounters.hp')"
+                  style="max-width: 90px;"
+                />
+                <span class="text-headline-small">/</span>
+                <v-text-field
+                  v-model.number="liveMaxHp"
+                  type="number"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  label="Max"
+                  style="max-width: 90px;"
+                />
+                <span v-if="activeParticipant.temp_hp > 0" class="text-info text-body-medium">(+{{ activeParticipant.temp_hp }} {{ $t('encounters.tempHp') }})</span>
+              </div>
+              <v-progress-linear
+                :model-value="liveHpPct"
+                :color="liveHpColor"
+                height="10"
+                rounded
+                class="mb-3"
+              />
+
+              <!-- Damage / Heal controls -->
+              <div class="d-flex align-center ga-2 flex-wrap">
+                <v-text-field
+                  v-model.number="hpAmount"
+                  type="number"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  min="0"
+                  style="max-width: 100px;"
+                  @keydown.enter="onDamage"
+                />
+                <v-btn color="error" variant="tonal" prepend-icon="mdi-sword" :disabled="!hpAmount" @click="onDamage">
+                  {{ $t('encounters.damage') }}
+                </v-btn>
+                <v-btn color="success" variant="tonal" prepend-icon="mdi-heart" :disabled="!hpAmount" @click="onHeal">
+                  {{ $t('encounters.heal') }}
+                </v-btn>
+                <v-spacer />
+                <v-btn
+                  :prepend-icon="activeParticipant.is_ko ? 'mdi-skull' : 'mdi-skull-outline'"
+                  :color="activeParticipant.is_ko ? 'error' : 'default'"
+                  variant="tonal"
+                  @click="onToggleKo"
+                >
+                  {{ $t('encounters.ko') }}
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Conditions: one click on, one click off -->
+            <div class="mb-3">
+              <div class="text-body-medium font-weight-medium mb-1">{{ $t('encounters.conditions.title') }}</div>
+              <div class="d-flex flex-wrap ga-1">
+                <v-chip
+                  v-for="c in CONDITIONS"
+                  :key="c.key"
+                  size="small"
+                  :variant="hasCondition(c.key) ? 'flat' : 'outlined'"
+                  :color="hasCondition(c.key) ? c.color : undefined"
+                  :prepend-icon="c.icon"
+                  @click="toggleCondition(c)"
+                >
+                  {{ $t(`encounters.conditions.${c.key}`) }}
+                </v-chip>
+              </div>
+            </div>
+
+            <!-- Effects -->
+            <div class="mb-3">
+              <div class="d-flex align-center ga-2 mb-2">
+                <span class="text-body-medium font-weight-medium">{{ $t('encounters.effects') }}</span>
+                <v-spacer />
+                <v-btn size="small" variant="tonal" prepend-icon="mdi-plus" @click="showEffectInput = !showEffectInput">
+                  {{ $t('encounters.addEffect') }}
+                </v-btn>
+              </div>
+
+              <!-- Add effect inline form -->
+              <div v-if="showEffectInput" class="d-flex align-center ga-2 mb-2 flex-wrap">
+                <v-text-field
+                  v-model="newEffectName"
+                  :label="$t('encounters.effectName')"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  style="max-width: 160px;"
+                  @keydown.enter="onAddEffect"
+                />
+                <v-select
+                  v-model="newEffectDuration"
+                  :items="durationTypes"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  style="max-width: 150px;"
+                />
+                <v-text-field
+                  v-if="newEffectDuration === 'rounds'"
+                  v-model.number="newEffectRounds"
+                  type="number"
+                  :label="$t('encounters.rounds')"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  min="1"
+                  style="max-width: 80px;"
+                />
+                <v-btn icon="mdi-check" size="small" color="primary" variant="tonal" :disabled="!newEffectName.trim()" @click="onAddEffect" />
+              </div>
+
+              <!-- Active effects list -->
+              <div v-if="otherEffects.length" class="d-flex flex-wrap ga-1">
+                <v-chip
+                  v-for="effect in otherEffects"
+                  :key="effect.id"
+                  size="small"
+                  closable
+                  :color="effectColor(effect)"
+                  :prepend-icon="effect.icon || effectIcon(effect)"
+                  @click:close="onRemoveEffect(effect.id)"
+                >
+                  {{ effect.name }}
+                  <span v-if="effect.duration_type === 'rounds'" class="ml-1">({{ effect.remaining_rounds }})</span>
+                </v-chip>
+              </div>
+              <div v-else class="text-body-small text-medium-emphasis">{{ $t('encounters.noEffects') }}</div>
+            </div>
+
+            <!-- Notes -->
+            <v-textarea
+              :model-value="activeParticipant.notes || ''"
+              :label="$t('encounters.notes')"
+              density="compact"
+              variant="outlined"
+              hide-details
+              rows="4"
+              auto-grow
+              @blur="onNotesBlur"
+            />
+          </div>
+
+          <!-- Their stat block: attacks and checks roll on click -->
+          <div class="turn-right">
+            <StatblockView v-if="activeParticipant.statblock" :key="activeParticipant.id" :block="activeParticipant.statblock" />
+            <div v-else class="text-center text-medium-emphasis py-8">
+              <v-icon size="36">mdi-clipboard-text-outline</v-icon>
+              <div class="text-body-medium mt-2">{{ $t('encounters.noStatblock') }}</div>
+              <v-btn v-if="activeParticipant.entity_id" size="small" variant="tonal" class="mt-2" prepend-icon="mdi-eye" @click="openPreview(activeParticipant)">{{ $t('encounters.openToAdd') }}</v-btn>
             </div>
           </div>
         </div>
-
-        <!-- HP Section -->
-        <div class="mb-3">
-          <div class="d-flex align-center ga-2 mb-1">
-            <v-text-field
-              v-model.number="liveCurrentHp"
-              type="number"
-              density="compact"
-              variant="outlined"
-              hide-details
-              :label="$t('encounters.hp')"
-              style="max-width: 90px;"
-            />
-            <span class="text-headline-small">/</span>
-            <v-text-field
-              v-model.number="liveMaxHp"
-              type="number"
-              density="compact"
-              variant="outlined"
-              hide-details
-              label="Max"
-              style="max-width: 90px;"
-            />
-            <span v-if="activeParticipant.temp_hp > 0" class="text-info text-body-medium">(+{{ activeParticipant.temp_hp }} {{ $t('encounters.tempHp') }})</span>
-          </div>
-          <v-progress-linear
-            :model-value="liveHpPct"
-            :color="liveHpColor"
-            height="10"
-            rounded
-            class="mb-3"
-          />
-
-          <!-- Damage / Heal controls -->
-          <div class="d-flex align-center ga-2 flex-wrap">
-            <v-text-field
-              v-model.number="hpAmount"
-              type="number"
-              density="compact"
-              variant="outlined"
-              hide-details
-              min="0"
-              style="max-width: 100px;"
-              @keydown.enter="onDamage"
-            />
-            <v-btn color="error" variant="tonal" prepend-icon="mdi-sword" :disabled="!hpAmount" @click="onDamage">
-              {{ $t('encounters.damage') }}
-            </v-btn>
-            <v-btn color="success" variant="tonal" prepend-icon="mdi-heart" :disabled="!hpAmount" @click="onHeal">
-              {{ $t('encounters.heal') }}
-            </v-btn>
-            <v-spacer />
-            <v-btn
-              :prepend-icon="activeParticipant.is_ko ? 'mdi-skull' : 'mdi-skull-outline'"
-              :color="activeParticipant.is_ko ? 'error' : 'default'"
-              variant="tonal"
-              @click="onToggleKo"
-            >
-              {{ $t('encounters.ko') }}
-            </v-btn>
-          </div>
-        </div>
-
-        <!-- Effects -->
-        <div class="mb-3">
-          <div class="d-flex align-center ga-2 mb-2">
-            <span class="text-body-medium font-weight-medium">{{ $t('encounters.effects') }}</span>
-            <v-spacer />
-            <v-btn size="small" variant="tonal" prepend-icon="mdi-plus" @click="showEffectInput = !showEffectInput">
-              {{ $t('encounters.addEffect') }}
-            </v-btn>
-          </div>
-
-          <!-- Add effect inline form -->
-          <div v-if="showEffectInput" class="d-flex align-center ga-2 mb-2 flex-wrap">
-            <v-text-field
-              v-model="newEffectName"
-              :label="$t('encounters.effectName')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              style="max-width: 160px;"
-              @keydown.enter="onAddEffect"
-            />
-            <v-select
-              v-model="newEffectDuration"
-              :items="durationTypes"
-              density="compact"
-              variant="outlined"
-              hide-details
-              style="max-width: 150px;"
-            />
-            <v-text-field
-              v-if="newEffectDuration === 'rounds'"
-              v-model.number="newEffectRounds"
-              type="number"
-              :label="$t('encounters.rounds')"
-              density="compact"
-              variant="outlined"
-              hide-details
-              min="1"
-              style="max-width: 80px;"
-            />
-            <v-btn icon="mdi-check" size="small" color="primary" variant="tonal" :disabled="!newEffectName.trim()" @click="onAddEffect" />
-          </div>
-
-          <!-- Active effects list -->
-          <div v-if="activeParticipant.effects?.length" class="d-flex flex-wrap ga-1">
-            <v-chip
-              v-for="effect in activeParticipant.effects"
-              :key="effect.id"
-              size="small"
-              closable
-              :color="effectColor(effect)"
-              :prepend-icon="effect.icon || effectIcon(effect)"
-              @click:close="onRemoveEffect(effect.id)"
-            >
-              {{ effect.name }}
-              <span v-if="effect.duration_type === 'rounds'" class="ml-1">({{ effect.remaining_rounds }})</span>
-            </v-chip>
-          </div>
-          <div v-else class="text-body-small text-medium-emphasis">{{ $t('encounters.noEffects') }}</div>
-        </div>
-
-        <!-- Notes -->
-        <v-textarea
-          :model-value="activeParticipant.notes || ''"
-          :label="$t('encounters.notes')"
-          density="compact"
-          variant="outlined"
-          hide-details
-          rows="4"
-          auto-grow
-          @blur="onNotesBlur"
-        />
       </v-card-text>
     </v-card>
 
@@ -419,6 +455,37 @@ async function onRemoveEffect(effectId: number) {
   await encounterStore.removeEffect(props.encounterId, activeParticipant.value.id, effectId)
 }
 
+// 5e conditions as quick toggles (stored as effects, so they show on the tile and tick like any effect)
+const CONDITIONS = [
+  { key: 'prone', icon: 'mdi-human-handsdown', color: 'brown' },
+  { key: 'grappled', icon: 'mdi-hand-back-left', color: 'orange' },
+  { key: 'restrained', icon: 'mdi-link-variant', color: 'deep-orange' },
+  { key: 'poisoned', icon: 'mdi-bottle-tonic-skull', color: 'green' },
+  { key: 'frightened', icon: 'mdi-emoticon-cry-outline', color: 'purple' },
+  { key: 'charmed', icon: 'mdi-heart-outline', color: 'pink' },
+  { key: 'blinded', icon: 'mdi-eye-off', color: 'grey' },
+  { key: 'deafened', icon: 'mdi-ear-hearing-off', color: 'grey' },
+  { key: 'invisible', icon: 'mdi-ghost-outline', color: 'blue-grey' },
+  { key: 'incapacitated', icon: 'mdi-sleep', color: 'indigo' },
+  { key: 'stunned', icon: 'mdi-star-four-points', color: 'amber' },
+  { key: 'paralyzed', icon: 'mdi-lightning-bolt', color: 'yellow-darken-2' },
+  { key: 'unconscious', icon: 'mdi-bed', color: 'red' },
+  { key: 'concentrating', icon: 'mdi-head-flash', color: 'deep-purple' },
+] as const
+const conditionName = (key: string) => t(`encounters.conditions.${key}`)
+// Effects that aren't one of the condition toggles (those show lit up above)
+const otherEffects = computed(() => (activeParticipant.value?.effects ?? []).filter(e => !CONDITIONS.some(c => conditionName(c.key) === e.name)))
+function hasCondition(key: string) {
+  return !!activeParticipant.value?.effects?.some(e => e.name === conditionName(key))
+}
+async function toggleCondition(c: typeof CONDITIONS[number]) {
+  const p = activeParticipant.value
+  if (!p) return
+  const existing = p.effects?.find(e => e.name === conditionName(c.key))
+  if (existing) await encounterStore.removeEffect(props.encounterId, p.id, existing.id)
+  else await encounterStore.addEffect(props.encounterId, p.id, { name: conditionName(c.key), icon: c.icon, duration_type: c.key === 'concentrating' ? 'concentration' : 'infinite', duration_rounds: null })
+}
+
 function effectColor(e: EncounterEffect): string {
   if (e.duration_type === 'concentration') return 'purple'
   if (e.duration_type === 'rounds') return 'orange'
@@ -445,6 +512,7 @@ function doRemove() {
 }
 
 function openPreview(participant: EncounterParticipant) {
+  if (!participant.entity_id) return
   previewEntityType.value = participant.entity_type === 'Player' ? 'player' : 'npc'
   previewEntityId.value = participant.entity_id
   showPreviewDialog.value = true
@@ -454,6 +522,7 @@ function getEntityIcon(type?: string): string {
   const icons: Record<string, string> = {
     NPC: 'mdi-account',
     Player: 'mdi-account-star',
+    Monster: 'mdi-paw',
   }
   return icons[type || ''] || 'mdi-help'
 }
@@ -462,12 +531,39 @@ function getAvatarColor(type?: string): string {
   const colors: Record<string, string> = {
     NPC: 'blue-lighten-4',
     Player: 'cyan-lighten-4',
+    Monster: 'red-lighten-4',
   }
   return colors[type || ''] || 'grey-lighten-3'
 }
 </script>
 
 <style scoped>
+.turn-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 5fr) 7fr;
+  gap: 24px;
+  align-items: start;
+}
+.turn-right {
+  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  padding-left: 24px;
+  max-height: 72vh;
+  overflow-y: auto;
+}
+@media (max-width: 1000px) {
+  .turn-layout {
+    grid-template-columns: 1fr;
+  }
+  .turn-right {
+    border-left: none;
+    padding-left: 0;
+    max-height: none;
+  }
+}
+.tile-effects {
+  gap: 1px;
+  opacity: 0.85;
+}
 .combat-tiles {
   padding: 12px 4px;
 }

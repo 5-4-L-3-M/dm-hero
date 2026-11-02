@@ -56,7 +56,8 @@
     },
     "story": "Story Board",
     "roster": "Roster",
-    "rollTables": "Roll tables"
+    "rollTables": "Roll tables",
+    "monsters": "Monsters"
   },
   "themes": {
     "dark": "Oscuro (Taberna de medianoche)",
@@ -1505,7 +1506,31 @@
     "durationRounds": "Asaltos",
     "durationConcentration": "Concentración",
     "effectsExpired": "Efectos expirados",
-    "roll": "Tirar"
+    "roll": "Tirar",
+    "monsters": {
+      "rollHp": "Roll their hit points (instead of the average)",
+      "add": "Add",
+      "added": "{n} × {name} joined the fight"
+    },
+    "noStatblock": "No stat block yet.",
+    "openToAdd": "Open to add one",
+    "conditions": {
+      "title": "Conditions",
+      "prone": "Prone",
+      "grappled": "Grappled",
+      "restrained": "Restrained",
+      "poisoned": "Poisoned",
+      "frightened": "Frightened",
+      "charmed": "Charmed",
+      "blinded": "Blinded",
+      "deafened": "Deafened",
+      "invisible": "Invisible",
+      "incapacitated": "Incapacitated",
+      "stunned": "Stunned",
+      "paralyzed": "Paralyzed",
+      "unconscious": "Unconscious",
+      "concentrating": "Concentrating"
+    }
   },
   "documents": {
     "title": "Documentos",
@@ -3816,6 +3841,74 @@
       "Faction": "Faction",
       "Lore": "Lore",
       "Item": "Item"
+    }
+  },
+  "monsters": {
+    "title": "Monsters",
+    "subtitle": "The official 5e creatures plus your own — readable stat blocks, ready for combat.",
+    "new": "New monster",
+    "edit": "Edit monster",
+    "search": "Search name or type",
+    "none": "No monsters match.",
+    "count": "{n} of {total}",
+    "pick": "Pick a creature to see its stat block.",
+    "official": "Official (SRD)",
+    "lore": "Lore",
+    "copy": "Copy",
+    "copyHint": "Make your own version to change",
+    "confirmDelete": "Delete {name}?",
+    "sources": {
+      "all": "All",
+      "homebrew": "Homebrew",
+      "official": "Official"
+    },
+    "fields": {
+      "name": "Name",
+      "tags": "Tags"
+    }
+  },
+  "statblock": {
+    "title": "Stat block",
+    "add": "Add a stat block",
+    "remove": "Remove stat block",
+    "fromNotes": "Read stats from the notes",
+    "fromNotesHint": "These stats were read from the notes. Check them, then save — the original notes are kept as a backup.",
+    "trimNotes": "Take the stat lines out of the notes",
+    "rollCheck": "Roll a check",
+    "toHit": "to hit",
+    "addFeature": "Add",
+    "featureName": "Name",
+    "featureText": "What it does (e.g. +4 to hit, 1d6 + 2 piercing)",
+    "notesHint": "Tactics, how this fight works, what they want",
+    "paste": {
+      "title": "Paste a stat block",
+      "placeholder": "AC 16 - HP 22 - Speed 30 ft\nSTR 14 DEX 12 CON 13 INT 10 WIS 11 CHA 10\n**Spear:** +4 to hit, 1d6 + 2 piercing",
+      "apply": "Read it",
+      "nothing": "No stats found in that text."
+    },
+    "sections": {
+      "traits": "Traits",
+      "actions": "Actions",
+      "bonus_actions": "Bonus actions",
+      "reactions": "Reactions",
+      "legendary": "Legendary actions",
+      "notes": "Notes"
+    },
+    "fields": {
+      "size": "Size",
+      "kind": "Type",
+      "alignment": "Alignment",
+      "ac_note": "Armor",
+      "hp_formula": "Hit dice",
+      "speed": "Speed",
+      "saves": "Saving Throws",
+      "skills": "Skills",
+      "vulnerabilities": "Vulnerabilities",
+      "resistances": "Resistances",
+      "immunities": "Immunities",
+      "condition_immunities": "Condition Immunities",
+      "senses": "Senses",
+      "languages": "Languages"
     }
   }
 }

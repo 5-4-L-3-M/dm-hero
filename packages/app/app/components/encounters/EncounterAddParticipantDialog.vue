@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="internalShow" max-width="500" scrollable>
+  <v-dialog v-model="internalShow" max-width="560" scrollable>
     <v-card>
       <v-card-title class="d-flex align-center">
         <v-icon class="mr-2">mdi-account-plus</v-icon>
@@ -35,6 +35,32 @@
         <div v-if="loading" class="text-center py-6">
           <v-progress-circular indeterminate color="primary" />
         </div>
+
+        <!-- Monsters from the library: how many, average or rolled HP -->
+        <template v-else-if="selectedType === 'Monster'">
+          <v-switch v-model="rollHp" :label="$t('encounters.monsters.rollHp')" color="primary" density="compact" hide-details class="mb-1" />
+          <v-list density="compact" style="max-height: 380px; overflow-y: auto;">
+            <v-list-item v-for="m in monsterResults" :key="m.id">
+              <template #prepend>
+                <v-avatar color="red-lighten-4" size="36">
+                  <v-img v-if="m.image_url" :src="`/uploads/${m.image_url}`" />
+                  <v-icon v-else size="20">mdi-paw</v-icon>
+                </v-avatar>
+              </template>
+              <v-list-item-title>{{ m.name }}</v-list-item-title>
+              <v-list-item-subtitle>CR {{ m.cr ?? '—' }} · AC {{ m.ac ?? '—' }} · HP {{ m.hp ?? '—' }}</v-list-item-subtitle>
+              <template #append>
+                <div class="d-flex align-center ga-1">
+                  <v-btn icon="mdi-minus" size="x-small" variant="text" @click="monsterCounts[m.id] = Math.max(1, (monsterCounts[m.id] ?? 1) - 1)" />
+                  <span class="count">{{ monsterCounts[m.id] ?? 1 }}</span>
+                  <v-btn icon="mdi-plus" size="x-small" variant="text" @click="monsterCounts[m.id] = Math.min(30, (monsterCounts[m.id] ?? 1) + 1)" />
+                  <v-btn size="small" color="primary" variant="tonal" prepend-icon="mdi-sword-cross" @click="addMonster(m)">{{ $t('encounters.monsters.add') }}</v-btn>
+                </div>
+              </template>
+            </v-list-item>
+          </v-list>
+          <div v-if="!monsterResults.length" class="text-center py-6 text-medium-emphasis">{{ $t('common.noResults') }}</div>
+        </template>
 
         <v-list v-else-if="entities.length > 0" density="compact" style="max-height: 350px; overflow-y: auto;">
           <v-list-item
@@ -123,6 +149,7 @@
 
 <script setup lang="ts">
 import type { EncounterParticipant } from '~~/types/encounter'
+import type { MonsterSummary } from '~~/types/monster'
 
 const { t } = useI18n()
 const campaignStore = useCampaignStore()
@@ -167,7 +194,31 @@ const internalShow = computed({
 const entityTypes = [
   { title: t('npcs.title'), value: 'NPC' },
   { title: t('players.title'), value: 'Player' },
+  { title: t('monsters.title'), value: 'Monster' },
 ]
+
+// Library monsters
+const monsters = ref<MonsterSummary[]>([])
+const monsterCounts = ref<Record<number, number>>({})
+const rollHp = ref(false)
+const monsterResults = computed(() => {
+  const q = (searchQuery.value ?? '').toLowerCase().trim()
+  return monsters.value.filter(m => !q || m.name.toLowerCase().includes(q) || (m.kind ?? '').toLowerCase().includes(q)).slice(0, 80)
+})
+async function loadMonsters() {
+  if (monsters.value.length || !campaignStore.activeCampaignId) return
+  loading.value = true
+  monsters.value = await $fetch<MonsterSummary[]>('/api/monsters', { query: { campaignId: campaignStore.activeCampaignId } }).catch(() => [])
+  loading.value = false
+}
+async function addMonster(m: MonsterSummary) {
+  const count = monsterCounts.value[m.id] ?? 1
+  const ok = await encounterStore.addMonsters(props.encounterId, [{ monsterId: m.id, count, rollHp: rollHp.value }])
+  if (ok) {
+    if (props.requireInitiative) await encounterStore.sortByInitiative()
+    snackbarStore.success(t('encounters.monsters.added', { n: count, name: m.name }))
+  }
+}
 
 const selectedType = ref('NPC')
 const searchQuery = ref('')
@@ -177,8 +228,12 @@ const initiativeInputs = ref<Record<number, number | undefined>>({})
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
-watch(selectedType, () => loadEntities())
+watch(selectedType, (v) => {
+  if (v === 'Monster') loadMonsters()
+  else loadEntities()
+})
 watch(searchQuery, (q) => {
+  if (selectedType.value === 'Monster') return
   if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => loadEntities(q), 300)
 })
@@ -258,3 +313,11 @@ function close() {
   emit('update:modelValue', false)
 }
 </script>
+
+<style scoped>
+.count {
+  min-width: 18px;
+  text-align: center;
+  font-weight: 700;
+}
+</style>

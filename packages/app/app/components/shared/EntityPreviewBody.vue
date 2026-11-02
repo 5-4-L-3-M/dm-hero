@@ -65,6 +65,8 @@
           </div>
 
           <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
+          <!-- Stat block right under the story: attacks and checks roll on click -->
+          <StatblockNpcSection v-if="entityId" :entity-id="entityId" :name="entity.name" class="mb-4" @notes-changed="load" />
           <div v-if="entity.notes" class="mt-4">
             <strong>{{ $t('common.notes') }}:</strong>
             <SharedFormattedText :text="entity.notes" class="text-body-medium mt-2" />

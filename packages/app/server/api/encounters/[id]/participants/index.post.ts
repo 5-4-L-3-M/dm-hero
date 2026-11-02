@@ -1,4 +1,7 @@
 import { getDb } from '../../../../utils/db'
+import { loadParticipants } from '../../../../utils/encounterParticipants'
+import { abilityMod } from '../../../../../types/statblock'
+import { getMonster } from '../../../../utils/monsters'
 
 interface EntityRow {
   id: number
@@ -8,7 +11,11 @@ interface EntityRow {
 }
 
 interface ParticipantInput {
-  entityId: number
+  entityId?: number
+  /** A creature from the monster library (no entry of its own) */
+  monsterId?: number
+  /** Roll its HP from the formula instead of the average */
+  rollHp?: boolean
   currentHp?: number
   maxHp?: number
 }
@@ -30,6 +37,11 @@ export default defineEventHandler(async (event) => {
   }
   else if (body.entityIds && Array.isArray(body.entityIds)) {
     inputs = body.entityIds.map((id: number) => ({ entityId: id }))
+  }
+  else if (body.monsters && Array.isArray(body.monsters)) {
+    // [{ monsterId, count, rollHp }]
+    inputs = (body.monsters as Array<{ monsterId: number, count?: number, rollHp?: boolean }>).flatMap(m =>
+      Array.from({ length: Math.min(30, Math.max(1, Number(m.count) || 1)) }, () => ({ monsterId: Number(m.monsterId), rollHp: !!m.rollHp })))
   }
   else {
     throw createError({ statusCode: 400, message: 'participants or entityIds array is required' })
@@ -55,8 +67,32 @@ export default defineEventHandler(async (event) => {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `)
 
+  const insertMonster = db.prepare(`
+    INSERT INTO encounter_participants (encounter_id, monster_id, display_name, duplicate_index, current_hp, max_hp, sort_order, initiative)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+  const d = (sides: number) => 1 + Math.floor(Math.random() * sides)
+  const rollFormula = (f: string): number | null => {
+    const m = f.replace(/\s/g, '').match(/^(\d+)d(\d+)([+-]\d+)?$/)
+    if (!m) return null
+    let total = Number(m[3] || 0)
+    for (let i = 0; i < Number(m[1]); i++) total += d(Number(m[2]))
+    return Math.max(1, total)
+  }
+
   const insertMany = db.transaction(() => {
     for (const input of inputs) {
+      if (input.monsterId) {
+        const monster = getMonster(db, input.monsterId)
+        if (!monster) continue
+        const b = monster.block
+        const hp = (input.rollHp && b.hp_formula ? rollFormula(b.hp_formula) : null) ?? b.hp ?? 0
+        const dup = db.prepare('SELECT COUNT(*) as cnt FROM encounter_participants WHERE encounter_id = ? AND monster_id = ?').get(encounterId, monster.id) as { cnt: number }
+        // Monsters roll their own initiative (d20 + Dex)
+        insertMonster.run(encounterId, monster.id, monster.name, dup.cnt, hp, hp, sortOrder++, d(20) + abilityMod(b.dex))
+        continue
+      }
+      if (!input.entityId) continue
       const entity = db.prepare(`
         SELECT e.id, e.name, et.name as type_name, e.image_url
         FROM entities e
@@ -92,23 +128,7 @@ export default defineEventHandler(async (event) => {
     WHERE id = ? AND deleted_at IS NULL
   `).get(encounterId) as Record<string, unknown>
 
-  const participants = db.prepare(`
-    SELECT
-      ep.id, ep.encounter_id, ep.entity_id, ep.display_name, ep.duplicate_index,
-      ep.initiative, ep.current_hp, ep.max_hp, ep.temp_hp, ep.sort_order, ep.is_ko, ep.notes,
-      et.name as entity_type,
-      e.image_url as entity_image
-    FROM encounter_participants ep
-    LEFT JOIN entities e ON e.id = ep.entity_id
-    LEFT JOIN entity_types et ON et.id = e.type_id
-    WHERE ep.encounter_id = ?
-    ORDER BY ep.sort_order ASC
-  `).all(encounterId) as Record<string, unknown>[]
-
-  const effectsStmt = db.prepare('SELECT * FROM encounter_effects WHERE participant_id = ?')
-  for (const p of participants) {
-    p.effects = effectsStmt.all(p.id)
-  }
+  const participants = loadParticipants(db, encounterId)
 
   return { ...updatedEncounter, participants }
 })
