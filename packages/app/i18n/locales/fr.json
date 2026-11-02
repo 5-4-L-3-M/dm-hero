@@ -3861,7 +3861,8 @@
       "dice": "Die",
       "description": "When to use it",
       "rows": "Rows",
-      "tags": "Tag to quests, places, sessions…"
+      "tags": "Tag to quests, places, sessions…",
+      "columns": "En-têtes de colonnes (facultatif)"
     },
     "types": {
       "Quest": "Quest",
@@ -3870,7 +3871,10 @@
       "Faction": "Faction",
       "Lore": "Lore",
       "Item": "Item"
-    }
+    },
+    "result": "Résultat",
+    "columnsHint": "Coupe une ligne en colonnes avec {'|'} — ex. « Manche 1 {'|'} Sauvegarde CON DD 10 ». Nomme les colonnes ici.",
+    "columnsPlaceholder": "Manche {'|'} Sauvegarde"
   },
   "monsters": {
     "title": "Monsters",

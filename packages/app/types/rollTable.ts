@@ -22,6 +22,8 @@ export interface RollTable {
   description: string | null
   /** The die rolled ("d20", "2d6"); null = sized to the rows */
   dice: string | null
+  /** Column headings after the roll column (empty = just "Result") */
+  columns: string[]
   rows: RollTableRow[]
   tags: RollTableTag[]
   updated_at: string
@@ -49,6 +51,27 @@ export function rollDice(dice: string, random: () => number = Math.random): { to
   return { total: rolls.reduce((a, b) => a + b, 0) + d.bonus, rolls }
 }
 
+/** A row's cells: "Round 1 | CON Save DC 10" → two columns */
+export function cellsOf(result: string): string[] {
+  return result.split(/\s*\|\s*/).map(c => c.trim())
+}
+
+/** Headings from a pasted header line ("| d8 | Round | Save |", "Roll | Result | Effect"), without the roll column */
+export function parseHeader(text: string): string[] | null {
+  const first = text.split(/\r?\n/).map(l => l.trim()).find(Boolean)
+  if (!first || !first.includes('|')) return null
+  const cells = first.replace(/^\|\s*/, '').replace(/\s*\|$/, '').split(/\s*\|\s*/)
+  if (cells.length < 2 || !/^(\d*d\d+|roll|#|no\.?|number)$/i.test(cells[0]!)) return null
+  const rest = cells.slice(1).filter(Boolean)
+  return rest.length ? rest : null
+}
+
+/** "Round | Save" typed by hand → clean headings */
+export function cleanColumns(v: unknown): string[] {
+  const list = Array.isArray(v) ? v : typeof v === 'string' ? v.split('|') : []
+  return list.map(x => String(x).trim().slice(0, 60)).filter(Boolean).slice(0, 8)
+}
+
 export function rowFor(rows: RollTableRow[], n: number): RollTableRow | null {
   return rows.find(r => n >= r.min && n <= r.max) ?? null
 }
@@ -69,10 +92,10 @@ export function parseRows(text: string): RollTableRow[] {
     if (m) {
       const min = Number(m[1])
       const max = m[2] ? Number(m[2]) : min
-      const result = m[3]!.replace(/\s*\|\s*/g, ' — ').trim()
+      const result = m[3]!.replace(/\s*\|\s*/g, ' | ').trim()
       if (result && !/^(d\d+|roll|result|#)$/i.test(result)) numbered.push({ min: Math.min(min, max), max: Math.max(min, max), result })
     }
-    else if (!/^(d\d+|roll|result)\b/i.test(line)) {
+    else if (!/^(\d*d\d+|roll|result)\b|^#/i.test(line)) {
       plain.push(line)
     }
   }

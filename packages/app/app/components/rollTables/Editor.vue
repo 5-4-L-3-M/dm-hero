@@ -15,6 +15,7 @@
           </v-col>
         </v-row>
         <v-textarea v-model="form.description" :label="$t('rollTables.fields.description')" rows="1" auto-grow variant="outlined" density="comfortable" />
+        <v-text-field v-model="form.columns" :label="$t('rollTables.fields.columns')" :hint="$t('rollTables.columnsHint')" persistent-hint :placeholder="$t('rollTables.columnsPlaceholder')" variant="outlined" density="comfortable" class="mb-3" />
 
         <div class="d-flex align-center mb-1">
           <span class="text-body-medium font-weight-bold">{{ $t('rollTables.fields.rows') }}</span>
@@ -28,10 +29,7 @@
           <v-col cols="12" md="6">
             <div class="preview pa-2 rounded">
               <div class="text-body-small text-medium-emphasis mb-1">{{ $t('rollTables.preview', { n: rows.length, dice: form.dice || autoDice }) }}</div>
-              <div v-for="(r, i) in rows" :key="i" class="d-flex ga-2 text-body-small py-1">
-                <span class="range">{{ r.min === r.max ? r.min : `${r.min}–${r.max}` }}</span>
-                <span class="flex-grow-1">{{ r.result }}</span>
-              </div>
+              <RollTablesChart v-if="rows.length" :rows="rows" :dice="form.dice || autoDice" :columns="cleanColumns(form.columns)" />
               <div v-if="gaps.length" class="text-body-small text-warning mt-1">{{ $t('rollTables.gaps', { list: gaps.join(', ') }) }}</div>
             </div>
           </v-col>
@@ -67,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { parseDice, parseRows, tableDice, type RollTable } from '~~/types/rollTable'
+import { cleanColumns, parseDice, parseHeader, parseRows, tableDice, type RollTable } from '~~/types/rollTable'
 
 /** Make or edit a roll table: paste rows, see them parsed, tag where it belongs. */
 const props = defineProps<{
@@ -84,7 +82,7 @@ const campaign = useCampaignStore()
 const story = useStoryBoardStore()
 const saving = ref(false)
 const sessions = ref<Array<{ id: number, session_number: number | null, title: string }>>([])
-const form = ref({ id: null as number | null, name: '', category: null as string | null, dice: '', description: '', tagKeys: [] as string[] })
+const form = ref({ id: null as number | null, name: '', category: null as string | null, dice: '', description: '', columns: '', tagKeys: [] as string[] })
 const rowsText = ref('')
 
 watch(() => props.modelValue, async (open) => {
@@ -96,6 +94,7 @@ watch(() => props.modelValue, async (open) => {
     category: tb?.category ?? null,
     dice: tb?.dice ?? '',
     description: tb?.description ?? '',
+    columns: (tb?.columns ?? []).join(' | '),
     tagKeys: tb ? tb.tags.map(x => `${x.kind}:${x.ref_id}`) : [...(props.presetTags ?? [])],
   }
   rowsText.value = (tb?.rows ?? []).map(r => `${r.min === r.max ? r.min : `${r.min}-${r.max}`} | ${r.result}`).join('\n')
@@ -104,6 +103,13 @@ watch(() => props.modelValue, async (open) => {
 }, { immediate: true })
 
 const rows = computed(() => parseRows(rowsText.value))
+// A pasted header line ("| d8 | Round | Save |") fills in the column headings and die
+watch(rowsText, (text) => {
+  const head = parseHeader(text)
+  if (head && !form.value.columns.trim()) form.value.columns = head.join(' | ')
+  const die = text.trim().match(/^\|?\s*(\d*d\d+)\s*\|/i)?.[1]
+  if (die && !form.value.dice) form.value.dice = die
+})
 const autoDice = computed(() => tableDice({ dice: null, rows: rows.value }))
 const gaps = computed(() => {
   const top = Math.max(0, ...rows.value.map(r => r.max))
@@ -126,6 +132,7 @@ async function save() {
       category: form.value.category,
       dice: form.value.dice || null,
       description: form.value.description,
+      columns: cleanColumns(form.value.columns),
       rows: rows.value,
       tags: form.value.tagKeys.map((k) => {
         const [kind, id] = k.split(':')

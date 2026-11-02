@@ -22,17 +22,14 @@
     <!-- The last roll, big -->
     <div v-if="last" class="result mx-3 mb-2 pa-2 rounded">
       <div class="text-body-small text-medium-emphasis">{{ $t('rollTables.rolled', { n: last.total }) }}<template v-if="last.rolls.length > 1"> ({{ last.rolls.join(' + ') }})</template></div>
-      <div class="text-body-large font-weight-medium result-text">{{ last.row?.result ?? $t('rollTables.noRow') }}</div>
+      <div class="text-body-large font-weight-medium result-text">{{ last.row ? cellsOf(last.row.result).filter(Boolean).join(' · ') : $t('rollTables.noRow') }}</div>
     </div>
 
     <div v-if="table.description && !compact" class="text-body-small text-medium-emphasis px-3 pb-2 text-pre">{{ table.description }}</div>
 
     <!-- Rows (folded in compact mode) -->
     <div v-if="!compact || showRows" class="px-3 pb-2">
-      <div v-for="(r, i) in table.rows" :key="i" class="row d-flex ga-2 py-1" :class="{ 'row--hit': last?.row === r }">
-        <span class="range text-medium-emphasis">{{ r.min === r.max ? r.min : `${r.min}–${r.max}` }}</span>
-        <span class="flex-grow-1 text-body-medium text-pre">{{ r.result }}</span>
-      </div>
+      <RollTablesChart v-if="table.rows.length" :rows="table.rows" :dice="dice" :columns="table.columns" :hit="last?.row ?? null" />
       <div v-if="!table.rows.length" class="text-body-small text-medium-emphasis">{{ $t('rollTables.noRows') }}</div>
     </div>
     <div class="d-flex flex-wrap align-center ga-1 px-3 pb-3">
@@ -50,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { rollDice, rowFor, tableDice, type RollTable, type RollTableRow } from '~~/types/rollTable'
+import { cellsOf, rollDice, rowFor, tableDice, type RollTable, type RollTableRow } from '~~/types/rollTable'
 
 /** One roll table: roll it, see the hit row light up. */
 const props = defineProps<{ table: RollTable, compact?: boolean }>()
@@ -73,18 +70,6 @@ function roll() {
 .result-text,
 .text-pre {
   white-space: pre-line;
-}
-.range {
-  min-width: 44px;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.85rem;
-  padding-top: 2px;
-}
-.row {
-  border-radius: 6px;
-}
-.row--hit {
-  background: rgba(var(--v-theme-primary), 0.18);
 }
 .min-w-0 {
   min-width: 0;

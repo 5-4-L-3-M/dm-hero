@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest'
 import type Database from 'better-sqlite3'
 import { getTestDb } from '../utils/test-db'
-import { parseRows, rollDice, rowFor, tableDice, type RollTable } from '../../types/rollTable'
+import { cellsOf, parseHeader, parseRows, rollDice, rowFor, tableDice, type RollTable } from '../../types/rollTable'
 
 let db: Database.Database
 vi.mock('../../server/utils/db', async (importOriginal) => {
@@ -41,6 +41,15 @@ describe('roll tables', () => {
     expect(rowFor([{ min: 1, max: 4, result: 'a' }, { min: 5, max: 6, result: 'b' }], 5)?.result).toBe('b')
   })
 
+  it('keeps columns for charts', () => {
+    const pasted = '| d8 | Round | Save |\n|---|---|---|\n| 1 | Round 1 | CON DC 10 |\n| 2 | Round 2 | CON DC 12 |'
+    expect(parseHeader(pasted)).toEqual(['Round', 'Save'])
+    expect(parseRows(pasted)).toEqual([{ min: 1, max: 1, result: 'Round 1 | CON DC 10' }, { min: 2, max: 2, result: 'Round 2 | CON DC 12' }])
+    expect(parseRows('# | Round\nRound 1 | CON DC 10')).toEqual([{ min: 1, max: 1, result: 'Round 1 | CON DC 10' }])
+    expect(parseHeader('1 | Rats\n2 | Bats')).toBeNull()
+    expect(cellsOf('Round 1 | CON Save DC 10')).toEqual(['Round 1', 'CON Save DC 10'])
+  })
+
   it('saves tables with rows and tags, and lists them per tag', async () => {
     const typeId = (name: string) => (db.prepare('SELECT id FROM entity_types WHERE name = ?').get(name) as { id: number }).id
     const docks = Number(db.prepare('INSERT INTO entities (type_id, campaign_id, name) VALUES (?, ?, ?)').run(typeId('Location'), campaignId, 'The Docks').lastInsertRowid)
@@ -52,8 +61,10 @@ describe('roll tables', () => {
     expect((await call<RollTable[]>('GET', '', undefined, { campaignId })).map(x => x.name)).toEqual(['Dock rumors', 'Weather'])
     expect((await call<RollTable[]>('GET', '', undefined, { campaignId, entityId: docks })).map(x => x.name)).toEqual(['Dock rumors'])
     expect((await call<RollTable[]>('GET', '', undefined, { campaignId, sessionId: session })).map(x => x.name)).toEqual(['Dock rumors'])
-    const edited = await call<RollTable>('PATCH', String(t.id), { name: 'Dock whispers', tags: [] })
-    expect(edited).toMatchObject({ name: 'Dock whispers', tags: [] })
+    expect(t.columns).toEqual([])
+    const edited = await call<RollTable>('PATCH', String(t.id), { name: 'Dock whispers', tags: [], columns: ' Rumor | Who says it |  ' })
+    expect(edited).toMatchObject({ name: 'Dock whispers', tags: [], columns: ['Rumor', 'Who says it'] })
+    expect((await call<RollTable>('PATCH', String(t.id), { columns: [] })).columns).toEqual([])
     await call('DELETE', String(t.id))
     expect(await call<RollTable[]>('GET', '', undefined, { campaignId, entityId: docks })).toEqual([])
   })
