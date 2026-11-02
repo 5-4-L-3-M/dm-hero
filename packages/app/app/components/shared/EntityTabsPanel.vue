@@ -1,13 +1,24 @@
 <template>
   <v-navigation-drawer
-    :model-value="tabs.panelOpen && tabs.count > 0"
+    :model-value="tabs.panelOpen"
     location="right"
-    :width="tabs.wide ? 720 : 460"
+    :width="tabs.panelWidth"
     :temporary="mobile"
     :scrim="mobile"
     class="entity-tabs-panel"
     @update:model-value="tabs.setPanelOpen($event)"
   >
+    <!-- Drag the left edge to resize -->
+    <div
+      v-if="!mobile"
+      class="entity-tabs-panel__resize"
+      :class="{ 'entity-tabs-panel__resize--active': resizing }"
+      role="separator"
+      aria-orientation="vertical"
+      :title="$t('entityTabs.resize')"
+      @pointerdown.prevent="startResize"
+      @dblclick="tabs.toggleWide()"
+    />
     <div class="d-flex flex-column fill-height">
       <!-- Tab strip -->
       <div class="d-flex align-center flex-shrink-0 entity-tabs-panel__strip">
@@ -17,14 +28,14 @@
           show-arrows
           class="flex-grow-1"
           style="min-width: 0"
-          @update:model-value="tabs.activate(String($event))"
+          @update:model-value="onTabPicked"
         >
           <v-tab
             v-for="tab in tabs.tabs"
             :key="keyOf(tab)"
             :value="keyOf(tab)"
             class="entity-tabs-panel__tab text-none"
-            @auxclick.middle.prevent="tabs.close(keyOf(tab))"
+            @auxclick.middle.prevent="closeTab(keyOf(tab))"
           >
             <v-icon size="small" start :color="ENTITY_PREVIEW_CONFIG[tab.type].color">
               {{ ENTITY_PREVIEW_CONFIG[tab.type].icon }}
@@ -35,12 +46,18 @@
               class="ml-1 entity-tabs-panel__close"
               role="button"
               :aria-label="$t('entityTabs.closeTab')"
-              @click.stop="tabs.close(keyOf(tab))"
+              @mousedown.stop.prevent
+              @pointerdown.stop
+              @click.stop.prevent="closeTab(keyOf(tab))"
             >
               mdi-close
             </v-icon>
           </v-tab>
         </v-tabs>
+        <v-btn icon="mdi-magnify" variant="text" size="small" :color="searchOpen ? 'primary' : undefined" @click="toggleSearch">
+          <v-icon>mdi-magnify</v-icon>
+          <v-tooltip activator="parent" location="bottom">{{ $t('entityTabs.search') }} (Ctrl+O)</v-tooltip>
+        </v-btn>
         <v-menu location="bottom end">
           <template #activator="{ props: menuProps }">
             <v-btn v-bind="menuProps" icon="mdi-dots-vertical" variant="text" size="small" />
@@ -72,6 +89,37 @@
         </v-btn>
       </div>
       <v-divider />
+
+      <!-- Quick open: type a name, pick it, it opens as a tab (Ctrl+O) -->
+      <div v-if="searchOpen || !tabs.count" class="px-3 pt-3 pb-2 flex-shrink-0">
+        <v-autocomplete
+          ref="searchRef"
+          v-model:search="searchText"
+          :model-value="null"
+          :items="searchItems"
+          item-title="name"
+          item-value="key"
+          :placeholder="$t('entityTabs.searchPlaceholder')"
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="compact"
+          hide-details
+          auto-select-first
+          :custom-filter="searchFilter"
+          :menu-props="{ maxHeight: 420 }"
+          @update:model-value="openFromSearch"
+          @keydown.esc="searchOpen = false"
+        >
+          <template #item="{ props: itemProps, item }">
+            <v-list-item v-bind="itemProps" :prepend-icon="ENTITY_PREVIEW_CONFIG[item.ptype].icon" :subtitle="$t(`entityTabs.types.${item.ptype}`)">
+              <template #prepend>
+                <v-icon :color="ENTITY_PREVIEW_CONFIG[item.ptype].color">{{ ENTITY_PREVIEW_CONFIG[item.ptype].icon }}</v-icon>
+              </template>
+            </v-list-item>
+          </template>
+        </v-autocomplete>
+        <div v-if="!tabs.count" class="text-body-small text-medium-emphasis mt-3">{{ $t('entityTabs.emptyHint') }}</div>
+      </div>
 
       <!-- Active entry -->
       <template v-if="active">
@@ -128,7 +176,7 @@
 <script setup lang="ts">
 import { useDisplay } from 'vuetify'
 import { ENTITY_FULL_DIALOGS, ENTITY_PREVIEW_CONFIG, entityPageLink } from '~/utils/entityPreview'
-import { entityTabKey, type EntityTab } from '~/stores/entityTabs'
+import { entityTabKey, toPreviewType, type EntityTab } from '~/stores/entityTabs'
 import type { PreviewEntity } from './EntityPreviewBody.vue'
 
 /**
@@ -147,6 +195,83 @@ const viewOpen = ref(false)
 const bodyRef = ref<{ reload: () => Promise<void> } | null>(null)
 
 const keyOf = (tab: EntityTab) => entityTabKey(tab)
+
+// Closing a tab must not switch to (or scroll to) another one: the tab strip
+// re-picks a tab while it rearranges, so ignore its picks for a moment
+let closingUntil = 0
+function closeTab(key: string) {
+  closingUntil = Date.now() + 400
+  tabs.close(key)
+}
+function onTabPicked(key: unknown) {
+  if (Date.now() < closingUntil) return
+  tabs.activate(String(key))
+}
+
+// --- resizing: drag the left edge ----------------------------------------------
+const resizing = ref(false)
+function startResize(e: PointerEvent) {
+  resizing.value = true
+  const move = (ev: PointerEvent) => tabs.setWidth(window.innerWidth - ev.clientX, false)
+  const up = () => {
+    resizing.value = false
+    tabs.setWidth(tabs.width)
+    window.removeEventListener('pointermove', move)
+    window.removeEventListener('pointerup', up)
+  }
+  window.addEventListener('pointermove', move)
+  window.addEventListener('pointerup', up)
+  move(e)
+}
+
+// --- quick open (Ctrl+O, like Obsidian's quick switcher) -------------------------
+const story = useStoryBoardStore()
+const searchOpen = ref(false)
+const searchText = ref('')
+const searchRef = ref<{ focus: () => void } | null>(null)
+const searchItems = computed(() => {
+  const seen = new Set<string>()
+  const all = [...story.entities, ...story.locations.map(l => ({ id: l.id, name: l.name, type: 'Location' }))]
+  return all.flatMap((e) => {
+    const ptype = toPreviewType(e.type)
+    const key = ptype ? `${ptype}:${e.id}` : ''
+    if (!ptype || seen.has(key)) return []
+    seen.add(key)
+    return [{ key, id: e.id, name: e.name, ptype }]
+  }).sort((a, b) => a.name.localeCompare(b.name))
+})
+// Every word typed must appear in the name (so "fitch ver" finds Veruico Fitch)
+function searchFilter(value: string, query: string) {
+  const v = value.toLowerCase()
+  return query.toLowerCase().split(/\s+/).filter(Boolean).every(w => v.includes(w))
+}
+async function focusSearch() {
+  searchOpen.value = true
+  story.load(campaignStore.activeCampaignIdNumber)
+  await nextTick()
+  searchRef.value?.focus()
+}
+function toggleSearch() {
+  if (searchOpen.value) searchOpen.value = false
+  else focusSearch()
+}
+function openFromSearch(key: string | null) {
+  const item = searchItems.value.find(i => i.key === key)
+  if (!item) return
+  tabs.open(item.ptype, item.id, item.name)
+  searchText.value = ''
+  searchOpen.value = false
+}
+watch(() => tabs.searchRequest, () => focusSearch())
+
+function onKey(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'o') {
+    e.preventDefault()
+    tabs.openSearch()
+  }
+}
+onMounted(() => window.addEventListener('keydown', onKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
 // Tabs are per campaign
 watch(() => campaignStore.activeCampaignIdNumber, id => tabs.useCampaign(id ?? null), { immediate: true })
@@ -174,6 +299,19 @@ function goToPage() {
 </script>
 
 <style scoped>
+.entity-tabs-panel__resize {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 10;
+}
+.entity-tabs-panel__resize:hover,
+.entity-tabs-panel__resize--active {
+  background: rgba(var(--v-theme-primary), 0.4);
+}
 .entity-tabs-panel__strip {
   min-height: 48px;
 }

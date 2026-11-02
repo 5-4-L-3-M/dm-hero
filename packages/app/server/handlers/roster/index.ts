@@ -1,0 +1,121 @@
+import { getDb } from '../../utils/db'
+import { requireCampaign } from '../../utils/storyBoard'
+import { ensureRosterPlace, entityOfType, loadRoster } from '../../utils/roster'
+
+/**
+ * Roster endpoints (mounted under /api/roster):
+ *   GET    ?campaignId[&locationId|&npcId]   places + roles (filtered for side panels)
+ *   POST   places          { campaignId, location_id, category? }   put a place on the roster
+ *   PATCH  places/:id      { category?, sort_order? }               (:id = location id)
+ *   DELETE places/:id      takes the place and its roles off the roster (NPCs stay)
+ *   POST   roles           { campaignId, location_id, role, npc_id?, note? }
+ *   PATCH  roles/:id       { role?, npc_id?, note? }
+ *   DELETE roles/:id
+ *   POST   order           { campaignId, location_id, role_ids }  |  { campaignId, places: [location ids] }
+ */
+const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null)
+const roleRow = (id: number) => getDb().prepare('SELECT id, campaign_id, location_id FROM roster_roles WHERE id = ?').get(id) as { id: number, campaign_id: number, location_id: number } | undefined
+
+function roleById(campaignId: number, id: number) {
+  return loadRoster(getDb(), campaignId).roles.find(r => r.id === id) ?? null
+}
+
+export const getRoster = defineEventHandler((event) => {
+  const db = getDb()
+  const q = getQuery(event)
+  const campaignId = requireCampaign(db, q.campaignId)
+  return loadRoster(db, campaignId, { locationId: Number(q.locationId) || undefined, npcId: Number(q.npcId) || undefined })
+})
+
+export const addPlace = defineEventHandler(async (event) => {
+  const db = getDb()
+  const body = await readBody<Record<string, unknown>>(event)
+  const campaignId = requireCampaign(db, body?.campaignId)
+  const loc = entityOfType(db, campaignId, body.location_id, 'Location')
+  if (!loc) throw createError({ statusCode: 400, message: 'Unknown place' })
+  ensureRosterPlace(db, campaignId, loc, text(body.category))
+  return loadRoster(db, campaignId).places.find(p => p.location_id === loc)
+})
+
+export const updatePlace = defineEventHandler(async (event) => {
+  const db = getDb()
+  const locationId = Number(getRouterParam(event, 'id'))
+  const row = db.prepare('SELECT campaign_id, category, sort_order FROM roster_places WHERE location_id = ?').get(locationId) as { campaign_id: number, category: string | null, sort_order: number } | undefined
+  if (!row) throw createError({ statusCode: 404, message: 'Not found' })
+  const body = await readBody<Record<string, unknown>>(event) ?? {}
+  const has = (k: string) => Object.prototype.hasOwnProperty.call(body, k)
+  db.prepare('UPDATE roster_places SET category = ?, sort_order = ? WHERE location_id = ? AND campaign_id = ?').run(
+    has('category') ? text(body.category) : row.category,
+    has('sort_order') ? Number(body.sort_order) || 0 : row.sort_order,
+    locationId,
+    row.campaign_id,
+  )
+  return loadRoster(db, row.campaign_id).places.find(p => p.location_id === locationId)
+})
+
+export const removePlace = defineEventHandler((event) => {
+  const db = getDb()
+  const locationId = Number(getRouterParam(event, 'id'))
+  const row = db.prepare('SELECT campaign_id FROM roster_places WHERE location_id = ?').get(locationId) as { campaign_id: number } | undefined
+  if (!row) throw createError({ statusCode: 404, message: 'Not found' })
+  db.transaction(() => {
+    db.prepare('DELETE FROM roster_roles WHERE location_id = ? AND campaign_id = ?').run(locationId, row.campaign_id)
+    db.prepare('DELETE FROM roster_places WHERE location_id = ? AND campaign_id = ?').run(locationId, row.campaign_id)
+  })()
+  return { ok: true }
+})
+
+export const addRole = defineEventHandler(async (event) => {
+  const db = getDb()
+  const body = await readBody<Record<string, unknown>>(event)
+  const campaignId = requireCampaign(db, body?.campaignId)
+  const loc = entityOfType(db, campaignId, body.location_id, 'Location')
+  const role = text(body.role)
+  if (!loc || !role) throw createError({ statusCode: 400, message: 'A place and a role name are needed' })
+  ensureRosterPlace(db, campaignId, loc)
+  const order = (db.prepare('SELECT MAX(sort_order) AS m FROM roster_roles WHERE location_id = ?').get(loc) as { m: number | null }).m ?? -1
+  const r = db.prepare('INSERT INTO roster_roles (campaign_id, location_id, role, npc_id, note, sort_order) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(campaignId, loc, role, entityOfType(db, campaignId, body.npc_id, 'NPC'), text(body.note), order + 1)
+  return roleById(campaignId, Number(r.lastInsertRowid))
+})
+
+export const updateRole = defineEventHandler(async (event) => {
+  const db = getDb()
+  const row = roleRow(Number(getRouterParam(event, 'id')))
+  if (!row) throw createError({ statusCode: 404, message: 'Not found' })
+  const body = await readBody<Record<string, unknown>>(event) ?? {}
+  const has = (k: string) => Object.prototype.hasOwnProperty.call(body, k)
+  const cur = db.prepare('SELECT role, npc_id, note FROM roster_roles WHERE id = ?').get(row.id) as { role: string, npc_id: number | null, note: string | null }
+  db.prepare('UPDATE roster_roles SET role = ?, npc_id = ?, note = ? WHERE id = ?').run(
+    has('role') ? text(body.role) ?? cur.role : cur.role,
+    has('npc_id') ? entityOfType(db, row.campaign_id, body.npc_id, 'NPC') : cur.npc_id,
+    has('note') ? text(body.note) : cur.note,
+    row.id,
+  )
+  return roleById(row.campaign_id, row.id)
+})
+
+export const removeRole = defineEventHandler((event) => {
+  const db = getDb()
+  const row = roleRow(Number(getRouterParam(event, 'id')))
+  if (!row) throw createError({ statusCode: 404, message: 'Not found' })
+  db.prepare('DELETE FROM roster_roles WHERE id = ?').run(row.id)
+  return { ok: true }
+})
+
+export const saveOrder = defineEventHandler(async (event) => {
+  const db = getDb()
+  const body = await readBody<{ campaignId: number, location_id?: number, role_ids?: number[], places?: number[] }>(event)
+  const campaignId = requireCampaign(db, body?.campaignId)
+  db.transaction(() => {
+    if (Array.isArray(body.role_ids)) {
+      const set = db.prepare('UPDATE roster_roles SET sort_order = ? WHERE id = ? AND campaign_id = ? AND location_id = ?')
+      body.role_ids.forEach((id, i) => set.run(i, Number(id), campaignId, Number(body.location_id)))
+    }
+    if (Array.isArray(body.places)) {
+      const set = db.prepare('UPDATE roster_places SET sort_order = ? WHERE location_id = ? AND campaign_id = ?')
+      body.places.forEach((id, i) => set.run(i, Number(id), campaignId))
+    }
+  })()
+  return { ok: true }
+})

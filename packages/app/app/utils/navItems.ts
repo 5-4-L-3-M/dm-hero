@@ -16,6 +16,7 @@ export const NAV_ITEMS: Record<NavKey, NavItem> = {
   story: { icon: fixed('mdi-vector-square'), title: 'nav.story', to: '/story', needsCampaign: true },
   quests: { icon: fixed('mdi-script-text'), title: 'nav.quests', to: '/quests', needsCampaign: true },
   npcs: { icon: fixed('mdi-account-group'), title: 'nav.npcs', to: '/npcs', needsCampaign: true },
+  roster: { icon: fixed('mdi-account-box-multiple'), title: 'nav.roster', to: '/roster', needsCampaign: true },
   locations: { icon: fixed('mdi-map-marker'), title: 'nav.locations', to: '/locations', needsCampaign: true },
   items: { icon: fixed('mdi-sword'), title: 'nav.items', to: '/items', needsCampaign: true },
   factions: { icon: fixed('mdi-shield'), title: 'nav.factions', to: '/factions', needsCampaign: true },

@@ -54,7 +54,8 @@
       "saveFailed": "Impossible d’enregistrer la navigation",
       "loadFailed": "Impossible de charger la navigation enregistrée – réessaie dans un instant."
     },
-    "story": "Story Board"
+    "story": "Story Board",
+    "roster": "Roster"
   },
   "themes": {
     "dark": "Sombre (Taverne de minuit)",
@@ -575,7 +576,15 @@
     "image": "Image",
     "ageHuman": "Human age",
     "ageHumanHint": "Their age in human years",
-    "humanWord": "human"
+    "humanWord": "human",
+    "loyalty": {
+      "label": "Loyalty",
+      "loyalist": "Loyalist",
+      "complacent": "Complacent",
+      "neutral": "Neutral",
+      "suspicious": "Suspicious",
+      "dissident": "Dissident"
+    }
   },
   "factions": {
     "title": "Factions",
@@ -3077,7 +3086,20 @@
     "wider": "Plus large",
     "narrower": "Plus étroit",
     "hide": "Masquer le panneau d'onglets",
-    "show": "Afficher le panneau d'onglets"
+    "show": "Afficher le panneau d'onglets",
+    "resize": "Drag to resize · double-click to switch narrow/wide",
+    "search": "Open an entry",
+    "searchPlaceholder": "Open an NPC, place, item, quest…",
+    "emptyHint": "Type a name to open it here. Ctrl+O opens this search from anywhere.",
+    "types": {
+      "npc": "NPC",
+      "location": "Place",
+      "item": "Item",
+      "faction": "Faction",
+      "lore": "Lore",
+      "player": "Player",
+      "quest": "Quest"
+    }
   },
   "entityLink": {
     "open": "Ouvrir cette entrée"
@@ -3375,5 +3397,37 @@
       "bullet": "Bullet (also •, ▸ or 1.)",
       "bold": "Bold anywhere in a line"
     }
+  },
+  "roster": {
+    "title": "Roster",
+    "subtitle": "Who fills which role at each place — and the roles still open.",
+    "rolesTitle": "Roles",
+    "at": "at",
+    "addPlace": "Add a place",
+    "allPlaces": "All places",
+    "search": "Search places, roles, people…",
+    "onlyOpen": "Only open roles",
+    "summary": "{filled} filled · {open} open",
+    "emptyTitle": "No places on the roster yet",
+    "emptyText": "Add a place, then give it roles — owner, apprentice, regulars — and fill them with NPCs as you go.",
+    "noCategory": "Other places",
+    "openCount": "{n} open",
+    "changeCategory": "Move to another heading",
+    "removePlace": "Take off the roster",
+    "columns": {
+      "role": "Role",
+      "npc": "NPC",
+      "info": "Info",
+      "notes": "Hook / why they're here"
+    },
+    "clearNpc": "Clear",
+    "pickNpc": "Open — pick someone",
+    "open": "Open",
+    "notePlaceholder": "Hook, or why they're tied to this place",
+    "addRole": "Add role:",
+    "customRole": "Other role…",
+    "place": "Place",
+    "category": "Heading",
+    "categoryHint": "Your own grouping, e.g. Shops & Services"
   }
 }

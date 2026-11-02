@@ -54,7 +54,8 @@
       "saveFailed": "Navigation konnte nicht gespeichert werden",
       "loadFailed": "Die gespeicherte Navigation konnte nicht geladen werden – versuch es gleich noch einmal."
     },
-    "story": "Story-Board"
+    "story": "Story-Board",
+    "roster": "Besetzung"
   },
   "themes": {
     "dark": "Dunkel (Mitternachts-Taverne)",
@@ -575,7 +576,15 @@
     "image": "Bild",
     "ageHuman": "Menschenalter",
     "ageHumanHint": "Ihr Alter in Menschenjahren",
-    "humanWord": "Mensch"
+    "humanWord": "Mensch",
+    "loyalty": {
+      "label": "Loyalität",
+      "loyalist": "Loyal",
+      "complacent": "Angepasst",
+      "neutral": "Neutral",
+      "suspicious": "Misstrauisch",
+      "dissident": "Dissident"
+    }
   },
   "factions": {
     "title": "Fraktionen",
@@ -3077,7 +3086,20 @@
     "wider": "Breiter",
     "narrower": "Schmaler",
     "hide": "Tab-Leiste ausblenden",
-    "show": "Tab-Leiste einblenden"
+    "show": "Tab-Leiste einblenden",
+    "resize": "Ziehen zum Anpassen · Doppelklick wechselt schmal/breit",
+    "search": "Eintrag öffnen",
+    "searchPlaceholder": "NSC, Ort, Gegenstand, Quest öffnen…",
+    "emptyHint": "Namen tippen, um ihn hier zu öffnen. Strg+O öffnet diese Suche überall.",
+    "types": {
+      "npc": "NSC",
+      "location": "Ort",
+      "item": "Gegenstand",
+      "faction": "Fraktion",
+      "lore": "Lore",
+      "player": "Spieler",
+      "quest": "Quest"
+    }
   },
   "entityLink": {
     "open": "Eintrag öffnen"
@@ -3375,5 +3397,37 @@
       "bullet": "Aufzählungspunkt (auch •, ▸ oder 1.)",
       "bold": "Fett, überall in einer Zeile"
     }
+  },
+  "roster": {
+    "title": "Besetzung",
+    "subtitle": "Wer welche Rolle an welchem Ort hat – und welche Rollen noch frei sind.",
+    "rolesTitle": "Rollen",
+    "at": "bei",
+    "addPlace": "Ort hinzufügen",
+    "allPlaces": "Alle Orte",
+    "search": "Orte, Rollen, Personen suchen…",
+    "onlyOpen": "Nur freie Rollen",
+    "summary": "{filled} besetzt · {open} frei",
+    "emptyTitle": "Noch keine Orte in der Besetzung",
+    "emptyText": "Füge einen Ort hinzu, gib ihm Rollen – Besitzer, Lehrling, Stammgäste – und besetze sie nach und nach mit NSCs.",
+    "noCategory": "Weitere Orte",
+    "openCount": "{n} frei",
+    "changeCategory": "Unter andere Überschrift",
+    "removePlace": "Aus der Besetzung nehmen",
+    "columns": {
+      "role": "Rolle",
+      "npc": "NSC",
+      "info": "Info",
+      "notes": "Aufhänger / warum hier"
+    },
+    "clearNpc": "Leeren",
+    "pickNpc": "Frei – jemanden wählen",
+    "open": "Frei",
+    "notePlaceholder": "Aufhänger, oder warum sie mit dem Ort verbunden sind",
+    "addRole": "Rolle hinzufügen:",
+    "customRole": "Andere Rolle…",
+    "place": "Ort",
+    "category": "Überschrift",
+    "categoryHint": "Eigene Gruppierung, z. B. Läden & Dienste"
   }
 }

@@ -49,10 +49,9 @@
       </v-list>
     </v-menu>
 
-    <!-- Entry tabs side panel toggle (only once something is open as a tab) -->
+    <!-- Entry tabs side panel toggle (open it empty to search, Ctrl+O) -->
     <ClientOnly>
       <v-btn
-        v-if="entityTabs.count > 0"
         variant="text"
         class="mr-1 px-2"
         min-width="0"
@@ -60,7 +59,7 @@
         :prepend-icon="entityTabs.panelOpen ? 'mdi-tab' : 'mdi-tab-unselected'"
         @click="entityTabs.setPanelOpen(!entityTabs.panelOpen)"
       >
-        {{ entityTabs.count }}
+        <span v-if="entityTabs.count">{{ entityTabs.count }}</span>
         <v-tooltip activator="parent" location="bottom">
           {{ entityTabs.panelOpen ? $t('entityTabs.hide') : $t('entityTabs.show') }}
         </v-tooltip>

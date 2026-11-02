@@ -17,6 +17,20 @@ export interface EntityTab {
 /** Most tabs kept open; opening one more drops the oldest that isn't active. */
 const MAX_TABS = 20
 const STORAGE_PREFIX = 'dmhero.entityTabs.'
+const WIDTH_KEY = 'dmhero.entityTabs.width'
+export const PANEL_MIN_WIDTH = 320
+export const PANEL_DEFAULT_WIDTH = 460
+export const PANEL_WIDE_WIDTH = 720
+
+function savedWidth(): number {
+  try {
+    const w = Number(localStorage.getItem(WIDTH_KEY))
+    return Number.isFinite(w) && w >= PANEL_MIN_WIDTH ? w : PANEL_DEFAULT_WIDTH
+  }
+  catch {
+    return PANEL_DEFAULT_WIDTH
+  }
+}
 
 export function entityTabKey(tab: Pick<EntityTab, 'type' | 'id'>): string {
   return `${tab.type}:${tab.id}`
@@ -36,12 +50,21 @@ export const useEntityTabsStore = defineStore('entityTabs', {
     activeKey: null as string | null,
     panelOpen: false,
     wide: false,
+    /** Panel width in px (drag its left edge); remembered for every campaign */
+    width: PANEL_DEFAULT_WIDTH,
+    /** Bumped to open the panel's quick search (Ctrl+O) */
+    searchRequest: 0,
     campaignId: null as number | null,
   }),
 
   getters: {
     activeTab: state => state.tabs.find(t => entityTabKey(t) === state.activeKey) ?? null,
     count: state => state.tabs.length,
+    /** Width actually used: never wider than the window leaves room for */
+    panelWidth: (state) => {
+      const max = typeof window === 'undefined' ? 1400 : Math.max(PANEL_MIN_WIDTH, window.innerWidth - 360)
+      return Math.round(Math.min(Math.max(state.width, PANEL_MIN_WIDTH), max))
+    },
   },
 
   actions: {
@@ -62,7 +85,8 @@ export const useEntityTabsStore = defineStore('entityTabs', {
           : []
         this.activeKey = this.tabs.some(t => entityTabKey(t) === saved.activeKey) ? saved.activeKey! : (this.tabs[0] ? entityTabKey(this.tabs[0]) : null)
         this.panelOpen = !!saved.open && this.tabs.length > 0
-        this.wide = !!saved.wide
+        this.width = savedWidth()
+        this.wide = this.width >= 600
       }
       catch {
         // storage blocked or unreadable — start empty
@@ -133,13 +157,32 @@ export const useEntityTabsStore = defineStore('entityTabs', {
       this.save()
     },
 
+    /** Open / close the panel (it can be open with no tabs, to search) */
     setPanelOpen(open: boolean) {
-      this.panelOpen = open && this.tabs.length > 0
+      this.panelOpen = open
       this.save()
     },
 
+    /** Open the panel with its search focused (Ctrl+O, Obsidian-style) */
+    openSearch() {
+      this.panelOpen = true
+      this.searchRequest++
+    },
+
+    setWidth(width: number, persist = true) {
+      this.width = Math.max(PANEL_MIN_WIDTH, Math.round(width))
+      this.wide = this.width >= 600
+      if (!persist) return
+      try {
+        localStorage.setItem(WIDTH_KEY, String(this.width))
+      }
+      catch {
+        // storage blocked — width holds for this visit
+      }
+    },
+
     toggleWide() {
-      this.wide = !this.wide
+      this.setWidth(this.wide ? PANEL_DEFAULT_WIDTH : PANEL_WIDE_WIDTH)
       this.save()
     },
   },

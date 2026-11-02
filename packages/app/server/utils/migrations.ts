@@ -3137,6 +3137,43 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 71: Story map')
     },
   },
+  {
+    version: 72,
+    name: 'npc_roster',
+    up: (db) => {
+      // Roster: which places are on it (under the DM's own category headings)…
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS roster_places (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          location_id INTEGER NOT NULL,
+          category TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (campaign_id, location_id),
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (location_id) REFERENCES entities(id) ON DELETE CASCADE
+        )
+      `)
+      // …and the roles at each place, filled by an NPC or still open
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS roster_roles (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          location_id INTEGER NOT NULL,
+          role TEXT NOT NULL,
+          npc_id INTEGER,
+          note TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+          FOREIGN KEY (location_id) REFERENCES entities(id) ON DELETE CASCADE,
+          FOREIGN KEY (npc_id) REFERENCES entities(id) ON DELETE SET NULL
+        )
+      `)
+      db.exec('CREATE INDEX IF NOT EXISTS idx_roster_roles_location ON roster_roles(location_id)')
+      db.exec('CREATE INDEX IF NOT EXISTS idx_roster_roles_npc ON roster_roles(npc_id)')
+      console.log('✅ Migration 72: NPC roster')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

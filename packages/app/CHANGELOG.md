@@ -1,5 +1,19 @@
 # @dm-hero/app
 
+## 1.13.0
+
+### Minor Changes
+
+- Roster: a new page listing places under your own headings (Shops & Services, Taverns & Inns …), each with roles — Owner, Apprentice, Barkeep … — filled by an NPC (portrait, name, loyalty, race · age) or still open, plus a hook / why-they're-here note. One-click starter roles by place type or type your own; "Only open roles" shows what still needs casting; search and per-settlement tabs; headings fold.
+- The roster shows up in side panels too: a place lists its roles, an NPC lists the roles they fill.
+- NPC Loyalty: Loyalist, Complacent, Neutral, Suspicious, Dissident (red / yellow / blue / purple / green) in the NPC editor, side panel and roster.
+- Side panel: drag its left edge to make it any width (double-click to switch narrow/wide); it remembers the width.
+- Quick open, like Obsidian: Ctrl+O (or the magnifier in the side panel) — type a name and open any NPC, place, item, faction, lore, player or quest right in the panel. The panel button in the top bar is always there, so you can open it empty to search.
+
+### Patch Changes
+
+- Closing a side-panel tab keeps you on the tab you were reading and no longer jumps to the end of the tab list.
+
 ## 1.12.0
 
 ### Minor Changes
