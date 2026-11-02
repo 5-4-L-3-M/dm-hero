@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.23.0
+
+### Minor Changes
+
+- Roll tables look like real charts: a heading row, the roll column, lines between rows, alternating shading, and the rolled row lit up. Split a row into columns with | ("Round 1 | CON save DC 10") and name the columns in the editor; pasting a Markdown table with a header fills the column names and the die for you. Editing a table keeps its columns.
+
 ## 1.22.0
 
 ### Minor Changes

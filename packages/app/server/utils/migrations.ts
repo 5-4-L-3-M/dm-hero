@@ -3469,6 +3469,16 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 81: Roster books')
     },
   },
+  {
+    version: 82,
+    name: 'roll_table_columns',
+    up: (db) => {
+      // Optional column headings for roll tables shown as charts ("Round | Save")
+      const cols = (db.prepare('PRAGMA table_info(roll_tables)').all() as { name: string }[]).map(c => c.name)
+      if (!cols.includes('columns')) db.exec('ALTER TABLE roll_tables ADD COLUMN columns TEXT')
+      console.log('✅ Migration 82: Roll table columns')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

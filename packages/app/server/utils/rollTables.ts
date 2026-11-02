@@ -1,7 +1,16 @@
 import type Database from 'better-sqlite3'
-import type { RollTable, RollTableRow, RollTableTag } from '../../types/rollTable'
+import { cleanColumns, type RollTable, type RollTableRow, type RollTableTag } from '../../types/rollTable'
 
-interface TableRow { id: number, name: string, category: string | null, description: string | null, dice: string | null, updated_at: string }
+interface TableRow { id: number, name: string, category: string | null, description: string | null, dice: string | null, columns: string | null, updated_at: string }
+
+function readColumns(raw: string | null): string[] {
+  try {
+    return cleanColumns(raw ? JSON.parse(raw) : [])
+  }
+  catch {
+    return []
+  }
+}
 
 function tagsOf(db: Database.Database, tableIds: number[]): Map<number, RollTableTag[]> {
   const out = new Map<number, RollTableTag[]>()
@@ -39,20 +48,20 @@ function rowsOf(db: Database.Database, tableIds: number[]): Map<number, RollTabl
 /** All the campaign's tables, or only those tagged to one entity / session */
 export function listRollTables(db: Database.Database, campaignId: number, filter?: { kind: 'entity' | 'session', refId: number }): RollTable[] {
   const base = db.prepare(`
-    SELECT id, name, category, description, dice, updated_at FROM roll_tables r
+    SELECT id, name, category, description, dice, columns, updated_at FROM roll_tables r
     WHERE campaign_id = ? ${filter ? 'AND EXISTS (SELECT 1 FROM roll_table_tags t WHERE t.table_id = r.id AND t.kind = ? AND t.ref_id = ?)' : ''}
     ORDER BY category IS NULL, category COLLATE NOCASE, sort_order, name COLLATE NOCASE
   `).all(...(filter ? [campaignId, filter.kind, filter.refId] : [campaignId])) as TableRow[]
   const ids = base.map(t => t.id)
   const rows = rowsOf(db, ids)
   const tags = tagsOf(db, ids)
-  return base.map(t => ({ ...t, rows: rows.get(t.id) ?? [], tags: tags.get(t.id) ?? [] }))
+  return base.map(t => ({ ...t, columns: readColumns(t.columns), rows: rows.get(t.id) ?? [], tags: tags.get(t.id) ?? [] }))
 }
 
 export function getRollTable(db: Database.Database, id: number): (RollTable & { campaign_id: number }) | null {
-  const t = db.prepare('SELECT id, campaign_id, name, category, description, dice, updated_at FROM roll_tables WHERE id = ?').get(id) as (TableRow & { campaign_id: number }) | undefined
+  const t = db.prepare('SELECT id, campaign_id, name, category, description, dice, columns, updated_at FROM roll_tables WHERE id = ?').get(id) as (TableRow & { campaign_id: number }) | undefined
   if (!t) return null
-  return { ...t, rows: rowsOf(db, [id]).get(id) ?? [], tags: tagsOf(db, [id]).get(id) ?? [] }
+  return { ...t, columns: readColumns(t.columns), rows: rowsOf(db, [id]).get(id) ?? [], tags: tagsOf(db, [id]).get(id) ?? [] }
 }
 
 export interface RollTableInput {
@@ -60,6 +69,7 @@ export interface RollTableInput {
   category?: string | null
   description?: string | null
   dice?: string | null
+  columns?: string[] | string | null
   rows?: RollTableRow[]
   tags?: Array<{ kind: 'entity' | 'session', ref_id: number }>
 }
@@ -73,8 +83,9 @@ export function saveRollTable(db: Database.Database, campaignId: number, id: num
     if (!tableId) {
       const name = text(input.name, 200)
       if (!name) throw createError({ statusCode: 400, message: 'A name is required' })
-      tableId = Number(db.prepare('INSERT INTO roll_tables (campaign_id, name, category, description, dice) VALUES (?, ?, ?, ?, ?)')
-        .run(campaignId, name, text(input.category, 80), text(input.description), text(input.dice, 20)).lastInsertRowid)
+      const cols = cleanColumns(input.columns)
+      tableId = Number(db.prepare('INSERT INTO roll_tables (campaign_id, name, category, description, dice, columns) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(campaignId, name, text(input.category, 80), text(input.description), text(input.dice, 20), cols.length ? JSON.stringify(cols) : null).lastInsertRowid)
     }
     else {
       const sets: string[] = []
@@ -92,6 +103,7 @@ export function saveRollTable(db: Database.Database, campaignId: number, id: num
       if (input.category !== undefined) set('category', text(input.category, 80))
       if (input.description !== undefined) set('description', text(input.description))
       if (input.dice !== undefined) set('dice', text(input.dice, 20))
+      if (input.columns !== undefined) set('columns', cleanColumns(input.columns).length ? JSON.stringify(cleanColumns(input.columns)) : null)
       db.prepare(`UPDATE roll_tables SET ${[...sets, 'updated_at = CURRENT_TIMESTAMP'].join(', ')} WHERE id = ?`).run(...vals, tableId)
     }
     if (Array.isArray(input.rows)) {

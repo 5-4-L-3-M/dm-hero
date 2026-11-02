@@ -3861,7 +3861,8 @@
       "dice": "Die",
       "description": "When to use it",
       "rows": "Rows",
-      "tags": "Tag to quests, places, sessions…"
+      "tags": "Tag to quests, places, sessions…",
+      "columns": "Encabezados de columna (opcional)"
     },
     "types": {
       "Quest": "Quest",
@@ -3870,7 +3871,10 @@
       "Faction": "Faction",
       "Lore": "Lore",
       "Item": "Item"
-    }
+    },
+    "result": "Resultado",
+    "columnsHint": "Divide una fila en columnas con {'|'} — p. ej. «Ronda 1 {'|'} Salvación de CON CD 10». Nombra las columnas aquí.",
+    "columnsPlaceholder": "Ronda {'|'} Salvación"
   },
   "monsters": {
     "title": "Monsters",

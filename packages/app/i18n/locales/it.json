@@ -3861,7 +3861,8 @@
       "dice": "Die",
       "description": "When to use it",
       "rows": "Rows",
-      "tags": "Tag to quests, places, sessions…"
+      "tags": "Tag to quests, places, sessions…",
+      "columns": "Intestazioni di colonna (facoltative)"
     },
     "types": {
       "Quest": "Quest",
@@ -3870,7 +3871,10 @@
       "Faction": "Faction",
       "Lore": "Lore",
       "Item": "Item"
-    }
+    },
+    "result": "Risultato",
+    "columnsHint": "Dividi una riga in colonne con {'|'} — es. «Round 1 {'|'} TS COS CD 10». Dai un nome alle colonne qui.",
+    "columnsPlaceholder": "Round {'|'} Tiro salvezza"
   },
   "monsters": {
     "title": "Monsters",

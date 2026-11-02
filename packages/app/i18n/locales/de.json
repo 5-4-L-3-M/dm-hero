@@ -3861,7 +3861,8 @@
       "dice": "Würfel",
       "description": "Wann benutzen",
       "rows": "Zeilen",
-      "tags": "Quests, Orten, Sitzungen zuordnen…"
+      "tags": "Quests, Orten, Sitzungen zuordnen…",
+      "columns": "Spaltenüberschriften (optional)"
     },
     "types": {
       "Quest": "Quest",
@@ -3870,7 +3871,10 @@
       "Faction": "Fraktion",
       "Lore": "Lore",
       "Item": "Gegenstand"
-    }
+    },
+    "result": "Ergebnis",
+    "columnsHint": "Teile eine Zeile mit {'|'} in Spalten – z. B. „Runde 1 {'|'} KON-Rettungswurf SG 10“. Benenne die Spalten hier.",
+    "columnsPlaceholder": "Runde {'|'} Rettungswurf"
   },
   "monsters": {
     "title": "Monster",

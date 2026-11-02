@@ -3861,7 +3861,8 @@
       "dice": "Die",
       "description": "When to use it",
       "rows": "Rows",
-      "tags": "Tag to quests, places, sessions…"
+      "tags": "Tag to quests, places, sessions…",
+      "columns": "列标题（可选）"
     },
     "types": {
       "Quest": "Quest",
@@ -3870,7 +3871,10 @@
       "Faction": "Faction",
       "Lore": "Lore",
       "Item": "Item"
-    }
+    },
+    "result": "结果",
+    "columnsHint": "用 {'|'} 把一行分成多列——例如“第1轮 {'|'} 体质豁免 DC 10”。在此为各列命名。",
+    "columnsPlaceholder": "轮次 {'|'} 豁免"
   },
   "monsters": {
     "title": "Monsters",
