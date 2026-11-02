@@ -94,7 +94,7 @@
                 :animation="150"
                 @update:model-value="(list: RosterRole[]) => reorderRoles(p.location_id, list)"
               >
-                <template #item="{ element: r }">
+                <template #item="{ element: r }: { element: RosterRole }">
                   <tr :class="{ 'row-open': !r.npc }">
                     <td class="col-role">
                       <div class="d-flex align-start">
