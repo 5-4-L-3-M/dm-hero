@@ -41,7 +41,7 @@
           class="search-field search-field--wide"
         >
           <template #item="{ props: itemProps, item }">
-            <v-list-item v-bind="itemProps" :prepend-icon="item.raw.icon" />
+            <v-list-item v-bind="itemProps" :prepend-icon="item.icon" />
           </template>
         </v-autocomplete>
         <v-select
