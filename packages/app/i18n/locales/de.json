@@ -3340,6 +3340,17 @@
       "smallerMap": "Seitenleisten zeigen",
       "addAct": "Akt hinzufügen",
       "actsHint": "Akte sind Phasen der Welt, keine feste Reihenfolge – Karten können Akte überspringen und Linien zwischen ihnen verlaufen."
+    },
+    "archive": {
+      "title": "Archiv",
+      "hint": "Weggelegt, nicht gelöscht.",
+      "empty": "Das Archiv ist leer.",
+      "clusters": "Cluster",
+      "beats": "Beats & Funken",
+      "quests": "Quests",
+      "restore": "Wiederherstellen",
+      "put": "Archivieren",
+      "beatCount": "{n} Beats"
     }
   },
   "quests": {
@@ -3429,5 +3440,145 @@
     "place": "Ort",
     "category": "Überschrift",
     "categoryHint": "Eigene Gruppierung, z. B. Läden & Dienste"
+  },
+  "reputation": {
+    "title": "Ruf",
+    "short": "Ruf",
+    "party": "Die Gruppe",
+    "met": "Kennt die Gruppe",
+    "notMet": "Noch nicht getroffen",
+    "history": "Verlauf",
+    "noHistory": "Noch nichts eingetragen.",
+    "change": "Änderung",
+    "rippled": "mitgezogen",
+    "undo": "Diese Änderung entfernen",
+    "split": "Für einen Spieler abspalten",
+    "removeSplit": "Spieler-Leiste entfernen",
+    "track": "Weitere verfolgen…",
+    "kinds": {
+      "rep": "Ruf",
+      "notoriety": "Bekanntheit bei der Wache"
+    },
+    "types": {
+      "NPC": "NSC",
+      "Faction": "Fraktion",
+      "Location": "Ort"
+    },
+    "sections": {
+      "factions": "Fraktionen",
+      "places": "Orte",
+      "people": "Personen"
+    },
+    "empty": {
+      "Faction": "Noch keine Fraktionen.",
+      "Location": "Noch keine Orte.",
+      "NPC": "Noch niemand getroffen."
+    },
+    "why": {
+      "faction": "ihre Fraktion",
+      "settlement": "ihre Stadt",
+      "ally": "ein Verbündeter",
+      "rival": "ein Rivale"
+    },
+    "tiers": {
+      "hostile": "Feindselig",
+      "unfriendly": "Unfreundlich",
+      "indifferent": "Gleichgültig",
+      "friendly": "Freundlich",
+      "allied": "Verbündet",
+      "hated": "Verhasst",
+      "disliked": "Unbeliebt",
+      "neutral": "Neutral",
+      "liked": "Beliebt",
+      "honored": "Geehrt",
+      "revered": "Verehrt",
+      "unknown": "Unbekannt",
+      "noticed": "Aufgefallen",
+      "suspected": "Verdächtig",
+      "wanted": "Gesucht",
+      "hunted": "Gejagt"
+    },
+    "presets": {
+      "small": {
+        "label": "Kleine Freundlichkeit",
+        "example": "Fair bezahlt, nettes Wort"
+      },
+      "help": {
+        "label": "Echte Hilfe",
+        "example": "Einen Auftrag erledigt"
+      },
+      "big": {
+        "label": "Große Tat",
+        "example": "Jemanden gerettet, der ihnen wichtig ist"
+      },
+      "life": {
+        "label": "Lebensverändernd",
+        "example": "Ihr Leben oder ihre Fraktion gerettet"
+      },
+      "rude": {
+        "label": "Unhöflich",
+        "example": "Hart gefeilscht, beleidigt"
+      },
+      "trouble": {
+        "label": "Ärger",
+        "example": "Beim Lügen erwischt, kleiner Diebstahl"
+      },
+      "betrayal": {
+        "label": "Verrat",
+        "example": "Abmachung gebrochen"
+      },
+      "unforgivable": {
+        "label": "Unverzeihlich",
+        "example": "Jemanden Nahestehenden getötet"
+      },
+      "petty": {
+        "label": "Kleinkriminalität",
+        "example": "Taschendiebstahl, Kneipenschlägerei"
+      },
+      "crime": {
+        "label": "Verbrechen",
+        "example": "Einbruch, Bestechung"
+      },
+      "serious": {
+        "label": "Schweres Verbrechen",
+        "example": "Gefangenenbefreiung"
+      },
+      "outrage": {
+        "label": "Skandal",
+        "example": "Mord auf offener Straße"
+      },
+      "cooldown": {
+        "label": "Abgekühlt",
+        "example": ""
+      }
+    },
+    "log": {
+      "title": "Was ist passiert?",
+      "short": "Eintragen",
+      "who": "Wer reagiert",
+      "toward": "Gegenüber",
+      "reason": "Was sie getan haben",
+      "reasonPlaceholder": "Wisp sicher nach Hause gebracht",
+      "session": "Sitzung",
+      "ripples": "Die Welt reagiert mit",
+      "save": "Eintragen",
+      "worldReacted": "Die Welt reagiert: {list}"
+    },
+    "world": {
+      "title": "Die Welt bewegt sich",
+      "hint": "Rufänderungen ziehen Kreise; große Momente werden Gerüchte.",
+      "consequences": "Reaktionen",
+      "rumors": "Gerüchte",
+      "advance": "Welt voranschreiten",
+      "turnTitle": "Zwischen den Sitzungen",
+      "quiet": "Eine ruhige Zeit – nichts hat sich bewegt.",
+      "cooled": "In {place} hat sich die Lage etwas beruhigt",
+      "sparks": "{n} neue Funken warten im Story Board.",
+      "plansAndEvents": "Fraktionspläne & Weltereignisse"
+    },
+    "price": {
+      "cheaper": "Preise hier {pct}% günstiger – {from}: {tier}.",
+      "dearer": "Preise hier {pct}% teurer – {from}: {tier}."
+    }
   }
 }

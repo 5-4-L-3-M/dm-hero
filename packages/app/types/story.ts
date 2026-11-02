@@ -67,6 +67,8 @@ export interface StoryCluster {
   /** Entries linked to the whole cluster; new beats start with these (+ the quest's involved entries) */
   entities: LinkedEntity[]
   collapsed: boolean
+  /** In the archive: hidden from the board, restore any time */
+  archived: boolean
   sort_order: number
 }
 
@@ -82,6 +84,8 @@ export interface StoryBeat {
   sort_order: number
   tray_order: number | null // set = in the next-session tray
   played_session_id: number | null
+  /** In the archive: hidden from the board and tray, restore any time */
+  archived: boolean
   entities: LinkedEntity[]
 }
 
@@ -92,6 +96,10 @@ export interface StoryBoardSettings {
   compact: boolean
   /** Act names for the story map; null = the default Act 1–3 */
   acts: string[] | null
+  /** World automation: tier changes drop reaction sparks */
+  rep_consequences: boolean
+  /** World automation: big moments and faction moves drop rumor sparks */
+  rep_rumors: boolean
 }
 
 export const QUEST_IMPORTANCE = ['major', 'minor'] as const
@@ -147,6 +155,8 @@ export interface Quest {
   reward: string | null
   objectives: QuestObjective[]
   sort_order: number
+  /** In the archive (hidden from the quest board) */
+  archived: boolean
   updated_at: string
 }
 

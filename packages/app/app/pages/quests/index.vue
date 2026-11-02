@@ -15,6 +15,7 @@
           <p class="text-body-large text-medium-emphasis">{{ $t('quests.subtitle') }}</p>
         </div>
         <v-spacer />
+        <v-btn variant="text" prepend-icon="mdi-archive-outline" @click="archiveOpen = true">{{ $t('story.archive.title') }}<v-chip v-if="store.quests.some(q => q.archived)" size="x-small" class="ml-1">{{ store.quests.filter(q => q.archived).length }}</v-chip></v-btn>
         <v-text-field
           v-model="search"
           :placeholder="$t('quests.searchPlaceholder')"
@@ -86,6 +87,7 @@
       </div>
     </template>
 
+    <StoryArchiveDialog v-model="archiveOpen" />
     <QuestEditDialog v-model:show="dialogOpen" :quest-id="editingId" :initial-status="initialStatus" @saved="rebuild" @deleted="rebuild" />
   </v-container>
 </template>
@@ -94,6 +96,7 @@
 import draggable from 'vuedraggable'
 import QuestCard from '~/components/quests/QuestCard.vue'
 import QuestEditDialog from '~/components/quests/QuestEditDialog.vue'
+import StoryArchiveDialog from '~/components/story/StoryArchiveDialog.vue'
 import { QUEST_STATUSES, QUEST_STATUS_ICONS, type LinkedEntity, type Quest, type QuestStatus } from '~~/types/story'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
@@ -148,7 +151,7 @@ const linkOptions = computed(() => {
 
 function rebuild() {
   const q = search.value?.toLowerCase().trim() ?? ''
-  const filtered = store.quests.filter((x) => {
+  const filtered = store.activeQuests.filter((x) => {
     const entry = searchIndex.value.get(x.id)
     return (!q || !!entry?.text.includes(q))
       && (!linkFilter.value.length || linkFilter.value.every(k => entry?.links.some(e => linkKey(e) === k)))
@@ -176,6 +179,7 @@ async function onChange(status: QuestStatus, e: { added?: unknown, moved?: unkno
 }
 
 const dialogOpen = ref(false)
+const archiveOpen = ref(false)
 const editingId = ref<number | null>(null)
 const initialStatus = ref<QuestStatus>('rumor')
 function newQuest(status: QuestStatus) {

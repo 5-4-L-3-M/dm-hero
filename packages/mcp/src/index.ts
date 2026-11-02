@@ -930,6 +930,46 @@ server.registerTool('connect_story_items', {
   }
 })
 
+server.registerTool('get_reputation', {
+  description: 'How NPCs, factions and places feel about the party: tracks (points + tier word; player_id 0 = the whole party, else a split-off player; kind rep or notoriety) and the NPCs the party has met. Pass subjectId for one entry; add withLog for its history.',
+  inputSchema: { campaignId: z.number().int().positive(), subjectId: z.number().int().positive().optional(), withLog: z.boolean().optional() },
+}, async ({ campaignId, subjectId, withLog }) => {
+  const r = await callApi(`/api/reputation?campaignId=${campaignId}${subjectId ? `&subjectId=${subjectId}` : ''}`)
+  if (!r.ok || !subjectId || !withLog) return asText(r.body)
+  const log = await callApi(`/api/reputation/events?campaignId=${campaignId}&subjectId=${subjectId}`)
+  return asText({ ...(r.body as object), log: log.body })
+})
+
+server.registerTool('log_reputation', {
+  description: 'Log something the party did that changes how an NPC, faction or place feels about them. Presets: small +1, help +3, big +5, life +10, rude -1, trouble -3, betrayal -5, unforgivable -10 (notoriety with a place\'s guard: petty +1, crime +2, serious +3, outrage +5). ripple=true also moves the NPC\'s faction and city / a faction\'s allies and rivals by the suggested share. Show the user what you will log and wait for OK.',
+  inputSchema: {
+    campaignId: z.number().int().positive(),
+    subjectId: z.number().int().positive(),
+    delta: z.number().int(),
+    reason: z.string().optional(),
+    preset: z.string().optional(),
+    playerId: z.number().int().positive().optional().describe('Only toward this player (their own sub-tracker)'),
+    kind: z.enum(['rep', 'notoriety']).optional(),
+    ripple: z.boolean().optional(),
+  },
+}, async ({ campaignId, subjectId, delta, reason, preset, playerId, kind, ripple }) => {
+  let ripples: unknown[] = []
+  if (ripple && !playerId && kind !== 'notoriety') {
+    const s = await callApi(`/api/reputation/ripples?campaignId=${campaignId}&subjectId=${subjectId}&delta=${delta}`)
+    if (s.ok) ripples = (s.body as Array<{ subject_id: number, delta: number }>).map(x => ({ subject_id: x.subject_id, delta: x.delta }))
+  }
+  const r = await callApi('/api/reputation/events', { method: 'POST', body: JSON.stringify({ campaignId, subject_id: subjectId, delta, reason, preset, player_id: playerId, kind, ripples }) })
+  return asText(r.body)
+})
+
+server.registerTool('advance_world', {
+  description: 'Advance the world between sessions: each active faction plan has a 50% chance to tick forward (a full clock comes to a head), notoriety cools by 1, and rumors land as sparks on the Story Board. Ask the user first.',
+  inputSchema: { campaignId: z.number().int().positive() },
+}, async ({ campaignId }) => {
+  const r = await callApi('/api/reputation/advance', { method: 'POST', body: JSON.stringify({ campaignId }) })
+  return asText(r.body)
+})
+
 // ---------------------------------------------------------------------------
 // The wider world: faction agendas (clocks) and dated world events
 // ---------------------------------------------------------------------------

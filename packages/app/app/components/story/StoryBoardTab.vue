@@ -50,6 +50,9 @@
           @update:model-value="store.saveSettings({ compact: !!$event })"
         />
         <v-spacer />
+        <v-btn variant="text" prepend-icon="mdi-archive-outline" @click="archiveOpen = true">
+          {{ $t('story.archive.title') }}<v-chip v-if="archiveCount" size="x-small" class="ml-1">{{ archiveCount }}</v-chip>
+        </v-btn>
         <v-btn variant="text" prepend-icon="mdi-palette" @click="storylinesOpen = true">{{ $t('story.storyline.manage') }}</v-btn>
         <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="editCluster(null)">{{ $t('story.cluster.new') }}</v-btn>
       </div>
@@ -180,6 +183,7 @@
     <StoryBeatDialog v-model="beatOpen" :beat="beatEditing" />
     <StoryClusterDialog v-model="clusterOpen" :cluster="clusterEditing" />
     <StorylineManager v-model="storylinesOpen" />
+    <StoryArchiveDialog v-model="archiveOpen" />
 
     <v-dialog v-model="deleteOpen" max-width="440">
       <v-card>
@@ -203,6 +207,7 @@ import StoryBeatList from './StoryBeatList.vue'
 import StoryBeatDialog from './StoryBeatDialog.vue'
 import StoryClusterDialog from './StoryClusterDialog.vue'
 import StorylineManager from './StorylineManager.vue'
+import StoryArchiveDialog from './StoryArchiveDialog.vue'
 import {
   BEAT_KIND_ICONS, CLUSTER_HEATS, CLUSTER_STATUSES, COLOR_BY, GROUP_BY, NO_COLOR, clusterColor, heatColor, statusColor,
   type BeatKind, type StoryBeat, type StoryCluster,
@@ -387,6 +392,8 @@ function editCluster(cluster: StoryCluster | null) {
 }
 
 const storylinesOpen = ref(false)
+const archiveOpen = ref(false)
+const archiveCount = computed(() => store.archivedClusters.length + store.archivedBeats.length + store.quests.filter(q => q.archived).length)
 
 const deleteOpen = ref(false)
 const clusterDeleting = ref<StoryCluster | null>(null)

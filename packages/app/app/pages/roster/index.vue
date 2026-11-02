@@ -104,6 +104,7 @@
                       </v-avatar>
                       <div class="min-w-0">
                         <SharedEntityLink :id="r.npc.id" type="NPC" :name="r.npc.name" class="font-weight-medium" />
+                        <v-icon v-if="rep.isMet(r.npc.id)" size="x-small" color="success" class="ml-1" :title="$t('reputation.met')">mdi-handshake</v-icon>
                         <div>
                           <v-btn size="x-small" variant="text" class="px-0 text-medium-emphasis" @click="updateRole(r, { npc_id: null })">{{ $t('roster.clearNpc') }}</v-btn>
                         </div>
@@ -235,6 +236,7 @@ const { t } = useI18n()
 const campaignStore = useCampaignStore()
 const store = useStoryBoardStore()
 const { raceName } = useReferenceNames()
+const rep = useReputationStore()
 
 const campaignId = computed(() => campaignStore.activeCampaignIdNumber)
 const data = ref<Roster | null>(null)
@@ -252,6 +254,7 @@ async function load() {
 }
 watch(campaignId, (id) => {
   store.load(id)
+  rep.load(id)
   load()
 }, { immediate: true })
 

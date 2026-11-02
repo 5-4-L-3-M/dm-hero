@@ -103,6 +103,7 @@
       </v-card-text>
       <v-card-actions>
         <v-btn v-if="beat" color="error" variant="text" prepend-icon="mdi-delete" @click="remove">{{ $t('common.delete') }}</v-btn>
+        <v-btn v-if="beat" variant="text" prepend-icon="mdi-archive-arrow-down-outline" @click="archive">{{ $t('story.archive.put') }}</v-btn>
         <v-spacer />
         <v-btn variant="text" @click="$emit('update:modelValue', false)">{{ $t('common.cancel') }}</v-btn>
         <v-btn color="primary" variant="flat" :disabled="!form.title.trim()" :loading="saving" @click="save">{{ $t('common.save') }}</v-btn>
@@ -190,6 +191,12 @@ async function save() {
   finally {
     saving.value = false
   }
+}
+
+async function archive() {
+  if (!props.beat) return
+  await store.updateBeat(props.beat.id, { archived: true })
+  emit('update:modelValue', false)
 }
 
 async function remove() {
