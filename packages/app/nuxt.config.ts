@@ -58,6 +58,14 @@ export default defineNuxtConfig({
     rollupConfig: {
       external: ['better-sqlite3'],
     },
+    hooks: {
+      // Features behind one catch-all ([...path].ts sub-routers) are always fetched with an
+      // explicit type. Left in the route types, every catch-all makes TypeScript's matching of
+      // runtime-built URLs much deeper, until the checker gives up ("excessively deep").
+      'types:extend'(types) {
+        types.routes = Object.fromEntries(Object.entries(types.routes ?? {}).filter(([route]) => !route.includes('**')))
+      },
+    },
   },
 
   vite: {

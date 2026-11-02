@@ -552,16 +552,12 @@ async function jumpToMarker(marker: AudioMarker) {
   audioElement.value.currentTime = marker.timestampSeconds
 }
 
-// Loosely typed: a URL built at runtime makes Nitro's route types recurse too deep for the type checker
-type LooseFetch = <T>(url: string, opts: { method: 'POST', body: unknown }) => Promise<T>
-const postLoose = <T>(url: string, opts: { method: 'POST', body: unknown }) => ($fetch as unknown as LooseFetch)<T>(url, opts)
-
 async function saveMarker() {
   if (!newMarker.value.label) return
 
   savingMarker.value = true
   try {
-    const result = await postLoose<AudioMarker>(`/api/session-audio/${props.audioId}/markers`, {
+    const result = await $fetch<AudioMarker>(`/api/session-audio/${props.audioId}/markers`, {
       method: 'POST',
       body: {
         timestampSeconds: newMarker.value.timestampSeconds,

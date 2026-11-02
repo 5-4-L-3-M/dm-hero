@@ -18,14 +18,10 @@ export function relayPinHash(relayGameId: string, pin: string) {
   return createHash('sha256').update(`${relayGameId}:${pin}`).digest('hex')
 }
 
-// Loosely typed: a URL built at runtime makes Nitro's route types recurse too deep for the type checker
-type LooseFetch = <T>(url: string, opts: { method: 'POST', body: unknown }) => Promise<T>
-const postLoose = <T>(url: string, opts: { method: 'POST', body: unknown }) => ($fetch as unknown as LooseFetch)<T>(url, opts)
-
 /** Registers the game; the relay gets the DM's PUBLIC keys to hand to joining players */
 export async function createRelayGame(dmPublicKeys: { signing: string, exchange: string }) {
   try {
-    return await postLoose<{ gameId: string, code: string, dmToken: string }>(`${relayUrl()}/games`, {
+    return await $fetch<{ gameId: string, code: string, dmToken: string }>(`${relayUrl()}/games`, {
       method: 'POST',
       body: { dmPublicKeys },
     })
