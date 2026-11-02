@@ -3313,6 +3313,47 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 77: Shop black market & requirements')
     },
   },
+  {
+    version: 78,
+    name: 'roll_tables',
+    up: (db) => {
+      // Roll tables (random encounters, rumors, loot …), tagged to quests / places / sessions
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS roll_tables (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          category TEXT,
+          description TEXT,
+          dice TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS roll_table_rows (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          table_id INTEGER NOT NULL,
+          min INTEGER NOT NULL,
+          max INTEGER NOT NULL,
+          result TEXT NOT NULL,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (table_id) REFERENCES roll_tables(id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS roll_table_tags (
+          table_id INTEGER NOT NULL,
+          kind TEXT NOT NULL CHECK (kind IN ('entity', 'session')),
+          ref_id INTEGER NOT NULL,
+          PRIMARY KEY (table_id, kind, ref_id),
+          FOREIGN KEY (table_id) REFERENCES roll_tables(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_roll_tables_campaign ON roll_tables(campaign_id);
+        CREATE INDEX IF NOT EXISTS idx_roll_table_rows_table ON roll_table_rows(table_id, sort_order);
+        CREATE INDEX IF NOT EXISTS idx_roll_table_tags_ref ON roll_table_tags(kind, ref_id);
+      `)
+      console.log('✅ Migration 78: Roll tables')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

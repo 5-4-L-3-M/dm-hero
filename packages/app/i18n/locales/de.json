@@ -55,7 +55,8 @@
       "loadFailed": "Die gespeicherte Navigation konnte nicht geladen werden – versuch es gleich noch einmal."
     },
     "story": "Story-Board",
-    "roster": "Besetzung"
+    "roster": "Besetzung",
+    "rollTables": "Würfeltabellen"
   },
   "themes": {
     "dark": "Dunkel (Mitternachts-Taverne)",
@@ -3712,6 +3713,11 @@
         "add": "To-do hinzufügen…",
         "done": "{count} erledigt",
         "all": "Alle ansehen"
+      },
+      "rollTables": {
+        "title": "Würfeltabellen",
+        "pick": "Beliebige Tabelle würfeln…",
+        "hint": "Tabellen, die der nächsten Sitzung zugeordnet sind, erscheinen hier."
       }
     }
   },
@@ -3770,6 +3776,46 @@
       "perception": "Wahrnehmung",
       "insight": "Motiv erkennen",
       "investigation": "Nachforschungen"
+    }
+  },
+  "rollTables": {
+    "title": "Würfeltabellen",
+    "subtitle": "Zufallsbegegnungen, Gerüchte, Beute, Wetter — hier sammeln und mit einem Klick würfeln.",
+    "new": "Neue Tabelle",
+    "edit": "Tabelle bearbeiten",
+    "roll": "Würfeln",
+    "rolled": "Gewürfelt: {n}",
+    "noRow": "Keine Zeile für diese Zahl",
+    "noRows": "Noch keine Zeilen.",
+    "rows": "{n} Zeilen",
+    "search": "Tabellen und Ergebnisse durchsuchen",
+    "all": "Alle",
+    "general": "Allgemein",
+    "empty": "Noch keine Würfeltabellen",
+    "emptyHint": "Erstelle eine oder füge eine Tabelle aus deinen Notizen ein — Zeilen wie 1-4 {'|'} Ergebnis.",
+    "noMatch": "Nichts gefunden",
+    "noneTagged": "Hier ist noch keine Tabelle zugeordnet.",
+    "confirmDelete": "Tabelle \"{name}\" löschen?",
+    "rowsHint": "Eine pro Zeile: 1-4 {'|'} Ergebnis (oder nur Ergebnisse, werden durchnummeriert)",
+    "preview": "{n} Zeilen · würfelt {dice}",
+    "gaps": "Nichts bei: {list}",
+    "tagsHint": "Zugeordnete Tabellen erscheinen bei der Quest, dem Ort oder der Sitzung",
+    "session": "Sitzung",
+    "fields": {
+      "name": "Name",
+      "category": "Kategorie",
+      "dice": "Würfel",
+      "description": "Wann benutzen",
+      "rows": "Zeilen",
+      "tags": "Quests, Orten, Sitzungen zuordnen…"
+    },
+    "types": {
+      "Quest": "Quest",
+      "Location": "Ort",
+      "NPC": "NSC",
+      "Faction": "Fraktion",
+      "Lore": "Lore",
+      "Item": "Gegenstand"
     }
   }
 }

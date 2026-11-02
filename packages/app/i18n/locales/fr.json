@@ -55,7 +55,8 @@
       "loadFailed": "Impossible de charger la navigation enregistrée – réessaie dans un instant."
     },
     "story": "Story Board",
-    "roster": "Roster"
+    "roster": "Roster",
+    "rollTables": "Roll tables"
   },
   "themes": {
     "dark": "Sombre (Taverne de minuit)",
@@ -3712,6 +3713,11 @@
         "add": "Add a to-do…",
         "done": "{count} done",
         "all": "See all"
+      },
+      "rollTables": {
+        "title": "Roll tables",
+        "pick": "Roll any table…",
+        "hint": "Tables tagged to the next session show up here."
       }
     }
   },
@@ -3770,6 +3776,46 @@
       "perception": "Perception",
       "insight": "Insight",
       "investigation": "Investigation"
+    }
+  },
+  "rollTables": {
+    "title": "Roll tables",
+    "subtitle": "Random encounters, rumors, loot, weather — keep them here and roll in one click.",
+    "new": "New table",
+    "edit": "Edit table",
+    "roll": "Roll",
+    "rolled": "Rolled {n}",
+    "noRow": "No row for that number",
+    "noRows": "No rows yet.",
+    "rows": "{n} rows",
+    "search": "Search tables and results",
+    "all": "All",
+    "general": "General",
+    "empty": "No roll tables yet",
+    "emptyHint": "Make one, or paste a table from your notes — it reads 1-4 | result lines.",
+    "noMatch": "Nothing matches",
+    "noneTagged": "No tables tagged here yet.",
+    "confirmDelete": "Delete the table \"{name}\"?",
+    "rowsHint": "One per line: 1-4 | result (or just results, numbered for you)",
+    "preview": "{n} rows · rolls {dice}",
+    "gaps": "Nothing on: {list}",
+    "tagsHint": "Tagged tables show up on that quest, place or session",
+    "session": "Session",
+    "fields": {
+      "name": "Name",
+      "category": "Category",
+      "dice": "Die",
+      "description": "When to use it",
+      "rows": "Rows",
+      "tags": "Tag to quests, places, sessions…"
+    },
+    "types": {
+      "Quest": "Quest",
+      "Location": "Place",
+      "NPC": "NPC",
+      "Faction": "Faction",
+      "Lore": "Lore",
+      "Item": "Item"
     }
   }
 }
