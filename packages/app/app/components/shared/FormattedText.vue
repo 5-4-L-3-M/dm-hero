@@ -2,31 +2,22 @@
   <div class="formatted-text">
     <template v-for="(block, i) in blocks" :key="i">
       <div v-if="block.kind === 'heading'" class="formatted-text__heading">
-        <template v-for="(p, j) in block.parts" :key="j">{{ p.text }}</template>
+        <SharedFormattedInline :parts="block.parts" />
       </div>
       <p v-else-if="block.kind === 'paragraph'" class="formatted-text__para">
         <template v-for="(line, j) in block.lines" :key="j">
           <br v-if="j > 0" />
-          <template v-for="(p, k) in line" :key="k">
-            <strong v-if="p.bold">{{ p.text }}</strong>
-            <template v-else>{{ p.text }}</template>
-          </template>
+          <SharedFormattedInline :parts="line" />
         </template>
       </p>
       <ul v-else-if="block.kind === 'bullets'" class="formatted-text__list">
         <li v-for="(item, j) in block.items" :key="j">
-          <template v-for="(p, k) in item" :key="k">
-            <strong v-if="p.bold">{{ p.text }}</strong>
-            <template v-else>{{ p.text }}</template>
-          </template>
+          <SharedFormattedInline :parts="item" />
         </li>
       </ul>
       <p v-else class="formatted-text__para formatted-text__labeled">
         <span class="formatted-text__label">{{ block.label }}</span>
-        <template v-for="(p, k) in block.parts" :key="k">
-          <strong v-if="p.bold">{{ p.text }}</strong>
-          <template v-else>{{ p.text }}</template>
-        </template>
+        <SharedFormattedInline :parts="block.parts" />
       </p>
     </template>
   </div>

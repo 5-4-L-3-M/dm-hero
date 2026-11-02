@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.23.1
+
+### Patch Changes
+
+- Entry links like {{npc:88}} in plain text (NPC notes, story beats, quest details, the side panel) now show the entry's name and open it when clicked, instead of showing the raw code.
+
 ## 1.23.0
 
 ### Minor Changes

@@ -42,3 +42,21 @@ describe('parseInline', () => {
     expect(parseInline('a **b** c')).toEqual([{ text: 'a ' }, { text: 'b', bold: true }, { text: ' c' }])
   })
 })
+
+describe('entry links', () => {
+  it('turns {{npc:12}} into a link part', () => {
+    expect(parseInline('{{npc:88}} cooks for everyone')).toEqual([
+      { text: '', link: { type: 'npc', id: 88 } },
+      { text: ' cooks for everyone' },
+    ])
+  })
+  it('keeps links bold inside **bold**', () => {
+    expect(parseInline('**Met {{npc:5}}**')).toEqual([
+      { text: 'Met ', bold: true },
+      { text: '', bold: true, link: { type: 'npc', id: 5 } },
+    ])
+  })
+  it('ignores link codes when spotting all-caps headings', () => {
+    expect(parseFormattedText('BREAKFAST WITH {{npc:88}}')[0]!.kind).toBe('heading')
+  })
+})
