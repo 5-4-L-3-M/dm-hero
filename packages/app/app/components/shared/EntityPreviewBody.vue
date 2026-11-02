@@ -27,9 +27,12 @@
             class="mb-4 rounded preview-image"
           />
 
-          <div v-if="npcMeta.status || npcTypes.length" class="d-flex flex-wrap ga-1 mb-3">
+          <div v-if="npcMeta.status || npcTypes.length || npcLoyalty" class="d-flex flex-wrap ga-1 mb-3">
             <v-chip v-if="npcMeta.status" size="small" :color="npcMeta.status === 'dead' ? 'error' : npcMeta.status === 'alive' ? 'success' : 'warning'" variant="flat">
               {{ $te(`npcs.statuses.${npcMeta.status}`) ? $t(`npcs.statuses.${npcMeta.status}`) : npcMeta.status }}
+            </v-chip>
+            <v-chip v-if="npcLoyalty" size="small" :color="NPC_LOYALTY_COLORS[npcLoyalty]" variant="tonal">
+              <v-icon start size="x-small">mdi-circle</v-icon>{{ $t(`npcs.loyalty.${npcLoyalty}`) }}
             </v-chip>
             <v-chip v-for="nt in npcTypes" :key="nt" size="small" variant="tonal">
               {{ $te(`npcs.types.${nt}`) ? $t(`npcs.types.${nt}`) : nt }}
@@ -282,6 +285,25 @@
           </div>
         </SharedPreviewSection>
 
+        <!-- Roster: the roles at this place, or the roles this NPC fills -->
+        <SharedPreviewSection v-if="rosterRoles.length" id="roster" :title="type === 'npc' ? $t('roster.rolesTitle') : $t('roster.title')" icon="mdi-account-box-multiple" :count="rosterRoles.length">
+          <div v-for="r in rosterRoles" :key="r.id" class="py-1 roster-row">
+            <div class="d-flex align-center flex-wrap ga-1">
+              <span class="font-weight-medium">{{ r.role }}</span>
+              <template v-if="type === 'npc'">
+                <span class="text-medium-emphasis">{{ $t('roster.at') }}</span>
+                <SharedEntityLink :id="r.location_id" type="Location" :name="r.location_name" />
+              </template>
+              <template v-else>
+                <span class="text-medium-emphasis">·</span>
+                <SharedEntityLink v-if="r.npc" :id="r.npc.id" type="NPC" :name="r.npc.name" />
+                <span v-else class="text-warning">{{ $t('roster.open') }}</span>
+              </template>
+            </div>
+            <div v-if="r.note" class="text-body-small text-medium-emphasis">{{ r.note }}</div>
+          </div>
+        </SharedPreviewSection>
+
         <!-- Player inventory: what they carry, with quantities -->
         <SharedPreviewSection v-if="inventory && inventory.items.length" id="inventory" :title="$t('inventory.tab')" icon="mdi-bag-personal" :count="inventory.items.length">
           <div class="text-body-small text-medium-emphasis mb-1">{{ $t('inventory.carrying') }}: {{ Math.round(inventory.carried * 10) / 10 }} lb</div>
@@ -359,6 +381,8 @@ import { toPreviewType } from '~/stores/entityTabs'
 import FactionAgendaList from '~/components/story/FactionAgendaList.vue'
 import { ageText } from '~~/types/age'
 import type { PlayerInventory } from '~~/types/inventory'
+import type { Roster, RosterRole } from '~~/types/roster'
+import { NPC_LOYALTY_COLORS, readLoyalty } from '~~/types/npc'
 import { QUEST_STATUS_ICONS, readQuestMetadata, type LinkedEntity, type QuestObjective, type QuestStatus } from '~~/types/story'
 import type { EntityPreviewType } from './EntityPreviewDialog.vue'
 
@@ -426,6 +450,7 @@ const { t, te } = useI18n()
 // NPC: race/class/gender/age/location/factions from metadata + connections
 const { raceName, classNames } = useReferenceNames()
 const npcMeta = computed(() => ((entity.value?.metadata ?? {}) as Record<string, unknown>))
+const npcLoyalty = computed(() => (type.value === 'npc' ? readLoyalty(npcMeta.value.loyalty) : null))
 const npcTypes = computed(() => {
   const v = npcMeta.value.type
   return (Array.isArray(v) ? v : v ? [v] : []).filter((x): x is string => typeof x === 'string')
@@ -519,16 +544,20 @@ interface GalleryImage { id: number, image_url: string, caption: string | null }
 const gallery = ref<GalleryImage[]>([])
 const inventory = ref<PlayerInventory | null>(null)
 const npcNotes = ref<{ id: number, content: string }[]>([])
+const rosterRoles = ref<RosterRole[]>([])
 
 async function loadExtras(id: number, t: EntityPreviewType) {
-  const [imgs, inv, notes] = await Promise.all([
+  const rosterQuery = t === 'npc' ? { npcId: id } : t === 'location' ? { locationId: id } : null
+  const [imgs, inv, notes, roster] = await Promise.all([
     $fetch<GalleryImage[]>(`/api/entities/${id}/images`).catch(() => []),
     t === 'player' ? $fetch<PlayerInventory>(`/api/players/${id}/inventory`).catch(() => null) : Promise.resolve(null),
     t === 'npc' ? $fetch<Array<{ id: number, title: string | null, summary: string | null, notes: string | null }>>(`/api/npcs/${id}/notes`).catch(() => []) : Promise.resolve([]),
+    rosterQuery && campaignId.value ? $fetch<Roster>('/api/roster', { query: { campaignId: campaignId.value, ...rosterQuery } }).catch(() => null) : Promise.resolve(null),
   ])
   if (props.entityId !== id) return
   gallery.value = Array.isArray(imgs) ? imgs : []
   inventory.value = inv
+  rosterRoles.value = roster?.roles ?? []
   npcNotes.value = (Array.isArray(notes) ? notes : [])
     .map(n => ({ id: n.id, content: [n.title ? `${n.title}:` : null, n.summary, n.notes].filter(Boolean).join('\n') }))
     .filter(n => n.content.trim())
@@ -537,6 +566,7 @@ watch(() => [props.entityId, props.entityType] as const, ([id, t]) => {
   gallery.value = []
   inventory.value = null
   npcNotes.value = []
+  rosterRoles.value = []
   if (id) loadExtras(id, String(t).toLowerCase() as EntityPreviewType)
 }, { immediate: true })
 

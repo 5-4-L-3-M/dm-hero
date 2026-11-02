@@ -212,3 +212,17 @@ export interface NPC {
   // Async loaded counts (optional, loaded on demand)
   _counts?: NpcCounts
 }
+
+/** How loyal an NPC is to the powers that be (same scale and colors as the Obsidian roster) */
+export const NPC_LOYALTIES = ['loyalist', 'complacent', 'neutral', 'suspicious', 'dissident'] as const
+export type NpcLoyalty = typeof NPC_LOYALTIES[number]
+export const NPC_LOYALTY_COLORS: Record<NpcLoyalty, string> = {
+  loyalist: 'red',
+  complacent: 'amber',
+  neutral: 'blue',
+  suspicious: 'purple',
+  dissident: 'green',
+}
+export function readLoyalty(v: unknown): NpcLoyalty | null {
+  return (NPC_LOYALTIES as readonly unknown[]).includes(v) ? v as NpcLoyalty : null
+}

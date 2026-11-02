@@ -13,7 +13,7 @@ export function useDockedDialog(baseWidth: number) {
   const tabs = useEntityTabsStore()
   const { width } = useDisplay()
 
-  const panel = computed(() => (tabs.panelOpen ? (tabs.wide ? 720 : 460) : 0))
+  const panel = computed(() => (tabs.panelOpen ? tabs.panelWidth : 0))
 
   const dockAttrs = computed(() => ({
     scrim: false,

@@ -243,6 +243,26 @@
                 </v-col>
                 <v-col cols="12" md="6">
                   <v-select
+                    v-model="form.metadata.loyalty"
+                    :items="loyaltyItems"
+                    :label="$t('npcs.loyalty.label')"
+                    variant="outlined"
+                    clearable
+                  >
+                    <template #selection="{ internalItem }">
+                      <v-chip :color="NPC_LOYALTY_COLORS[internalItem.value as NpcLoyalty]" size="small">{{ internalItem.title }}</v-chip>
+                    </template>
+                    <template #item="{ props: itemProps, internalItem }">
+                      <v-list-item v-bind="itemProps">
+                        <template #prepend>
+                          <v-icon :color="NPC_LOYALTY_COLORS[internalItem.value as NpcLoyalty]">mdi-circle</v-icon>
+                        </template>
+                      </v-list-item>
+                    </template>
+                  </v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
                     v-model="form.metadata.status"
                     :items="npcStatuses"
                     :label="$t('npcs.status')"
@@ -516,6 +536,26 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-select
+                  v-model="form.metadata.loyalty"
+                  :items="loyaltyItems"
+                  :label="$t('npcs.loyalty.label')"
+                  variant="outlined"
+                  clearable
+                >
+                  <template #selection="{ internalItem }">
+                    <v-chip :color="NPC_LOYALTY_COLORS[internalItem.value as NpcLoyalty]" size="small">{{ internalItem.title }}</v-chip>
+                  </template>
+                  <template #item="{ props: itemProps, internalItem }">
+                    <v-list-item v-bind="itemProps">
+                      <template #prepend>
+                        <v-icon :color="NPC_LOYALTY_COLORS[internalItem.value as NpcLoyalty]">mdi-circle</v-icon>
+                      </template>
+                    </v-list-item>
+                  </template>
+                </v-select>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select
                   v-model="form.metadata.status"
                   :items="npcStatuses"
                   :label="$t('npcs.status')"
@@ -593,7 +633,7 @@
 <script setup lang="ts">
 import type { Lore } from '~~/types/lore'
 import type { NpcItem, NpcMembership } from '~~/types/npc-components'
-import { NPC_TYPES, NPC_STATUSES, NPC_ITEM_RELATION_TYPES, type NpcType, type NpcStatus, type NPC } from '~~/types/npc'
+import { NPC_TYPES, NPC_STATUSES, NPC_ITEM_RELATION_TYPES, NPC_LOYALTIES, NPC_LOYALTY_COLORS, readLoyalty, type NpcType, type NpcStatus, type NpcLoyalty, type NPC } from '~~/types/npc'
 import NpcRelationsTab from './NpcRelationsTab.vue'
 import EntityLocationsTab from '../shared/EntityLocationsTab.vue'
 import NpcMembershipsTab from './NpcMembershipsTab.vue'
@@ -666,6 +706,7 @@ const form = ref({
     gender: undefined as string | undefined,
     type: [] as NpcType[],
     status: undefined as NpcStatus | undefined,
+    loyalty: undefined as NpcLoyalty | undefined,
     notes: '' as string,
   },
 })
@@ -794,6 +835,7 @@ const npcStatuses = computed(() =>
     title: t(`npcs.statuses.${status}`),
   })).sort((a, b) => a.title.localeCompare(b.title)),
 )
+const loyaltyItems = computed(() => NPC_LOYALTIES.map(l => ({ title: t(`npcs.loyalty.${l}`), value: l })))
 
 // Available entities from store (sorted alphabetically)
 const availableNpcs = computed(() =>
@@ -943,6 +985,7 @@ async function loadNpc(npcId: number) {
         gender: data.metadata?.gender as string | undefined,
         type: toArray(data.metadata?.type) as NpcType[],
         status: data.metadata?.status as NpcStatus | undefined,
+        loyalty: readLoyalty(data.metadata?.loyalty) ?? undefined,
         notes: (data.metadata?.notes as string) || '',
       },
     }
@@ -1079,6 +1122,7 @@ function resetForm() {
       gender: undefined,
       type: [] as NpcType[],
       status: undefined as NpcStatus | undefined,
+      loyalty: undefined,
       notes: '',
     },
   }
