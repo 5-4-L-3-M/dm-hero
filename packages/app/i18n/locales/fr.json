@@ -3670,7 +3670,61 @@
       },
       "calendar": {
         "title": "Calendar & weather"
+      },
+      "music": {
+        "title": "Music",
+        "notConnected": "Spotify isn't connected yet.",
+        "setUp": "Set it up"
       }
+    }
+  },
+  "spotify": {
+    "nothing": "Nothing playing",
+    "play": "Play",
+    "pause": "Pause",
+    "next": "Next",
+    "previous": "Previous",
+    "shuffle": "Shuffle",
+    "browse": "Your playlists",
+    "connect": "Connect Spotify",
+    "disconnect": "Disconnect",
+    "connectHint": "Log in once in your browser — DM Hero then works Spotify like a remote.",
+    "openApp": "Open Spotify on your computer (or phone) — DM Hero tells it what to play.",
+    "setup": {
+      "intro": "DM Hero uses your own Spotify developer app (free, Premium account needed). One-time setup:",
+      "step1": "Create an app at",
+      "step2": "Add this Redirect URI and tick \"Web API\":",
+      "step3": "Paste the app's Client ID here (no secret needed).",
+      "clientId": "Client ID",
+      "change": "Change Client ID"
+    },
+    "scenes": {
+      "title": "Scenes",
+      "add": "Add scene",
+      "none": "No scenes yet — add some on the Music page.",
+      "rename": "Rename",
+      "moveLeft": "Move left",
+      "remove": "Remove",
+      "shuffled": "Shuffled",
+      "inOrder": "In order",
+      "shuffleHint": "Whether a scene starts shuffled"
+    },
+    "picker": {
+      "title": "Playlists & search",
+      "search": "Search Spotify — playlists, albums, artists, songs",
+      "yours": "Your playlists",
+      "results": "Results",
+      "addScene": "Scene",
+      "added": "{name} is a scene now",
+      "empty": "Nothing here."
+    },
+    "kinds": {
+      "playlist": "Playlist",
+      "album": "Album",
+      "artist": "Artist",
+      "track": "Song",
+      "show": "Podcast",
+      "episode": "Episode"
     }
   }
 }

@@ -1,5 +1,14 @@
 # @dm-hero/app
 
+## 1.17.0
+
+### Minor Changes
+
+- Spotify remote on the Music page: connect your own Spotify (Premium) once, then play, pause, skip, shuffle and set the volume from DM Hero. Spotify itself plays on your computer or phone.
+- Scenes: one-click mood buttons per campaign ("Tavern", "Combat" …) from your playlists or a Spotify search; rename, reorder, remove. The playing scene lights up.
+- Browse your playlists or search Spotify (playlists, albums, artists, songs) and play anything straight away.
+- Dashboard: a new Music card with the remote and your scene buttons (on At the table by default).
+
 ## 1.16.0
 
 ### Minor Changes

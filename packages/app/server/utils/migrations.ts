@@ -3278,6 +3278,28 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 75: Dashboard layouts')
     },
   },
+  {
+    version: 76,
+    name: 'spotify_scenes',
+    up: (db) => {
+      // One-click Spotify mood buttons per campaign ("Tavern", "Combat" …)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS spotify_scenes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          uri TEXT NOT NULL,
+          kind TEXT NOT NULL DEFAULT 'playlist',
+          image TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        )
+      `)
+      db.exec('CREATE INDEX IF NOT EXISTS idx_spotify_scenes_campaign ON spotify_scenes(campaign_id, sort_order)')
+      console.log('✅ Migration 76: Spotify scenes')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {
