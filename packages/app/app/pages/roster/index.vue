@@ -81,7 +81,7 @@
                   <th class="col-role">{{ $t('roster.columns.role') }}</th>
                   <th class="col-npc">{{ $t('roster.columns.npc') }}</th>
                   <th class="col-info">{{ $t('roster.columns.info') }}</th>
-                  <th>{{ $t('roster.columns.notes') }}</th>
+                  <th class="col-notes">{{ $t('roster.columns.notes') }}</th>
                   <th class="col-actions" />
                 </tr>
               </thead>
@@ -139,7 +139,7 @@
                     </template>
                     <span v-else class="text-medium-emphasis">{{ $t('roster.open') }}</span>
                   </td>
-                  <td>
+                  <td class="col-notes">
                     <v-textarea
                       :model-value="r.note ?? ''"
                       :placeholder="$t('roster.notePlaceholder')"
@@ -429,6 +429,10 @@ td.col-info {
 }
 .col-actions {
   width: 48px;
+}
+/* Notes keep a readable width; when the page gets narrow (side panel open) the table scrolls sideways instead */
+.col-notes {
+  min-width: 260px;
 }
 .row-open td {
   background: rgba(var(--v-theme-warning), 0.06);

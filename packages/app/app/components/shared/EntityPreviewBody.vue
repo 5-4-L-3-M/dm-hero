@@ -43,7 +43,10 @@
             <template v-for="f in npcFacts" :key="f.key">
               <v-icon size="small" class="text-medium-emphasis">{{ f.icon }}</v-icon>
               <span class="text-medium-emphasis">{{ f.label }}</span>
-              <span>{{ f.value }}</span>
+              <span>
+                {{ f.value }}
+                <v-chip v-if="f.key === 'age' && npcHumanAge" size="x-small" variant="tonal" class="ml-1 human-age">{{ $t('npcs.humanWord') }} {{ npcHumanAge }}</v-chip>
+              </span>
             </template>
             <template v-if="npcLocation">
               <v-icon size="small" class="text-medium-emphasis">mdi-map-marker</v-icon>
@@ -500,10 +503,16 @@ watch(() => (type.value === 'npc' ? Number(entity.value?.location_id) || null : 
 }, { immediate: true })
 const npcFactions = computed(() => (type.value === 'npc' ? connections.value.filter(c => c.entityType === 'Faction') : []))
 
-const npcAge = computed(() => {
+// Age in their own years; the human-years equivalent rides along as a small pill
+const npcAgeParts = computed(() => {
   const m = (entity.value?.metadata ?? entity.value ?? {}) as { age?: unknown, age_human?: unknown }
-  return ageText(m.age ?? entity.value?.age, m.age_human ?? entity.value?.age_human, t('npcs.humanWord'))
+  const own = m.age ?? entity.value?.age
+  const human = m.age_human ?? entity.value?.age_human
+  const clean = (v: unknown) => (v === null || v === undefined ? '' : String(v).trim())
+  return { own: clean(own), human: clean(human) }
 })
+const npcAge = computed(() => npcAgeParts.value.own || ageText(null, npcAgeParts.value.human, t('npcs.humanWord')))
+const npcHumanAge = computed(() => (npcAgeParts.value.own ? npcAgeParts.value.human : ''))
 
 // Quests: status + objectives (tick them off right here)
 const QUEST_COLORS: Record<QuestStatus, string> = { rumor: 'warning', active: 'primary', completed: 'success', failed: 'error' }
@@ -652,6 +661,10 @@ defineExpose({ reload: load })
 }
 .inv-qty {
   min-width: 32px;
+}
+.human-age {
+  opacity: 0.75;
+  vertical-align: middle;
 }
 .facts,
 .quest-facts {
