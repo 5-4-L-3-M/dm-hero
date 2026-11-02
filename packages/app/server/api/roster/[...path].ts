@@ -9,6 +9,8 @@ export const rosterRoutes: SubRoutes = {
   'roles': { POST: roster.addRole },
   'roles/:id': { PATCH: roster.updateRole, DELETE: roster.removeRole },
   'order': { POST: roster.saveOrder },
+  'books': { POST: roster.addBook },
+  'books/:id': { PATCH: roster.updateBook, DELETE: roster.removeBook },
 }
 
 export default defineEventHandler(event => dispatchSubRoute(event, rosterRoutes, getRouterParam(event, 'path') ?? ''))

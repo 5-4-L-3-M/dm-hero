@@ -3228,7 +3228,8 @@
       "addPreset": "Add color",
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
-      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted."
+      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
+      "reorder": "Glisser pour réordonner"
     },
     "cluster": {
       "new": "New cluster",
@@ -3338,7 +3339,8 @@
     "filter": {
       "storylines": "Show storylines",
       "all": "Show all",
-      "statuses": "Show"
+      "statuses": "Show",
+      "showingAll": "Toutes affichées"
     },
     "lane": {
       "dropHere": "Drag a cluster here",
@@ -3509,7 +3511,17 @@
     "faction": "Faction",
     "placeOrFaction": "Place or faction",
     "dragHint": "Drag to reorder",
-    "doneEditing": "Done"
+    "doneEditing": "Done",
+    "newBook": "Nouvel effectif",
+    "renameBook": "Renommer l'effectif",
+    "deleteBook": "Supprimer l'effectif",
+    "bookActions": "Actions de l'effectif",
+    "bookName": "Nom de l'effectif",
+    "bookNameHint": "Une ville, une région, un réseau de guildes…",
+    "deleteBookTitle": "Supprimer « {name} » ?",
+    "deleteBookText": "Ses lieux et rôles passent dans « {other} ». Rien d'autre n'est supprimé.",
+    "moveToBook": "Déplacer vers un effectif",
+    "addingTo": "Ajouté à {name}"
   },
   "reputation": {
     "title": "Reputation",
@@ -3695,7 +3707,9 @@
         "title": "NPCs this session",
         "empty": "Nobody linked to the next-session tray yet.",
         "met": "Has met the party",
-        "notMet": "Hasn't met the party"
+        "notMet": "Hasn't met the party",
+        "search": "Chercher tous les PNJ…",
+        "noMatch": "Aucun PNJ de ce nom."
       },
       "sessionQuests": {
         "title": "This session's questline",
@@ -3712,7 +3726,9 @@
       },
       "reputation": {
         "title": "Reputation",
-        "empty": "Nothing logged yet."
+        "empty": "Nothing logged yet.",
+        "search": "Chercher une réputation…",
+        "noMatch": "Aucun résultat."
       },
       "map": {
         "title": "Map",

@@ -18,6 +18,26 @@
         <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="addPlaceOpen = true">{{ $t('roster.addPlace') }}</v-btn>
       </div>
 
+      <!-- One roster per city / region -->
+      <div v-if="data" class="d-flex align-center flex-wrap ga-1 mb-3 book-tabs">
+        <v-tabs v-model="book" color="primary" density="comfortable" show-arrows class="flex-grow-0">
+          <v-tab v-for="b in data.books" :key="b.id" :value="b.id" class="text-none">
+            {{ b.name }}
+            <v-chip size="x-small" variant="tonal" class="ml-2">{{ placeCountIn(b.id) }}</v-chip>
+            <v-menu v-if="book === b.id">
+              <template #activator="{ props: menu }">
+                <v-btn v-bind="menu" icon="mdi-dots-vertical" size="x-small" variant="text" class="ml-1" :aria-label="$t('roster.bookActions')" @click.stop />
+              </template>
+              <v-list density="compact">
+                <v-list-item prepend-icon="mdi-pencil" :title="$t('roster.renameBook')" @click="openBookDialog(b)" />
+                <v-list-item v-if="data.books.length > 1" prepend-icon="mdi-delete-outline" base-color="error" :title="$t('roster.deleteBook')" @click="deleteBookTarget = b" />
+              </v-list>
+            </v-menu>
+          </v-tab>
+        </v-tabs>
+        <v-btn variant="text" prepend-icon="mdi-plus" class="text-none" @click="openBookDialog(null)">{{ $t('roster.newBook') }}</v-btn>
+      </div>
+
       <v-card variant="tonal" class="pa-3 mb-4">
         <div class="d-flex flex-wrap align-center ga-3">
           <v-btn-toggle v-if="settlements.length > 1" v-model="settlement" mandatory density="compact" variant="outlined" divided color="primary">
@@ -39,7 +59,7 @@
 
       <v-progress-linear v-if="loading && !data" indeterminate class="mb-3" />
 
-      <div v-if="data && !data.places.length" class="text-center py-12 text-medium-emphasis">
+      <div v-if="data && !bookPlaces.length" class="text-center py-12 text-medium-emphasis">
         <v-icon size="56" class="mb-2">mdi-account-box-multiple-outline</v-icon>
         <div class="text-title-medium mb-1">{{ $t('roster.emptyTitle') }}</div>
         <div class="text-body-medium mb-4">{{ $t('roster.emptyText') }}</div>
@@ -70,6 +90,14 @@
                 </template>
                 <v-list density="compact">
                   <v-list-item prepend-icon="mdi-folder-move-outline" :title="$t('roster.changeCategory')" @click="editCategory(p)" />
+                  <v-menu v-if="(data?.books.length ?? 0) > 1" location="end" open-on-hover>
+                    <template #activator="{ props: sub }">
+                      <v-list-item v-bind="sub" prepend-icon="mdi-book-arrow-right-outline" append-icon="mdi-chevron-right" :title="$t('roster.moveToBook')" />
+                    </template>
+                    <v-list density="compact">
+                      <v-list-item v-for="b in data!.books.filter(x => x.id !== p.book_id)" :key="b.id" :title="b.name" @click="movePlace(p, b.id)" />
+                    </v-list>
+                  </v-menu>
                   <v-list-item prepend-icon="mdi-close" base-color="error" :title="$t('roster.removePlace')" @click="removePlace(p)" />
                 </v-list>
               </v-menu>
@@ -202,9 +230,38 @@
     </template>
 
     <!-- Put a place on the roster -->
+    <v-dialog v-model="bookOpen" max-width="420">
+      <v-card>
+        <v-card-title>{{ bookEditing ? $t('roster.renameBook') : $t('roster.newBook') }}</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="bookName" :label="$t('roster.bookName')" :hint="$t('roster.bookNameHint')" persistent-hint variant="outlined" density="comfortable" autofocus @keyup.enter="saveBook" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="bookOpen = false">{{ $t('common.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" :disabled="!bookName.trim()" @click="saveBook">{{ $t('common.save') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog :model-value="!!deleteBookTarget" max-width="440" @update:model-value="v => { if (!v) deleteBookTarget = null }">
+      <v-card v-if="deleteBookTarget">
+        <v-card-title>{{ $t('roster.deleteBookTitle', { name: deleteBookTarget.name }) }}</v-card-title>
+        <v-card-text>{{ $t('roster.deleteBookText', { other: data?.books.find(b => b.id !== deleteBookTarget!.id)?.name ?? '' }) }}</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="deleteBookTarget = null">{{ $t('common.cancel') }}</v-btn>
+          <v-btn color="error" variant="flat" @click="deleteBook">{{ $t('common.delete') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-dialog v-model="addPlaceOpen" max-width="460">
       <v-card>
-        <v-card-title>{{ $t('roster.addPlace') }}</v-card-title>
+        <v-card-title>
+          {{ $t('roster.addPlace') }}
+          <div v-if="currentBook" class="text-body-medium text-medium-emphasis">{{ $t('roster.addingTo', { name: currentBook.name }) }}</div>
+        </v-card-title>
         <v-card-text>
           <v-autocomplete
             v-model="addPlaceId"
@@ -255,7 +312,7 @@
 <script setup lang="ts">
 import draggable from 'vuedraggable'
 import { NPC_LOYALTIES, NPC_LOYALTY_COLORS } from '~~/types/npc'
-import { DEFAULT_ROLES, ROLE_TEMPLATES, type Roster, type RosterPlace, type RosterRole } from '~~/types/roster'
+import { DEFAULT_ROLES, ROLE_TEMPLATES, type Roster, type RosterBook, type RosterPlace, type RosterRole } from '~~/types/roster'
 
 /**
  * NPC roster: places grouped under your own category headings, each with
@@ -289,16 +346,79 @@ watch(campaignId, (id) => {
 
 const npcs = computed(() => store.entities.filter(e => e.type === 'NPC'))
 
+// --- rosters (one per city / region), remembered per campaign ---------------
+const book = ref<number | null>(null)
+const bookKey = computed(() => `dmhero.roster.book.${campaignId.value}`)
+watch(() => data.value?.books, (books) => {
+  if (!books?.length) return
+  if (book.value && books.some(b => b.id === book.value)) return
+  let saved: number | null = null
+  try {
+    saved = Number(localStorage.getItem(bookKey.value)) || null
+  }
+  catch {
+    saved = null
+  }
+  book.value = books.find(b => b.id === saved)?.id ?? books[0]!.id
+}, { immediate: true })
+watch(book, (id) => {
+  settlement.value = ''
+  try {
+    if (id) localStorage.setItem(bookKey.value, String(id))
+  }
+  catch {
+    // storage blocked — fine for this visit
+  }
+})
+const currentBook = computed(() => data.value?.books.find(b => b.id === book.value) ?? null)
+const bookPlaces = computed(() => (data.value?.places ?? []).filter(p => p.book_id === book.value))
+const placeCountIn = (id: number) => (data.value?.places ?? []).filter(p => p.book_id === id).length
+const inBook = (locationId: number) => bookPlaces.value.some(p => p.location_id === locationId)
+
+const bookOpen = ref(false)
+const bookEditing = ref<RosterBook | null>(null)
+const bookName = ref('')
+function openBookDialog(b: RosterBook | null) {
+  bookEditing.value = b
+  bookName.value = b?.name ?? ''
+  bookOpen.value = true
+}
+async function saveBook() {
+  const name = bookName.value.trim()
+  if (!name) return
+  if (bookEditing.value) {
+    await $fetch(`/api/roster/books/${bookEditing.value.id}`, { method: 'PATCH', body: { name } })
+  }
+  else {
+    const b = await $fetch<RosterBook>('/api/roster/books', { method: 'POST', body: { campaignId: campaignId.value, name } })
+    book.value = b.id
+  }
+  bookOpen.value = false
+  await load()
+}
+const deleteBookTarget = ref<RosterBook | null>(null)
+async function deleteBook() {
+  if (!deleteBookTarget.value) return
+  const r = await $fetch<{ moved_to: number }>(`/api/roster/books/${deleteBookTarget.value.id}`, { method: 'DELETE' })
+  deleteBookTarget.value = null
+  book.value = r.moved_to
+  await load()
+}
+async function movePlace(p: RosterPlace, bookId: number) {
+  await $fetch(`/api/roster/places/${p.location_id}`, { method: 'PATCH', body: { book_id: bookId } })
+  await load()
+}
+
 // --- filters, grouping -----------------------------------------------------
 const settlement = ref('')
 const search = ref('')
 const onlyOpen = ref(false)
-const settlements = computed(() => [...new Set((data.value?.places ?? []).map(p => p.settlement_name).filter((x): x is string => !!x))].sort())
+const settlements = computed(() => [...new Set(bookPlaces.value.map(p => p.settlement_name).filter((x): x is string => !!x))].sort())
 
 const rolesOf = (locationId: number) => (data.value?.roles ?? []).filter(r => r.location_id === locationId && (!onlyOpen.value || !r.npc))
 const openIn = (locationId: number) => (data.value?.roles ?? []).filter(r => r.location_id === locationId && !r.npc).length
-const filledCount = computed(() => (data.value?.roles ?? []).filter(r => r.npc).length)
-const openCount = computed(() => (data.value?.roles ?? []).filter(r => !r.npc).length)
+const filledCount = computed(() => (data.value?.roles ?? []).filter(r => r.npc && inBook(r.location_id)).length)
+const openCount = computed(() => (data.value?.roles ?? []).filter(r => !r.npc && inBook(r.location_id)).length)
 
 function matches(p: RosterPlace) {
   if (settlement.value && p.settlement_name !== settlement.value) return false
@@ -310,7 +430,7 @@ function matches(p: RosterPlace) {
 }
 const categories = computed(() => [...new Set((data.value?.places ?? []).map(p => p.category).filter((x): x is string => !!x))])
 const groups = computed(() => {
-  const shown = (data.value?.places ?? []).filter(matches)
+  const shown = bookPlaces.value.filter(matches)
   const names = [...new Set(shown.map(p => p.category ?? ''))]
   return names.map(name => ({ name, places: shown.filter(p => (p.category ?? '') === name) }))
 })
@@ -405,7 +525,7 @@ const placeOptions = computed(() => [
 
 async function addPlace() {
   if (!addPlaceId.value) return
-  await $fetch('/api/roster/places', { method: 'POST', body: { campaignId: campaignId.value, location_id: addPlaceId.value, category: addPlaceCategory.value } })
+  await $fetch('/api/roster/places', { method: 'POST', body: { campaignId: campaignId.value, location_id: addPlaceId.value, category: addPlaceCategory.value, book_id: book.value } })
   addPlaceOpen.value = false
   addPlaceId.value = null
   await load()
@@ -431,6 +551,9 @@ async function saveCategory() {
 </script>
 
 <style scoped>
+.book-tabs {
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
 .search-field {
   max-width: 280px;
   min-width: 200px;

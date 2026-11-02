@@ -3228,7 +3228,8 @@
       "addPreset": "Add color",
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
-      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted."
+      "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
+      "reorder": "拖动以排序"
     },
     "cluster": {
       "new": "New cluster",
@@ -3338,7 +3339,8 @@
     "filter": {
       "storylines": "Show storylines",
       "all": "Show all",
-      "statuses": "Show"
+      "statuses": "Show",
+      "showingAll": "显示全部"
     },
     "lane": {
       "dropHere": "Drag a cluster here",
@@ -3509,7 +3511,17 @@
     "faction": "Faction",
     "placeOrFaction": "Place or faction",
     "dragHint": "Drag to reorder",
-    "doneEditing": "Done"
+    "doneEditing": "Done",
+    "newBook": "新名册",
+    "renameBook": "重命名名册",
+    "deleteBook": "删除名册",
+    "bookActions": "名册操作",
+    "bookName": "名册名称",
+    "bookNameHint": "一座城市、一个地区、一个公会网络…",
+    "deleteBookTitle": "删除“{name}”？",
+    "deleteBookText": "其地点和角色将移到“{other}”。不会删除其他内容。",
+    "moveToBook": "移到名册",
+    "addingTo": "添加到 {name}"
   },
   "reputation": {
     "title": "Reputation",
@@ -3695,7 +3707,9 @@
         "title": "NPCs this session",
         "empty": "Nobody linked to the next-session tray yet.",
         "met": "Has met the party",
-        "notMet": "Hasn't met the party"
+        "notMet": "Hasn't met the party",
+        "search": "搜索所有 NPC…",
+        "noMatch": "没有这个名字的 NPC。"
       },
       "sessionQuests": {
         "title": "This session's questline",
@@ -3712,7 +3726,9 @@
       },
       "reputation": {
         "title": "Reputation",
-        "empty": "Nothing logged yet."
+        "empty": "Nothing logged yet.",
+        "search": "搜索声望…",
+        "noMatch": "没有匹配项。"
       },
       "map": {
         "title": "Map",

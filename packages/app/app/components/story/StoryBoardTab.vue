@@ -90,11 +90,21 @@
         </div>
       </div>
 
-      <!-- Storyline filter: click to show only those (none selected = all) -->
+      <!-- Storyline filter: click to show only those (none selected = all). Folds to just the picked ones. -->
       <div v-if="store.storylines.length" class="d-flex flex-wrap align-center ga-2 mt-3">
-        <span class="text-body-small text-medium-emphasis mr-1">{{ $t('story.filter.storylines') }}</span>
+        <v-btn
+          size="small"
+          variant="text"
+          class="text-none px-1"
+          :append-icon="linesExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+          :aria-expanded="linesExpanded"
+          @click="linesExpanded = !linesExpanded"
+        >
+          {{ $t('story.filter.storylines') }} ({{ storylineFilterOptions.length }})
+        </v-btn>
+        <span v-if="!linesExpanded && !storylineFilter.length" class="text-body-small text-medium-emphasis">{{ $t('story.filter.showingAll') }}</span>
         <v-chip
-          v-for="l in storylineFilterOptions"
+          v-for="l in shownLineChips"
           :key="l.key"
           size="small"
           :color="l.color"
@@ -108,8 +118,17 @@
 
       <!-- Legend: what each color means right now -->
       <div v-if="legend.length" class="d-flex flex-wrap align-center ga-3 mt-3">
-        <span class="text-body-small text-medium-emphasis">{{ $t('story.colorBy.legend') }}</span>
-        <span v-for="l in legend" :key="l.key" class="d-flex align-center text-body-small">
+        <v-btn
+          size="small"
+          variant="text"
+          class="text-none px-1"
+          :append-icon="legendExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+          :aria-expanded="legendExpanded"
+          @click="legendExpanded = !legendExpanded"
+        >
+          {{ $t('story.colorBy.legend') }}
+        </v-btn>
+        <span v-for="l in (legendExpanded ? legend : [])" :key="l.key" class="d-flex align-center text-body-small">
           <span class="legend-dot mr-1" :style="{ background: colorCss(l.color) }" />{{ l.label }}
         </span>
       </div>
@@ -283,6 +302,10 @@ const storylineFilterOptions = computed(() => [
   ...store.storylines.map(s => ({ key: String(s.id), label: s.name, color: storylineColor(s) })),
   { key: 'none', label: t('story.storyline.noneShort'), color: undefined },
 ])
+// Folded: only the storylines you've picked stay visible
+const linesExpanded = remember<boolean>('linesExpanded', false)
+const legendExpanded = remember<boolean>('legendExpanded', false)
+const shownLineChips = computed(() => linesExpanded.value ? storylineFilterOptions.value : storylineFilterOptions.value.filter(l => storylineFilter.value.includes(l.key)))
 
 // --- colors ------------------------------------------------------------
 const regionIds = computed(() => [...new Set(store.clusters.map(c => c.location_id).filter((x): x is number => !!x))])

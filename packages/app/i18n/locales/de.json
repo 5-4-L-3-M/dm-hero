@@ -3228,7 +3228,8 @@
       "addPreset": "Farbe hinzufügen",
       "hidePreset": "Diese Vorgabe ausblenden",
       "showPreset": "Wieder zeigen",
-      "presetsHint": "Theme-Farben lassen sich ausblenden (und zurückholen); eigene Farben lassen sich löschen."
+      "presetsHint": "Theme-Farben lassen sich ausblenden (und zurückholen); eigene Farben lassen sich löschen.",
+      "reorder": "Zum Umsortieren ziehen"
     },
     "cluster": {
       "new": "Neuer Cluster",
@@ -3338,7 +3339,8 @@
     "filter": {
       "storylines": "Handlungsstränge zeigen",
       "all": "Alle zeigen",
-      "statuses": "Zeigen"
+      "statuses": "Zeigen",
+      "showingAll": "Alle sichtbar"
     },
     "lane": {
       "dropHere": "Cluster hierher ziehen",
@@ -3509,7 +3511,17 @@
     "faction": "Fraktion",
     "placeOrFaction": "Ort oder Fraktion",
     "dragHint": "Ziehen zum Umsortieren",
-    "doneEditing": "Fertig"
+    "doneEditing": "Fertig",
+    "newBook": "Neue Besetzungsliste",
+    "renameBook": "Liste umbenennen",
+    "deleteBook": "Liste löschen",
+    "bookActions": "Listen-Aktionen",
+    "bookName": "Name der Liste",
+    "bookNameHint": "Eine Stadt, eine Region, ein Gildennetz…",
+    "deleteBookTitle": "„{name}“ löschen?",
+    "deleteBookText": "Ihre Orte und Rollen wandern nach „{other}“. Sonst wird nichts gelöscht.",
+    "moveToBook": "In Liste verschieben",
+    "addingTo": "Wird zu {name} hinzugefügt"
   },
   "reputation": {
     "title": "Ruf",
@@ -3695,7 +3707,9 @@
         "title": "NSCs dieser Sitzung",
         "empty": "Noch niemand mit der Ablage verknüpft.",
         "met": "Kennt die Gruppe",
-        "notMet": "Kennt die Gruppe noch nicht"
+        "notMet": "Kennt die Gruppe noch nicht",
+        "search": "Alle NSCs durchsuchen…",
+        "noMatch": "Kein NSC mit diesem Namen."
       },
       "sessionQuests": {
         "title": "Questline dieser Sitzung",
@@ -3712,7 +3726,9 @@
       },
       "reputation": {
         "title": "Ruf",
-        "empty": "Noch nichts eingetragen."
+        "empty": "Noch nichts eingetragen.",
+        "search": "Ruf durchsuchen…",
+        "noMatch": "Kein Treffer."
       },
       "map": {
         "title": "Karte",

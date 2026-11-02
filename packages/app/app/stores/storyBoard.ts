@@ -104,6 +104,13 @@ export const useStoryBoardStore = defineStore('storyBoard', {
       const i = this.storylines.findIndex(s => s.id === id)
       if (i >= 0 && this.board) this.board.storylines[i] = line
     },
+    /** New order for the storylines (lanes, filters and pickers follow it) */
+    async reorderStorylines(ids: number[]) {
+      if (!this.board) return
+      const byId = new Map(this.board.storylines.map(l => [l.id, l]))
+      this.board.storylines = ids.map((id, i) => ({ ...byId.get(id)!, sort_order: i })).filter(l => l.id)
+      await Promise.all(ids.map((id, i) => $fetch(`/api/story/storylines/${id}`, { method: 'PATCH', body: { sort_order: i } })))
+    },
     async deleteStoryline(id: number) {
       await $fetch(`/api/story/storylines/${id}`, { method: 'DELETE' })
       await this.reload()

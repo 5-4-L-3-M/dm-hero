@@ -98,6 +98,7 @@ export function parseStatText(text: string): { block: StatBlock, used: string[] 
   const block: StatBlock = { traits: [], actions: [] }
   const used: string[] = []
   let found = 0
+  let ended = false
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim()
     if (!line) continue
@@ -146,13 +147,16 @@ export function parseStatText(text: string): { block: StatBlock, used: string[] 
       continue
     }
     // "**Spear:** +4 to hit …" / "Spear: +4 to hit …" / "**Shield Wall.** +1 AC …"
+    if (!found || ended) continue
     const feat = line.match(/^[-*•\s]*\*\*([^*]{2,60}?)[:.]?\*\*[:.]?\s*(.+)$/) ?? line.match(/^[-•\s]*([A-Z][\w' ()/-]{1,40}?):\s+(.+)$/)
-    if (feat && found) {
+    if (feat) {
       const f = { name: feat[1]!.trim(), text: feat[2]!.trim() }
-      if (/to hit|\d+d\d+|saving throw|DC \d+/i.test(f.text)) block.actions!.push(f)
+      if (/to hit|\d+d\d+|saving throw|DC \d+/i.test(f.text) || /^multiattack$/i.test(f.name)) block.actions!.push(f)
       else block.traits!.push(f)
       used.push(raw)
     }
+    // Any other line (a heading like "RULES", a paragraph) ends the stat block; the rest stays in the notes
+    else ended = true
   }
   return found ? { block, used } : null
 }
