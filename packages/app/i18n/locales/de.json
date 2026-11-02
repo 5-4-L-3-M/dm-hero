@@ -3431,7 +3431,7 @@
       "info": "Info",
       "notes": "Aufhänger / warum hier"
     },
-    "clearNpc": "Leeren",
+    "clearNpc": "Offen lassen",
     "pickNpc": "Frei – jemanden wählen",
     "open": "Frei",
     "notePlaceholder": "Aufhänger, oder warum sie mit dem Ort verbunden sind",
@@ -3441,7 +3441,9 @@
     "category": "Überschrift",
     "categoryHint": "Eigene Gruppierung, z. B. Läden & Dienste",
     "faction": "Fraktion",
-    "placeOrFaction": "Ort oder Fraktion"
+    "placeOrFaction": "Ort oder Fraktion",
+    "dragHint": "Ziehen zum Umsortieren",
+    "doneEditing": "Fertig"
   },
   "reputation": {
     "title": "Ruf",

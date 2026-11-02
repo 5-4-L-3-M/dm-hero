@@ -3431,7 +3431,7 @@
       "info": "Info",
       "notes": "Hook / why they're here"
     },
-    "clearNpc": "Clear",
+    "clearNpc": "Leave open",
     "pickNpc": "Open — pick someone",
     "open": "Open",
     "notePlaceholder": "Hook, or why they're tied to this place",
@@ -3441,7 +3441,9 @@
     "category": "Heading",
     "categoryHint": "Your own grouping, e.g. Shops & Services",
     "faction": "Faction",
-    "placeOrFaction": "Place or faction"
+    "placeOrFaction": "Place or faction",
+    "dragHint": "Drag to reorder",
+    "doneEditing": "Done"
   },
   "reputation": {
     "title": "Reputation",

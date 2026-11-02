@@ -6,6 +6,9 @@
 
 - Roster: the notes column keeps a readable width when the side panel is open; the table scrolls sideways instead of squeezing the notes into one word per line.
 - Side panel: an NPC's human-years age is a small pill beside their age instead of being written into it.
+- Roster: drag roles up and down within a place (grip on the left of each role); long role titles wrap instead of being cut off.
+- Roster: the "Clear" link under each name is gone — click Edit to change who fills a role, where "Leave open" empties it.
+- Dashboard: "This session's questline" wraps long titles and opens up on a click — a beat shows its text, place and who's involved; a quest shows its notes.
 
 ## 1.17.0
 

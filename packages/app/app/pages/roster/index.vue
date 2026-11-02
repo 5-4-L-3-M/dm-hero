@@ -85,77 +85,101 @@
                   <th class="col-actions" />
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="r in rolesOf(p.location_id)" :key="r.id" :class="{ 'row-open': !r.npc }">
-                  <td class="col-role">
-                    <v-text-field
-                      :model-value="r.role"
-                      variant="plain"
-                      density="compact"
-                      hide-details
-                      class="role-field font-weight-medium"
-                      @change="(e: Event) => updateRole(r, { role: (e.target as HTMLInputElement).value })"
-                    />
-                  </td>
-                  <td class="col-npc">
-                    <div v-if="r.npc" class="d-flex align-center ga-3 py-2">
-                      <v-avatar size="72" rounded="lg" :color="r.npc.image_url ? undefined : 'surface-variant'">
-                        <v-img v-if="r.npc.image_url" :src="`/uploads/${r.npc.image_url}`" cover />
-                        <v-icon v-else>mdi-account</v-icon>
-                      </v-avatar>
-                      <div class="min-w-0">
-                        <SharedEntityLink :id="r.npc.id" type="NPC" :name="r.npc.name" class="font-weight-medium" />
-                        <v-icon v-if="rep.isMet(r.npc.id)" size="x-small" color="success" class="ml-1" :title="$t('reputation.met')">mdi-handshake</v-icon>
-                        <div>
-                          <v-btn size="x-small" variant="text" class="px-0 text-medium-emphasis" @click="updateRole(r, { npc_id: null })">{{ $t('roster.clearNpc') }}</v-btn>
+              <draggable
+                :model-value="rolesOf(p.location_id)"
+                tag="tbody"
+                item-key="id"
+                handle=".role-drag"
+                :disabled="onlyOpen"
+                :animation="150"
+                @update:model-value="(list: RosterRole[]) => reorderRoles(p.location_id, list)"
+              >
+                <template #item="{ element: r }">
+                  <tr :class="{ 'row-open': !r.npc }">
+                    <td class="col-role">
+                      <div class="d-flex align-start">
+                        <v-icon v-if="!onlyOpen" size="small" class="role-drag mt-2 mr-1 text-medium-emphasis" :title="$t('roster.dragHint')">mdi-drag-vertical</v-icon>
+                        <v-textarea
+                          :model-value="r.role"
+                          variant="plain"
+                          density="compact"
+                          hide-details
+                          auto-grow
+                          rows="1"
+                          class="role-field font-weight-medium"
+                          @keydown.enter.prevent="($event.target as HTMLTextAreaElement).blur()"
+                          @change="(e: Event) => updateRole(r, { role: (e.target as HTMLTextAreaElement).value.replace(/\s+/g, ' ').trim() })"
+                        />
+                      </div>
+                    </td>
+                    <td class="col-npc">
+                      <div v-if="r.npc && editingRole !== r.id" class="d-flex align-center ga-3 py-2">
+                        <v-avatar size="72" rounded="lg" :color="r.npc.image_url ? undefined : 'surface-variant'">
+                          <v-img v-if="r.npc.image_url" :src="`/uploads/${r.npc.image_url}`" cover />
+                          <v-icon v-else>mdi-account</v-icon>
+                        </v-avatar>
+                        <div class="min-w-0">
+                          <SharedEntityLink :id="r.npc.id" type="NPC" :name="r.npc.name" class="font-weight-medium" />
+                          <v-icon v-if="rep.isMet(r.npc.id)" size="x-small" color="success" class="ml-1" :title="$t('reputation.met')">mdi-handshake</v-icon>
+                          <div>
+                            <v-btn size="x-small" variant="text" class="px-0 text-medium-emphasis" prepend-icon="mdi-pencil" @click="editingRole = r.id">{{ $t('common.edit') }}</v-btn>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <v-autocomplete
-                      v-else
-                      v-model:search="npcSearch[r.id]"
-                      :items="npcs"
-                      item-title="name"
-                      item-value="id"
-                      :placeholder="$t('roster.pickNpc')"
-                      prepend-inner-icon="mdi-account-plus-outline"
-                      variant="outlined"
-                      density="compact"
-                      hide-details
-                      class="npc-pick"
-                      @update:model-value="id => id && updateRole(r, { npc_id: id })"
-                    >
-                      <template #no-data>
-                        <SharedCreateFromSearch :search="npcSearch[r.id]" type="NPC" @created="e => npcCreated(r, e.id)" />
-                      </template>
-                    </v-autocomplete>
-                  </td>
-                  <td class="col-info">
-                    <template v-if="r.npc">
-                      <div v-if="r.npc.loyalty" class="d-flex align-center">
-                        <v-icon size="x-small" :color="NPC_LOYALTY_COLORS[r.npc.loyalty]" class="mr-1">mdi-circle</v-icon>{{ $t(`npcs.loyalty.${r.npc.loyalty}`) }}
+                      <div v-else class="py-1">
+                        <v-autocomplete
+                          v-model:search="npcSearch[r.id]"
+                          :model-value="r.npc?.id ?? null"
+                          :items="npcs"
+                          item-title="name"
+                          item-value="id"
+                          :placeholder="$t('roster.pickNpc')"
+                          prepend-inner-icon="mdi-account-plus-outline"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                          :autofocus="editingRole === r.id"
+                          class="npc-pick"
+                          @update:model-value="id => id && pickNpc(r, id)"
+                        >
+                          <template #no-data>
+                            <SharedCreateFromSearch :search="npcSearch[r.id]" type="NPC" @created="e => npcCreated(r, e.id)" />
+                          </template>
+                        </v-autocomplete>
+                        <!-- Editing a filled role: emptying it is a deliberate second click -->
+                        <div v-if="editingRole === r.id" class="d-flex ga-1 mt-1">
+                          <v-btn size="x-small" variant="text" color="error" prepend-icon="mdi-account-remove-outline" @click="clearNpc(r)">{{ $t('roster.clearNpc') }}</v-btn>
+                          <v-btn size="x-small" variant="text" prepend-icon="mdi-check" @click="editingRole = null">{{ $t('roster.doneEditing') }}</v-btn>
+                        </div>
                       </div>
-                      <div class="text-medium-emphasis">{{ infoLine(r) }}</div>
-                    </template>
-                    <span v-else class="text-medium-emphasis">{{ $t('roster.open') }}</span>
-                  </td>
-                  <td class="col-notes">
-                    <v-textarea
-                      :model-value="r.note ?? ''"
-                      :placeholder="$t('roster.notePlaceholder')"
-                      variant="plain"
-                      density="compact"
-                      rows="1"
-                      auto-grow
-                      hide-details
-                      @change="(e: Event) => updateRole(r, { note: (e.target as HTMLTextAreaElement).value })"
-                    />
-                  </td>
-                  <td class="col-actions">
-                    <v-btn icon="mdi-delete-outline" size="small" variant="text" :aria-label="$t('common.delete')" @click="removeRole(r)" />
-                  </td>
-                </tr>
-              </tbody>
+                    </td>
+                    <td class="col-info">
+                      <template v-if="r.npc">
+                        <div v-if="r.npc.loyalty" class="d-flex align-center">
+                          <v-icon size="x-small" :color="NPC_LOYALTY_COLORS[r.npc.loyalty]" class="mr-1">mdi-circle</v-icon>{{ $t(`npcs.loyalty.${r.npc.loyalty}`) }}
+                        </div>
+                        <div class="text-medium-emphasis">{{ infoLine(r) }}</div>
+                      </template>
+                      <span v-else class="text-medium-emphasis">{{ $t('roster.open') }}</span>
+                    </td>
+                    <td class="col-notes">
+                      <v-textarea
+                        :model-value="r.note ?? ''"
+                        :placeholder="$t('roster.notePlaceholder')"
+                        variant="plain"
+                        density="compact"
+                        rows="1"
+                        auto-grow
+                        hide-details
+                        @change="(e: Event) => updateRole(r, { note: (e.target as HTMLTextAreaElement).value })"
+                      />
+                    </td>
+                    <td class="col-actions">
+                      <v-btn icon="mdi-delete-outline" size="small" variant="text" :aria-label="$t('common.delete')" @click="removeRole(r)" />
+                    </td>
+                  </tr>
+                </template>
+              </draggable>
             </v-table>
 
             <!-- Add a role: one click for the usual ones, or type your own -->
@@ -229,6 +253,7 @@
 </template>
 
 <script setup lang="ts">
+import draggable from 'vuedraggable'
 import { NPC_LOYALTIES, NPC_LOYALTY_COLORS } from '~~/types/npc'
 import { DEFAULT_ROLES, ROLE_TEMPLATES, type Roster, type RosterPlace, type RosterRole } from '~~/types/roster'
 
@@ -342,7 +367,24 @@ async function updateRole(r: RosterRole, changes: { role?: string, npc_id?: numb
   const i = data.value.roles.findIndex(x => x.id === r.id)
   if (i >= 0) data.value.roles[i] = updated
 }
+/** Drag a role up or down within its place */
+async function reorderRoles(locationId: number, list: RosterRole[]) {
+  if (!data.value) return
+  data.value.roles = [...data.value.roles.filter(r => r.location_id !== locationId), ...list]
+  await $fetch('/api/roster/order', { method: 'POST', body: { campaignId: campaignId.value, location_id: locationId, role_ids: list.map(r => r.id) } })
+}
+// Changing who fills a role happens in edit mode (no stray "clear" next to every name)
+const editingRole = ref<number | null>(null)
+async function pickNpc(r: RosterRole, id: number) {
+  editingRole.value = null
+  if (id !== r.npc?.id) await updateRole(r, { npc_id: id })
+}
+async function clearNpc(r: RosterRole) {
+  editingRole.value = null
+  await updateRole(r, { npc_id: null })
+}
 async function npcCreated(r: RosterRole, id: number) {
+  editingRole.value = null
   await updateRole(r, { npc_id: id })
   store.load(campaignId.value, true)
 }
@@ -416,9 +458,11 @@ async function saveCategory() {
 }
 .col-role {
   width: 190px;
+  min-width: 170px;
 }
 .col-npc {
   width: 300px;
+  min-width: 240px;
 }
 .col-info {
   width: 170px;
@@ -433,6 +477,13 @@ td.col-info {
 /* Notes keep a readable width; when the page gets narrow (side panel open) the table scrolls sideways instead */
 .col-notes {
   min-width: 260px;
+}
+.role-drag {
+  cursor: grab;
+  flex-shrink: 0;
+}
+.role-field :deep(textarea) {
+  overflow-wrap: break-word;
 }
 .row-open td {
   background: rgba(var(--v-theme-warning), 0.06);
