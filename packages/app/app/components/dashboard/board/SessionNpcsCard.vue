@@ -1,0 +1,56 @@
+<template>
+  <div v-if="plan.npcs.value.length" class="d-flex flex-column ga-1">
+    <div
+      v-for="n in plan.npcs.value"
+      :key="n.id"
+      class="npc-row d-flex align-center pa-1 rounded"
+      role="button"
+      tabindex="0"
+      @click="tabs.open('npc', n.id, n.name)"
+      @keyup.enter="tabs.open('npc', n.id, n.name)"
+    >
+      <v-avatar size="34" color="surface-variant" class="mr-2 text-body-small font-weight-bold">
+        <v-img v-if="imageOf(n.id)" :src="`/uploads/${imageOf(n.id)}`" cover />
+        <template v-else>{{ initials(n.name) }}</template>
+      </v-avatar>
+      <span class="flex-grow-1 text-truncate">{{ n.name }}</span>
+      <v-chip v-if="tierOfNpc(n.id)" size="x-small" variant="tonal" :color="tierOfNpc(n.id)!.color" class="ml-1">
+        {{ $t(`reputation.tiers.${tierOfNpc(n.id)!.key}`) }}
+      </v-chip>
+      <v-icon v-if="rep.isMet(n.id)" size="small" color="success" class="ml-1" :title="$t('dashboardBoards.cards.sessionNpcs.met')">mdi-handshake</v-icon>
+      <v-icon v-else size="small" class="ml-1 text-disabled" :title="$t('dashboardBoards.cards.sessionNpcs.notMet')">mdi-account-question-outline</v-icon>
+    </div>
+  </div>
+  <div v-else class="text-body-medium text-medium-emphasis">
+    {{ $t('dashboardBoards.cards.sessionNpcs.empty') }}
+    <v-btn variant="text" size="small" color="primary" to="/story">{{ $t('dashboardBoards.toStory') }}</v-btn>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { tierOf } from '~~/types/reputation'
+
+/** NPCs tied to what's in the next-session tray — met badge and how they feel. */
+const plan = useSessionPlan()
+const rep = useReputationStore()
+const tabs = useEntityTabsStore()
+const story = useStoryBoardStore()
+const imageOf = (id: number) => story.entities.find(e => e.id === id && e.type === 'NPC')?.image_url ?? null
+
+function tierOfNpc(id: number) {
+  const t = rep.tracksOf(id).find(x => x.player_id === 0)
+  return t ? tierOf(t.points, 'NPC') : null
+}
+function initials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]!.toUpperCase()).join('')
+}
+</script>
+
+<style scoped>
+.npc-row {
+  cursor: pointer;
+}
+.npc-row:hover {
+  background: rgba(var(--v-theme-primary), 0.06);
+}
+</style>

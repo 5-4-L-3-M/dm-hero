@@ -1,5 +1,15 @@
 # @dm-hero/app
 
+## 1.16.0
+
+### Minor Changes
+
+- Your own dashboards: "At the table" and "Prep" tabs on the dashboard, beside the classic Overview. The dashboard remembers which one you had open.
+- Arrange: drag cards by their title bar, resize from the corner, add or remove cards, or start over. Each board is saved with the campaign.
+- Cards: Find anything, The party, NPCs this session (photo, met badge, how they feel), This session's questline (the next-session tray by quest), Next session, Reputation, a live Map with category-coloured pins, Pinned, Faction clocks, Open roles, Scratchpad, Last time on…, Calendar & weather.
+- At the table starts with search, party, session NPCs, questline, next session and the map; Prep starts with next session, open roles, reputation, faction clocks, the recap, pins, a scratchpad and the calendar.
+- Fix: the dashboard dice no longer cover the tabs below the header.
+
 ## 1.15.0
 
 ### Minor Changes
