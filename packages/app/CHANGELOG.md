@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.11.1
+
+### Patch Changes
+
+- Story map: fold the "Add to the map" list down to a slim strip with its arrow (it remembers). "Bigger map" folds the main menu and the list in one click; click it again to bring them back.
+
 ## 1.11.0
 
 ### Minor Changes

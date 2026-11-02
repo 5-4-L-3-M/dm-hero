@@ -3312,6 +3312,10 @@
       "nextSession": "Nächste Sitzung",
       "nextSessionHint": "Nur die Beats aus der Ablage für die nächste Sitzung, plus die Abzweigungen, die daran hängen",
       "nextSessionEmpty": "Noch keiner der Beats für die nächste Sitzung ist auf der Karte. Füge sie links aus der Beat-Liste hinzu.",
+      "hideList": "Liste ausblenden",
+      "showList": "Liste einblenden",
+      "biggerMap": "Größere Karte",
+      "smallerMap": "Seitenleisten zeigen",
       "addAct": "Akt hinzufügen",
       "actsHint": "Akte sind Phasen der Welt, keine feste Reihenfolge – Karten können Akte überspringen und Linien zwischen ihnen verlaufen."
     }

@@ -90,7 +90,7 @@ import GlobalSearch from '~/components/layout/GlobalSearch.vue'
 const vuetifyLocale = useLocale()
 const { locale, setLocale } = useI18n()
 const drawer = ref(true)
-const rail = ref(false)
+const rail = useState<boolean>('navRail', () => false) // shared so the story map can fold it
 const showSearch = ref(false)
 const searchQuery = ref('')
 const searchResults = ref<
