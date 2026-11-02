@@ -3067,7 +3067,9 @@
     "blackMarket": {
       "title": "Schwarzmarkt",
       "hint": "Unter der Theke — nur für Eingeweihte",
-      "switch": "Schwarzmarkt (unter der Theke)"
+      "switch": "Schwarzmarkt (unter der Theke)",
+      "toggleHint": "Zeigt, was unter der Theke liegt (neue Einträge landen dort, solange es an ist)",
+      "empty": "Noch nichts unter der Theke — was du jetzt hinzufügst, landet hier."
     },
     "requirement": {
       "label": "Voraussetzung",

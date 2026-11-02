@@ -3067,7 +3067,9 @@
     "blackMarket": {
       "title": "Black market",
       "hint": "Under the counter — only for those in the know",
-      "switch": "Black market (under the counter)"
+      "switch": "Black market (under the counter)",
+      "toggleHint": "Show what is under the counter (new items go there while it is on)",
+      "empty": "Nothing under the counter yet — items you add now go here."
     },
     "requirement": {
       "label": "Requirement",

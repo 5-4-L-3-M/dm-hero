@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.18.2
+
+### Patch Changes
+
+- Shops: a Black market button beside "Buy from a character" shows or hides what's under the counter (with a count). While it's on, new items go straight into the black market.
+
 ## 1.18.1
 
 ### Patch Changes
