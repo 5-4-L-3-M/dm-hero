@@ -3260,6 +3260,24 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 74: Place categories')
     },
   },
+  {
+    version: 75,
+    name: 'dashboard_layouts',
+    up: (db) => {
+      // The DM's own dashboards (prep / at the table): which cards, where, how big
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS dashboard_layouts (
+          campaign_id INTEGER NOT NULL,
+          board TEXT NOT NULL,
+          layout TEXT NOT NULL,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (campaign_id, board),
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        )
+      `)
+      console.log('✅ Migration 75: Dashboard layouts')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

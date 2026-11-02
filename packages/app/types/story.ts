@@ -44,6 +44,8 @@ export interface LinkedEntity {
   id: number
   name: string
   type: string // entity type name: NPC, Location, Item, Faction, Lore, Player, Quest
+  /** Picture, when the list came with them (the linkable-entries list does) */
+  image_url?: string | null
 }
 
 export interface StoryLine {

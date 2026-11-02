@@ -66,182 +66,200 @@
         <DashboardConnectAiDialog v-model:show="showConnectAi" />
       </ClientOnly>
 
-      <!-- Stats & Widgets Row (with optional Map) -->
-      <v-row class="mb-4 widgets-row">
-        <!-- Maps Widget (left side on xl when present) -->
-        <v-col v-if="maps.length > 0" cols="12" xl="6" class="d-flex">
-          <DashboardMapsWidget :maps="maps" class="flex-grow-1" />
-        </v-col>
+      <!-- Your own dashboards (at the table / prep) beside the classic overview -->
+      <v-tabs v-model="boardTab" color="primary" density="comfortable" class="mb-4 board-tabs">
+        <v-tab value="table" prepend-icon="mdi-dice-d20">{{ $t('dashboardBoards.tabs.table') }}</v-tab>
+        <v-tab value="prep" prepend-icon="mdi-notebook-edit-outline">{{ $t('dashboardBoards.tabs.prep') }}</v-tab>
+        <v-tab value="overview" prepend-icon="mdi-view-dashboard-outline">{{ $t('dashboardBoards.tabs.overview') }}</v-tab>
+      </v-tabs>
 
-        <!-- Widgets container (right side on xl when map present) -->
-        <v-col cols="12" :xl="maps.length > 0 ? 6 : 12">
-          <v-row>
-            <!-- Stats Card -->
-            <v-col cols="12" sm="6" :lg="maps.length > 0 ? 6 : 3">
-              <DashboardStatsCard
-                :total-playtime-minutes="totalPlaytimeMinutes"
-                :session-count="sessionCount"
-                :total-entities="totalEntities"
-                :pinned-count="pinboardStore.pinCount"
-                class="h-100"
-              />
-            </v-col>
+      <BoardGrid
+        v-if="boardTab !== 'overview' && campaignStore.activeCampaignIdNumber"
+        :key="boardTab"
+        :board="boardTab"
+        :campaign-id="campaignStore.activeCampaignIdNumber"
+        :sessions="sessions"
+        :ctx="{ calendar: calendarData, weather: currentWeather, calendarLoading, daysSinceFirstSession }"
+      />
 
-            <!-- Calendar Widget -->
-            <v-col cols="12" sm="6" :lg="maps.length > 0 ? 6 : 3">
-              <DashboardCalendarWidget
-                :calendar="calendarData"
-                :weather="currentWeather"
-                :loading="calendarLoading"
-                :days-since-first-session="daysSinceFirstSession"
-                class="h-100"
-              />
-            </v-col>
+      <template v-if="boardTab === 'overview'">
+        <!-- Stats & Widgets Row (with optional Map) -->
+        <v-row class="mb-4 widgets-row">
+          <!-- Maps Widget (left side on xl when present) -->
+          <v-col v-if="maps.length > 0" cols="12" xl="6" class="d-flex">
+            <DashboardMapsWidget :maps="maps" class="flex-grow-1" />
+          </v-col>
 
-            <!-- Notes Widget -->
-            <v-col cols="12" sm="6" :lg="maps.length > 0 ? 6 : 3">
-              <DashboardNotesWidget
-                :notes="notesStore.notes"
-                :pending-count="notesStore.pendingCount"
-                class="h-100"
-              />
-            </v-col>
+          <!-- Widgets container (right side on xl when map present) -->
+          <v-col cols="12" :xl="maps.length > 0 ? 6 : 12">
+            <v-row>
+              <!-- Stats Card -->
+              <v-col cols="12" sm="6" :lg="maps.length > 0 ? 6 : 3">
+                <DashboardStatsCard
+                  :total-playtime-minutes="totalPlaytimeMinutes"
+                  :session-count="sessionCount"
+                  :total-entities="totalEntities"
+                  :pinned-count="pinboardStore.pinCount"
+                  class="h-100"
+                />
+              </v-col>
 
-            <!-- Pinboard Widget -->
-            <v-col cols="12" sm="6" :lg="maps.length > 0 ? 6 : 3">
-              <DashboardPinboardWidget
-                :pins="pinboardStore.pins"
-                class="h-100"
-                @open-entity="openEntityPreview"
-              />
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
+              <!-- Calendar Widget -->
+              <v-col cols="12" sm="6" :lg="maps.length > 0 ? 6 : 3">
+                <DashboardCalendarWidget
+                  :calendar="calendarData"
+                  :weather="currentWeather"
+                  :loading="calendarLoading"
+                  :days-since-first-session="daysSinceFirstSession"
+                  class="h-100"
+                />
+              </v-col>
 
-      <!-- Category Cards -->
-      <v-row class="mb-4">
-        <v-col cols="12">
-          <div class="text-headline-small font-weight-medium">
-            {{ $t('dashboard.categories.title') }}
-          </div>
-        </v-col>
-      </v-row>
+              <!-- Notes Widget -->
+              <v-col cols="12" sm="6" :lg="maps.length > 0 ? 6 : 3">
+                <DashboardNotesWidget
+                  :notes="notesStore.notes"
+                  :pending-count="notesStore.pendingCount"
+                  class="h-100"
+                />
+              </v-col>
 
-      <v-row>
-        <v-col v-for="category in categories" :key="category.type" cols="12" sm="6" md="4" lg="3">
-          <DashboardCategoryCard
-            :title="category.title"
-            :description="category.description"
-            :icon="category.icon"
-            :color="category.color"
-            :to="category.to"
-            :count="category.count"
-            :pinned-count="category.pinnedCount"
-          />
-        </v-col>
-      </v-row>
+              <!-- Pinboard Widget -->
+              <v-col cols="12" sm="6" :lg="maps.length > 0 ? 6 : 3">
+                <DashboardPinboardWidget
+                  :pins="pinboardStore.pins"
+                  class="h-100"
+                  @open-entity="openEntityPreview"
+                />
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
 
-      <!-- Export/Import Actions -->
-      <v-row class="mb-4 mt-6">
-        <v-col cols="12">
-          <div class="d-flex align-center flex-wrap ga-2 mb-2">
+        <!-- Category Cards -->
+        <v-row class="mb-4">
+          <v-col cols="12">
             <div class="text-headline-small font-weight-medium">
-              {{ $t('dashboard.dataManagement') }}
+              {{ $t('dashboard.categories.title') }}
             </div>
-            <v-chip color="warning" size="small">Beta</v-chip>
-          </div>
-          <v-alert type="warning" variant="tonal" density="compact" class="mt-2">
-            <div class="d-flex align-center flex-wrap">
-              <span>{{ $t('common.betaWarning') }}</span>
-              <v-btn
-                variant="text"
-                size="small"
-                color="warning"
-                class="ml-2"
-                to="/settings"
-              >
-                {{ $t('common.backupSettings') }}
-              </v-btn>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col v-for="category in categories" :key="category.type" cols="12" sm="6" md="4" lg="3">
+            <DashboardCategoryCard
+              :title="category.title"
+              :description="category.description"
+              :icon="category.icon"
+              :color="category.color"
+              :to="category.to"
+              :count="category.count"
+              :pinned-count="category.pinnedCount"
+            />
+          </v-col>
+        </v-row>
+
+        <!-- Export/Import Actions -->
+        <v-row class="mb-4 mt-6">
+          <v-col cols="12">
+            <div class="d-flex align-center flex-wrap ga-2 mb-2">
+              <div class="text-headline-small font-weight-medium">
+                {{ $t('dashboard.dataManagement') }}
+              </div>
+              <v-chip color="warning" size="small">Beta</v-chip>
             </div>
-          </v-alert>
-        </v-col>
-      </v-row>
+            <v-alert type="warning" variant="tonal" density="compact" class="mt-2">
+              <div class="d-flex align-center flex-wrap">
+                <span>{{ $t('common.betaWarning') }}</span>
+                <v-btn
+                  variant="text"
+                  size="small"
+                  color="warning"
+                  class="ml-2"
+                  to="/settings"
+                >
+                  {{ $t('common.backupSettings') }}
+                </v-btn>
+              </div>
+            </v-alert>
+          </v-col>
+        </v-row>
 
-      <v-row class="mb-4">
-        <v-col cols="12" sm="6" md="4">
-          <v-card hover class="h-100" @click="showExportDialog = true">
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center">
-                <v-icon icon="mdi-export" size="28" color="primary" class="mr-3" />
-                <div>
-                  <div class="text-title-medium font-weight-medium">{{ $t('campaigns.export.title') }}</div>
-                  <div class="text-body-medium text-medium-emphasis">
-                    {{ $t('dashboard.exportHint') }}
+        <v-row class="mb-4">
+          <v-col cols="12" sm="6" md="4">
+            <v-card hover class="h-100" @click="showExportDialog = true">
+              <v-card-text class="pa-4">
+                <div class="d-flex align-center">
+                  <v-icon icon="mdi-export" size="28" color="primary" class="mr-3" />
+                  <div>
+                    <div class="text-title-medium font-weight-medium">{{ $t('campaigns.export.title') }}</div>
+                    <div class="text-body-medium text-medium-emphasis">
+                      {{ $t('dashboard.exportHint') }}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" sm="6" md="4">
-          <v-card hover class="h-100" @click="showImportDialog = true">
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center">
-                <v-icon icon="mdi-import" size="28" color="secondary" class="mr-3" />
-                <div>
-                  <div class="text-title-medium font-weight-medium">{{ $t('campaigns.import.title') }}</div>
-                  <div class="text-body-medium text-medium-emphasis">
-                    {{ $t('dashboard.importHint') }}
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
+            <v-card hover class="h-100" @click="showImportDialog = true">
+              <v-card-text class="pa-4">
+                <div class="d-flex align-center">
+                  <v-icon icon="mdi-import" size="28" color="secondary" class="mr-3" />
+                  <div>
+                    <div class="text-title-medium font-weight-medium">{{ $t('campaigns.import.title') }}</div>
+                    <div class="text-body-medium text-medium-emphasis">
+                      {{ $t('dashboard.importHint') }}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" sm="6" md="4">
-          <v-card hover class="h-100" @click="showCopyDialog = true">
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center">
-                <v-icon icon="mdi-content-copy" size="28" color="info" class="mr-3" />
-                <div>
-                  <div class="text-title-medium font-weight-medium">{{ $t('entities.copyToCampaign.title') }}</div>
-                  <div class="text-body-medium text-medium-emphasis">
-                    {{ $t('dashboard.copyHint') }}
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
+            <v-card hover class="h-100" @click="showCopyDialog = true">
+              <v-card-text class="pa-4">
+                <div class="d-flex align-center">
+                  <v-icon icon="mdi-content-copy" size="28" color="info" class="mr-3" />
+                  <div>
+                    <div class="text-title-medium font-weight-medium">{{ $t('entities.copyToCampaign.title') }}</div>
+                    <div class="text-body-medium text-medium-emphasis">
+                      {{ $t('dashboard.copyHint') }}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
-      <!-- Quick Start (collapsed) -->
-      <v-row class="mt-6">
-        <v-col cols="12">
-          <v-expansion-panels variant="accordion">
-            <v-expansion-panel>
-              <v-expansion-panel-title>
-                <v-icon icon="mdi-lightbulb-outline" class="mr-2" />
-                {{ $t('quickstart.title') }}
-              </v-expansion-panel-title>
-              <v-expansion-panel-text>
-                <v-list density="compact">
-                  <v-list-item prepend-icon="mdi-keyboard">
-                    <v-list-item-title>{{ $t('quickstart.searchHint') }}</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item prepend-icon="mdi-plus">
-                    <v-list-item-title>{{ $t('quickstart.createHint') }}</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item prepend-icon="mdi-link-variant">
-                    <v-list-item-title>{{ $t('quickstart.linkHint') }}</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-col>
-      </v-row>
+        <!-- Quick Start (collapsed) -->
+        <v-row class="mt-6">
+          <v-col cols="12">
+            <v-expansion-panels variant="accordion">
+              <v-expansion-panel>
+                <v-expansion-panel-title>
+                  <v-icon icon="mdi-lightbulb-outline" class="mr-2" />
+                  {{ $t('quickstart.title') }}
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <v-list density="compact">
+                    <v-list-item prepend-icon="mdi-keyboard">
+                      <v-list-item-title>{{ $t('quickstart.searchHint') }}</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item prepend-icon="mdi-plus">
+                      <v-list-item-title>{{ $t('quickstart.createHint') }}</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item prepend-icon="mdi-link-variant">
+                      <v-list-item-title>{{ $t('quickstart.linkHint') }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-col>
+        </v-row>
+      </template>
     </div>
 
     <!-- Entity Preview Dialog -->
@@ -286,9 +304,15 @@ import type { EntityPreviewType } from '../components/shared/EntityPreviewDialog
 import CampaignExportDialog from '~/components/campaigns/CampaignExportDialog.vue'
 import CampaignImportDialog from '~/components/campaigns/CampaignImportDialog.vue'
 import CopyToCampaignDialog from '~/components/entities/CopyToCampaignDialog.vue'
+import BoardGrid from '~/components/dashboard/board/BoardGrid.vue'
+import type { DashboardBoardKey } from '~~/types/dashboard'
 
 interface Session {
   id: number
+  session_number: number | null
+  title: string
+  date: string | null
+  summary: string | null
   duration_minutes: number | null
   in_game_year_start: number | null
   in_game_month_start: number | null
@@ -315,6 +339,27 @@ const inGameCalendar = useInGameCalendar()
 // Campaign state
 const activeCampaignId = computed(() => campaignStore.activeCampaignId)
 const activeCampaignName = useCookie('activeCampaignName')
+
+// Which dashboard is showing; remembered on this computer
+const BOARD_KEY = 'dmhero.dashboardTab'
+const boardTab = ref<DashboardBoardKey | 'overview'>('overview')
+onMounted(() => {
+  try {
+    const v = localStorage.getItem(BOARD_KEY)
+    if (v === 'table' || v === 'prep' || v === 'overview') boardTab.value = v
+  }
+  catch {
+    // storage blocked — start on the overview
+  }
+})
+watch(boardTab, (v) => {
+  try {
+    localStorage.setItem(BOARD_KEY, v)
+  }
+  catch {
+    // storage blocked
+  }
+})
 
 // Data state
 const sessions = ref<Session[]>([])
@@ -672,6 +717,12 @@ watch(activeCampaignId, (newId) => {
     width: 100%;
     margin-top: 8px;
   }
+}
+
+/* The dice overlay hangs below the header; keep the dashboard tabs clickable above it */
+.board-tabs {
+  position: relative;
+  z-index: 2;
 }
 
 /* Widget row alignment */

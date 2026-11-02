@@ -3597,5 +3597,80 @@
     "showList": "List",
     "hideList": "Hide list",
     "filterHint": "Click to show only these; none selected = everything"
+  },
+  "dashboardBoards": {
+    "tabs": {
+      "table": "At the table",
+      "prep": "Prep",
+      "overview": "Overview"
+    },
+    "hints": {
+      "table": "Everything you need mid-game, one click away.",
+      "prep": "Homework between sessions."
+    },
+    "arrange": "Arrange",
+    "done": "Done",
+    "addCard": "Add card",
+    "reset": "Start over",
+    "remove": "Remove card",
+    "toStory": "Open the story board",
+    "cards": {
+      "search": {
+        "title": "Find anything",
+        "placeholder": "Type a name — NPC, place, item, quest…"
+      },
+      "party": {
+        "title": "The party",
+        "empty": "No players yet."
+      },
+      "sessionNpcs": {
+        "title": "NPCs this session",
+        "empty": "Nobody linked to the next-session tray yet.",
+        "met": "Has met the party",
+        "notMet": "Hasn't met the party"
+      },
+      "sessionQuests": {
+        "title": "This session's questline",
+        "empty": "The next-session tray is empty.",
+        "loose": "Loose sparks"
+      },
+      "nextSession": {
+        "title": "Next session",
+        "latest": "Latest session",
+        "planned": "Nothing planned | 1 thing planned | {count} things planned",
+        "played": "{count} played",
+        "runSheet": "Run sheet",
+        "sessions": "Sessions"
+      },
+      "reputation": {
+        "title": "Reputation",
+        "empty": "Nothing logged yet."
+      },
+      "map": {
+        "title": "Map",
+        "empty": "No maps yet."
+      },
+      "pinned": {
+        "title": "Pinned"
+      },
+      "clocks": {
+        "title": "Faction clocks"
+      },
+      "openRoles": {
+        "title": "Open roles",
+        "empty": "Every roster role is filled."
+      },
+      "scratchpad": {
+        "title": "Scratchpad",
+        "placeholder": "Quick notes…"
+      },
+      "recap": {
+        "title": "Last time on…",
+        "empty": "No session summary yet."
+      },
+      "calendar": {
+        "title": "Calendar & weather"
+      }
+    }
   }
 }

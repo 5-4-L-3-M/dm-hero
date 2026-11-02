@@ -3597,5 +3597,80 @@
     "showList": "Liste",
     "hideList": "Liste ausblenden",
     "filterHint": "Klicken, um nur diese zu zeigen; nichts gewählt = alles"
+  },
+  "dashboardBoards": {
+    "tabs": {
+      "table": "Am Tisch",
+      "prep": "Vorbereitung",
+      "overview": "Übersicht"
+    },
+    "hints": {
+      "table": "Alles, was du mitten im Spiel brauchst, einen Klick entfernt.",
+      "prep": "Hausaufgaben zwischen den Sitzungen."
+    },
+    "arrange": "Anordnen",
+    "done": "Fertig",
+    "addCard": "Karte hinzufügen",
+    "reset": "Neu anfangen",
+    "remove": "Karte entfernen",
+    "toStory": "Story-Board öffnen",
+    "cards": {
+      "search": {
+        "title": "Alles finden",
+        "placeholder": "Namen tippen — NSC, Ort, Gegenstand, Quest…"
+      },
+      "party": {
+        "title": "Die Gruppe",
+        "empty": "Noch keine Spieler."
+      },
+      "sessionNpcs": {
+        "title": "NSCs dieser Sitzung",
+        "empty": "Noch niemand mit der Ablage verknüpft.",
+        "met": "Kennt die Gruppe",
+        "notMet": "Kennt die Gruppe noch nicht"
+      },
+      "sessionQuests": {
+        "title": "Questline dieser Sitzung",
+        "empty": "Die Ablage für die nächste Sitzung ist leer.",
+        "loose": "Lose Funken"
+      },
+      "nextSession": {
+        "title": "Nächste Sitzung",
+        "latest": "Neueste Sitzung",
+        "planned": "Nichts geplant | 1 Sache geplant | {count} Sachen geplant",
+        "played": "{count} gespielt",
+        "runSheet": "Ablaufplan",
+        "sessions": "Sitzungen"
+      },
+      "reputation": {
+        "title": "Ruf",
+        "empty": "Noch nichts eingetragen."
+      },
+      "map": {
+        "title": "Karte",
+        "empty": "Noch keine Karten."
+      },
+      "pinned": {
+        "title": "Angepinnt"
+      },
+      "clocks": {
+        "title": "Fraktionsuhren"
+      },
+      "openRoles": {
+        "title": "Offene Rollen",
+        "empty": "Alle Rollen sind besetzt."
+      },
+      "scratchpad": {
+        "title": "Notizzettel",
+        "placeholder": "Schnelle Notizen…"
+      },
+      "recap": {
+        "title": "Was bisher geschah",
+        "empty": "Noch keine Zusammenfassung."
+      },
+      "calendar": {
+        "title": "Kalender & Wetter"
+      }
+    }
   }
 }
