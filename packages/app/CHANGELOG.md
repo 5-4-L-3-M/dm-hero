@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.18.1
+
+### Patch Changes
+
+- Reputation (World tab): every NPC, faction and place shows its picture beside its bars (an icon when there's none); click it to open them in the side panel.
+
 ## 1.18.0
 
 ### Minor Changes
