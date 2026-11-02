@@ -11,7 +11,7 @@ import type { EventHandler, H3Event } from 'h3'
  * Patterns are relative to the mount ("beats/:id"); ":id" ends up in the
  * router params, so the handlers read it with getRouterParam(event, 'id').
  */
-export type SubRoutes = Record<string, Partial<Record<'GET' | 'POST' | 'PATCH' | 'DELETE', EventHandler>>>
+export type SubRoutes = Record<string, Partial<Record<'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', EventHandler>>>
 
 export function matchSubRoute(routes: SubRoutes, method: string, path: string): { handler: EventHandler, params: Record<string, string> } | null {
   const parts = path.split('/').filter(Boolean)

@@ -1,6 +1,7 @@
 import { getDb } from '../../utils/db'
 import { requireCampaign } from '../../utils/storyBoard'
 import { ensureRosterPlace, entityOfType, loadRoster } from '../../utils/roster'
+import { categoryByName, setLocationCategory } from '../../utils/places'
 
 /**
  * Roster endpoints (mounted under /api/roster):
@@ -31,7 +32,7 @@ export const addPlace = defineEventHandler(async (event) => {
   const db = getDb()
   const body = await readBody<Record<string, unknown>>(event)
   const campaignId = requireCampaign(db, body?.campaignId)
-  const loc = entityOfType(db, campaignId, body.location_id, 'Location')
+  const loc = entityOfType(db, campaignId, body.location_id, 'Location') ?? entityOfType(db, campaignId, body.location_id, 'Faction')
   if (!loc) throw createError({ statusCode: 400, message: 'Unknown place' })
   ensureRosterPlace(db, campaignId, loc, text(body.category))
   return loadRoster(db, campaignId).places.find(p => p.location_id === loc)
@@ -44,6 +45,11 @@ export const updatePlace = defineEventHandler(async (event) => {
   if (!row) throw createError({ statusCode: 404, message: 'Not found' })
   const body = await readBody<Record<string, unknown>>(event) ?? {}
   const has = (k: string) => Object.prototype.hasOwnProperty.call(body, k)
+  // For a place, the heading is its place category (shared with the maps)
+  if (has('category') && entityOfType(db, row.campaign_id, locationId, 'Location')) {
+    const name = text(body.category)
+    setLocationCategory(db, row.campaign_id, locationId, name ? categoryByName(db, row.campaign_id, name, true) : null)
+  }
   db.prepare('UPDATE roster_places SET category = ?, sort_order = ? WHERE location_id = ? AND campaign_id = ?').run(
     has('category') ? text(body.category) : row.category,
     has('sort_order') ? Number(body.sort_order) || 0 : row.sort_order,
@@ -69,7 +75,7 @@ export const addRole = defineEventHandler(async (event) => {
   const db = getDb()
   const body = await readBody<Record<string, unknown>>(event)
   const campaignId = requireCampaign(db, body?.campaignId)
-  const loc = entityOfType(db, campaignId, body.location_id, 'Location')
+  const loc = entityOfType(db, campaignId, body.location_id, 'Location') ?? entityOfType(db, campaignId, body.location_id, 'Faction')
   const role = text(body.role)
   if (!loc || !role) throw createError({ statusCode: 400, message: 'A place and a role name are needed' })
   ensureRosterPlace(db, campaignId, loc)

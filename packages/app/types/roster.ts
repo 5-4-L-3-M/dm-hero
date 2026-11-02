@@ -3,6 +3,8 @@ import type { NpcLoyalty } from './npc'
 /** A place on the roster, under the DM's own category heading ("Shops & Services") */
 export interface RosterPlace {
   location_id: number
+  /** A place, or a faction (guilds and groups without a building) */
+  kind: 'Location' | 'Faction'
   name: string
   image_url: string | null
   /** Location type key (shop, tavern …) */

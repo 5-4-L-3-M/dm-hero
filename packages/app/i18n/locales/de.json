@@ -3439,7 +3439,9 @@
     "customRole": "Andere Rolle…",
     "place": "Ort",
     "category": "Überschrift",
-    "categoryHint": "Eigene Gruppierung, z. B. Läden & Dienste"
+    "categoryHint": "Eigene Gruppierung, z. B. Läden & Dienste",
+    "faction": "Fraktion",
+    "placeOrFaction": "Ort oder Fraktion"
   },
   "reputation": {
     "title": "Ruf",
@@ -3580,5 +3582,20 @@
       "cheaper": "Preise hier {pct}% günstiger – {from}: {tier}.",
       "dearer": "Preise hier {pct}% teurer – {from}: {tier}."
     }
+  },
+  "places": {
+    "category": "Kategorie",
+    "categories": "Ortskategorien",
+    "manage": "Kategorien bearbeiten",
+    "newCategory": "Neue Kategorie",
+    "guess": "Aus dem Ortstyp geraten",
+    "allOnMap": "Alles auf dieser Karte",
+    "onThisMap": "Auf dieser Karte",
+    "nothing": "Nichts passt zu den Filtern.",
+    "uncategorized": "Weitere Orte",
+    "searchList": "Diese Karte durchsuchen…",
+    "showList": "Liste",
+    "hideList": "Liste ausblenden",
+    "filterHint": "Klicken, um nur diese zu zeigen; nichts gewählt = alles"
   }
 }

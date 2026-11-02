@@ -285,6 +285,26 @@
           </div>
         </SharedPreviewSection>
 
+        <!-- Place category (map pin colour, roster heading) -->
+        <div v-if="type === 'location' && entity" class="d-flex align-center flex-wrap ga-2 mb-3">
+          <span class="text-body-small text-medium-emphasis">{{ $t('places.category') }}:</span>
+          <v-menu>
+            <template #activator="{ props: menu }">
+              <v-chip v-bind="menu" size="small" :color="placeCategory?.color" :variant="placeCategory ? 'flat' : 'outlined'" :prepend-icon="placeCategory?.icon ?? 'mdi-shape-outline'" append-icon="mdi-menu-down">
+                {{ placeCategory?.name ?? $t('places.uncategorized') }}
+              </v-chip>
+            </template>
+            <v-list density="compact">
+              <v-list-item v-for="c in placesStore.categories" :key="c.id" :prepend-icon="c.icon" :title="c.name" :active="placeCategory?.id === c.id" @click="placesStore.setLocation(Number(entity.id), c.id)">
+                <template #prepend><v-icon :color="c.color">{{ c.icon }}</v-icon></template>
+              </v-list-item>
+              <v-divider />
+              <v-list-item prepend-icon="mdi-auto-fix" :title="$t('places.guess')" @click="placesStore.setLocation(Number(entity.id), null)" />
+            </v-list>
+          </v-menu>
+          <span v-if="placeCategory && !placesStore.isExplicit(Number(entity.id))" class="text-body-small text-medium-emphasis">({{ $t('places.guess') }})</span>
+        </div>
+
         <!-- Reputation: how they feel about the party (and met, for NPCs) -->
         <SharedPreviewSection v-if="repSubject" id="reputation" :title="$t('reputation.title')" icon="mdi-scale-balance">
           <RepSection :subject="repSubject" />
@@ -551,6 +571,9 @@ const gallery = ref<GalleryImage[]>([])
 const inventory = ref<PlayerInventory | null>(null)
 const npcNotes = ref<{ id: number, content: string }[]>([])
 const rosterRoles = ref<RosterRole[]>([])
+const placesStore = usePlacesStore()
+watch(campaignId, id => placesStore.load(id), { immediate: true })
+const placeCategory = computed(() => (type.value === 'location' && entity.value ? placesStore.categoryOf(Number(entity.value.id)) : null))
 const REP_TYPES = { npc: 'NPC', faction: 'Faction', location: 'Location' } as const
 const repSubject = computed(() => {
   const t = REP_TYPES[type.value as keyof typeof REP_TYPES]

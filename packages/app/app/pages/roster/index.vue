@@ -58,8 +58,9 @@
           <v-card v-for="p in cat.places" :key="p.location_id" variant="outlined" class="mb-3 place-card">
             <div class="d-flex align-center flex-wrap ga-2 px-4 pt-3">
               <span class="text-title-large font-weight-bold">
-                <SharedEntityLink :id="p.location_id" type="Location" :name="p.name" />
+                <SharedEntityLink :id="p.location_id" :type="p.kind" :name="p.name" />
               </span>
+              <span v-if="p.kind === 'Faction'" class="text-body-medium text-medium-emphasis font-italic">{{ $t('roster.faction') }}</span>
               <span v-if="p.type" class="text-body-medium text-medium-emphasis font-italic">{{ $te(`locations.types.${p.type}`) ? $t(`locations.types.${p.type}`) : p.type }}</span>
               <v-chip v-if="openIn(p.location_id)" size="x-small" color="warning" variant="tonal">{{ $t('roster.openCount', { n: openIn(p.location_id) }) }}</v-chip>
               <v-spacer />
@@ -187,12 +188,15 @@
             :items="placeOptions"
             item-title="name"
             item-value="id"
-            :label="$t('roster.place')"
+            :label="$t('roster.placeOrFaction')"
             prepend-inner-icon="mdi-map-marker"
             variant="outlined"
             density="comfortable"
             class="mb-3"
           >
+            <template #item="{ props: itemProps, item }">
+              <v-list-item v-bind="itemProps" :prepend-icon="item.kind === 'Faction' ? 'mdi-shield' : 'mdi-map-marker'" :subtitle="item.kind === 'Faction' ? $t('roster.faction') : undefined" />
+            </template>
             <template #no-data>
               <SharedCreateFromSearch :search="placeSearch" type="Location" @created="e => (addPlaceId = e.id)" />
             </template>
@@ -319,7 +323,7 @@ const newRole = ref<Record<number, string>>({})
 
 function suggestions(p: RosterPlace) {
   const have = new Set((data.value?.roles ?? []).filter(r => r.location_id === p.location_id).map(r => r.role.toLowerCase()))
-  return (ROLE_TEMPLATES[p.type ?? ''] ?? DEFAULT_ROLES).filter(s => !have.has(s.toLowerCase()))
+  return (ROLE_TEMPLATES[p.kind === 'Faction' ? 'guild' : (p.type ?? '')] ?? DEFAULT_ROLES).filter(s => !have.has(s.toLowerCase()))
 }
 
 async function addRole(locationId: number, role: string) {
@@ -352,7 +356,10 @@ const addPlaceOpen = ref(false)
 const addPlaceId = ref<number | null>(null)
 const addPlaceCategory = ref<string | null>(null)
 const placeSearch = ref('')
-const placeOptions = computed(() => store.locations.filter(l => !(data.value?.places ?? []).some(p => p.location_id === l.id)))
+const placeOptions = computed(() => [
+  ...store.locations.map(l => ({ id: l.id, name: l.name, kind: 'Location' as const })),
+  ...store.entities.filter(e => e.type === 'Faction').map(f => ({ id: f.id, name: f.name, kind: 'Faction' as const })),
+].filter(o => !(data.value?.places ?? []).some(p => p.location_id === o.id)).sort((a, b) => a.name.localeCompare(b.name)))
 
 async function addPlace() {
   if (!addPlaceId.value) return

@@ -82,4 +82,40 @@ describe('NPC roster', () => {
     expect(all.places.map(p => p.name)).toEqual(['The Stumbling Statue'])
     expect(all.roles.every(r => r.location_id === tavern)).toBe(true)
   })
+
+  it('takes factions too, and place headings follow the shared place categories', async () => {
+    const places = async <T>(method: string, path: string, body?: unknown, query?: Record<string, unknown>): Promise<T> => {
+      const handler = (await import('../../server/api/places/[...path]')).default as unknown as (e: FakeEvent) => Promise<T>
+      return await handler({ method, context: { params: { path } }, body, query })
+    }
+    const city = entity('Location', 'Vaelrun City', null, { type: 'city' })
+    const inn = entity('Location', 'The Gatehouse Inn', city, { type: 'inn' })
+    const thieves = entity('Faction', 'Thieves Guild')
+    await roster('POST', 'places', { campaignId, location_id: thieves, category: 'Guilds & Factions' })
+    await roster('POST', 'roles', { campaignId, location_id: thieves, role: 'Guildmaster' })
+    await roster('POST', 'roles', { campaignId, location_id: inn, role: 'Barkeep' })
+
+    const pc = await places<{ categories: Array<{ id: number, name: string }>, locations: Array<{ id: number, category_id: number | null, explicit: boolean }> }>('GET', '', undefined, { campaignId })
+    const named = (n: string) => pc.categories.find(c => c.name === n)!.id
+    expect(pc.locations.find(l => l.id === inn)).toMatchObject({ category_id: named('Inns & Taverns'), explicit: false })
+    expect(pc.locations.find(l => l.id === city)!.category_id).toBe(named('Settlements'))
+
+    let all = await roster<Roster>('GET', '', undefined, { campaignId })
+    expect(all.places.map(p => [p.name, p.kind, p.category])).toEqual([['Thieves Guild', 'Faction', 'Guilds & Factions'], ['The Gatehouse Inn', 'Location', 'Inns & Taverns']])
+
+    // Moving the inn to a new heading creates that category and files the place there (maps follow)
+    await roster('PATCH', `places/${inn}`, { category: 'Haunts' })
+    all = await roster<Roster>('GET', '', undefined, { campaignId })
+    expect(all.places.find(p => p.location_id === inn)!.category).toBe('Haunts')
+    const after = await places<{ categories: Array<{ id: number, name: string, color: string }>, locations: Array<{ id: number, category_id: number | null, explicit: boolean }> }>('GET', '', undefined, { campaignId })
+    const haunts = after.categories.find(c => c.name === 'Haunts')!
+    expect(after.locations.find(l => l.id === inn)).toMatchObject({ category_id: haunts.id, explicit: true })
+
+    // Recolour, then delete the category: the inn falls back to its guess
+    expect((await places<{ color: string }>('PATCH', `categories/${haunts.id}`, { color: '#112233' })).color).toBe('#112233')
+    await places('DELETE', `categories/${haunts.id}`)
+    const back = await places<{ locations: Array<{ id: number, category_id: number | null, explicit: boolean }> }>('GET', '', undefined, { campaignId })
+    expect(back.locations.find(l => l.id === inn)).toMatchObject({ category_id: named('Inns & Taverns'), explicit: false })
+    expect((await places<{ category_id: number }>('PUT', 'location', { campaignId, location_id: inn, category_id: named('Settlements') })).category_id).toBe(named('Settlements'))
+  })
 })

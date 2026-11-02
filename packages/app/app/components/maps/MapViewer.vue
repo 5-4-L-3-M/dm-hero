@@ -1004,9 +1004,20 @@ function updateMeasureLine() {
 }
 
 // Expose method to programmatically add marker at position
+/** Fly to a marker (from the list beside the map) and give it a short pulse */
+function focusMarker(marker: MapMarker) {
+  if (!imageOverlay || !leafletMap) return
+  const bounds = imageOverlay.getBounds()
+  const lng = bounds.getWest() + (marker.x / 100) * (bounds.getEast() - bounds.getWest())
+  const lat = bounds.getNorth() - (marker.y / 100) * (bounds.getNorth() - bounds.getSouth())
+  leafletMap.flyTo([lat, lng], Math.max(leafletMap.getZoom(), LABEL_ZOOM_THRESHOLD), { duration: 0.6 })
+  setTimeout(() => ping(marker.x, marker.y, marker.entity_name ?? '', '#FFD54F', 2500), 650)
+}
+
 defineExpose({
   getMap: () => leafletMap,
   ping,
+  focusMarker,
 })
 </script>
 
