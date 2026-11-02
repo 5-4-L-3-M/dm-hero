@@ -43,7 +43,10 @@
             <template v-for="f in npcFacts" :key="f.key">
               <v-icon size="small" class="text-medium-emphasis">{{ f.icon }}</v-icon>
               <span class="text-medium-emphasis">{{ f.label }}</span>
-              <span>{{ f.value }}</span>
+              <span>
+                {{ f.value }}
+                <v-chip v-if="f.key === 'age' && npcHumanAge" size="x-small" variant="tonal" class="ml-1 human-age">{{ $t('npcs.humanWord') }} {{ npcHumanAge }}</v-chip>
+              </span>
             </template>
             <template v-if="npcLocation">
               <v-icon size="small" class="text-medium-emphasis">mdi-map-marker</v-icon>
@@ -257,6 +260,17 @@
             class="mb-4 rounded preview-image"
           />
           <PlayerCharacterSummary :metadata="entity.metadata" class="mb-4" />
+          <!-- Inventory right here: purse, load, items (add, equip, mark stolen/missing …) -->
+          <v-expansion-panels v-model="inventoryOpen" variant="accordion" class="mb-4 panel-inventory">
+            <v-expansion-panel value="inv">
+              <v-expansion-panel-title>
+                <v-icon class="mr-2" size="small">mdi-bag-personal</v-icon>{{ $t('inventory.tab') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <PlayerInventoryTab v-if="inventoryOpen === 'inv' && entityId" :player-id="entityId" />
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
           <SharedFormattedText v-if="entity.description" :text="entity.description" class="text-body-large mb-4" />
           <v-divider class="my-4" />
           <div class="text-body-medium">
@@ -400,6 +414,7 @@
 <script setup lang="ts">
 import LocationShopTab from '~/components/locations/LocationShopTab.vue'
 import PlayerCharacterSummary from '~/components/players/PlayerCharacterSummary.vue'
+import PlayerInventoryTab from '~/components/players/PlayerInventoryTab.vue'
 import { isShopLocationType } from '~~/types/shop'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
@@ -500,10 +515,18 @@ watch(() => (type.value === 'npc' ? Number(entity.value?.location_id) || null : 
 }, { immediate: true })
 const npcFactions = computed(() => (type.value === 'npc' ? connections.value.filter(c => c.entityType === 'Faction') : []))
 
-const npcAge = computed(() => {
+// Age in their own years; the human-years equivalent rides along as a small pill
+const npcAgeParts = computed(() => {
   const m = (entity.value?.metadata ?? entity.value ?? {}) as { age?: unknown, age_human?: unknown }
-  return ageText(m.age ?? entity.value?.age, m.age_human ?? entity.value?.age_human, t('npcs.humanWord'))
+  const own = m.age ?? entity.value?.age
+  const human = m.age_human ?? entity.value?.age_human
+  const clean = (v: unknown) => (v === null || v === undefined ? '' : String(v).trim())
+  return { own: clean(own), human: clean(human) }
 })
+const npcAge = computed(() => npcAgeParts.value.own || ageText(null, npcAgeParts.value.human, t('npcs.humanWord')))
+// Player inventory in the panel (opened on demand, remembered per visit)
+const inventoryOpen = ref<string | null>(null)
+const npcHumanAge = computed(() => (npcAgeParts.value.own ? npcAgeParts.value.human : ''))
 
 // Quests: status + objectives (tick them off right here)
 const QUEST_COLORS: Record<QuestStatus, string> = { rumor: 'warning', active: 'primary', completed: 'success', failed: 'error' }
@@ -652,6 +675,10 @@ defineExpose({ reload: load })
 }
 .inv-qty {
   min-width: 32px;
+}
+.human-age {
+  opacity: 0.75;
+  vertical-align: middle;
 }
 .facts,
 .quest-facts {

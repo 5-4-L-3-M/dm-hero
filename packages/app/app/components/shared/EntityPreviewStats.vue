@@ -7,6 +7,18 @@
     </div>
 
     <div v-for="group in template.groups" :key="group.id" class="mb-3">
+      <!-- Passives (10 + skill), right before the saving throws -->
+      <template v-if="group.group_type === 'saves' && passives.length">
+        <div class="text-body-small text-medium-emphasis mb-1">{{ $t('stats.passives') }}</div>
+        <v-row dense class="mb-3">
+          <v-col v-for="pv in passives" :key="pv.key" cols="4">
+            <div class="pa-2 rounded stat-cell text-center">
+              <div class="text-body-small text-medium-emphasis stat-label">{{ $t(`stats.passive.${pv.key}`) }}</div>
+              <div class="text-title-medium font-weight-bold">{{ pv.value }}</div>
+            </div>
+          </v-col>
+        </v-row>
+      </template>
       <div class="text-body-small text-medium-emphasis mb-1">{{ resolveLabel(group.name) }}</div>
 
       <!-- Attributes: compact grid -->
@@ -143,6 +155,22 @@ function resourceColor(name: string): string {
   const pct = r.current / r.max
   return pct > 0.5 ? 'success' : pct > 0.25 ? 'warning' : 'error'
 }
+
+// Passive Perception / Insight / Investigation: 10 + the skill, or 10 + the ability modifier when the skill is blank
+const PASSIVES = [
+  { key: 'perception', ability: 'wis' },
+  { key: 'insight', ability: 'wis' },
+  { key: 'investigation', ability: 'int' },
+] as const
+const passives = computed(() => {
+  const fields = new Set(template.value?.groups.flatMap(g => g.fields.map(f => f.name)) ?? [])
+  return PASSIVES.flatMap((pv) => {
+    if (!fields.has(pv.key) && !fields.has(pv.ability)) return []
+    // A blank skill (or a 0 left from the template) falls back to the ability modifier
+    const skill = getNumber(pv.key)
+    return [{ key: pv.key, value: 10 + (skill !== 0 ? skill : getModifier(pv.ability)) }]
+  })
+})
 
 function formatMod(mod: number): string {
   return mod >= 0 ? `+${mod}` : String(mod)
