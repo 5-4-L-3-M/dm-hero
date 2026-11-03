@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3'
+import { shownIcon } from './gameIcons'
 import {
   cleanPurse,
   DEFAULT_DENOMINATIONS,
@@ -21,16 +22,18 @@ export class ShopError extends Error {
   }
 }
 
-interface ShopItemRow extends Omit<ShopItem, 'category' | 'secret' | 'req_met'> {
+interface ShopItemRow extends Omit<ShopItem, 'category' | 'secret' | 'req_met' | 'icon_shown'> {
   category: string | null
   secret: number
   campaign_id: number
 }
 
 const SHOP_COLUMNS = `s.id, s.location_id, s.item_id, s.name, s.description, s.category, s.weight, s.price_cp, s.price_note, s.stock, s.sort_order,
-  s.secret, s.requirement, s.req_subject_id, s.req_tier, re.name AS req_subject_name, ret.name AS req_subject_type, l.campaign_id`
+  s.secret, s.requirement, s.req_subject_id, s.req_tier, re.name AS req_subject_name, ret.name AS req_subject_type, l.campaign_id,
+  s.icon, it.image_url AS item_image`
 const SHOP_FROM = `shop_items s
   JOIN entities l ON l.id = s.location_id
+  LEFT JOIN entities it ON it.id = s.item_id AND it.deleted_at IS NULL
   LEFT JOIN entities re ON re.id = s.req_subject_id AND re.deleted_at IS NULL
   LEFT JOIN entity_types ret ON ret.id = re.type_id`
 
@@ -55,6 +58,7 @@ function toShopItem(db: Database.Database, row: ShopItemRow): ShopItem {
     req_subject_name: row.req_subject_id ? row.req_subject_name : null,
     req_subject_type: row.req_subject_id ? row.req_subject_type : null,
     req_met: requirementMet(db, row),
+    icon_shown: shownIcon(row.icon, row.name, row.category),
   }
 }
 
@@ -138,6 +142,7 @@ export function shopItemValues(db: Database.Database, input: ShopItemInput, { re
   if (input.price_note !== undefined) values.price_note = optionalText(input.price_note)
   if (input.stock !== undefined) values.stock = optionalNumber(input.stock, 'Stock', { integer: true })
   if (input.secret !== undefined) values.secret = input.secret ? 1 : 0
+  if (input.icon !== undefined) values.icon = /^[a-z0-9-]{1,60}$/.test(String(input.icon ?? '')) ? String(input.icon) : null
   if (input.requirement !== undefined) values.requirement = optionalText(input.requirement)?.slice(0, 120) ?? null
   if (input.req_subject_id !== undefined) {
     const id = Number(input.req_subject_id) || null
