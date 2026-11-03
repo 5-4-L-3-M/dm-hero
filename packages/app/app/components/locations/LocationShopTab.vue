@@ -38,6 +38,7 @@
       <v-table v-if="section.items.length > 0" density="comfortable" :class="{ 'black-market': section.key === 'secret' }">
         <thead>
           <tr>
+            <th class="icon-col" />
             <th>{{ $t('shop.fields.name') }}</th>
             <th class="text-right">{{ $t('shop.fields.weight') }}</th>
             <th class="text-right">{{ $t('shop.fields.cost') }}</th>
@@ -47,6 +48,15 @@
         </thead>
         <tbody>
           <tr v-for="row in section.items" :key="row.id">
+            <td class="icon-col">
+              <!-- The item's picture, or its icon (click to change) -->
+              <button type="button" class="item-icon" :title="$t('icons.change')" @click="openIconPicker(row)">
+                <v-avatar size="46" rounded="lg" :color="CATEGORY_COLORS[row.category ?? 'gear']" variant="tonal">
+                  <v-img v-if="row.item_image && !row.icon" :src="`/uploads/${row.item_image}`" cover />
+                  <SharedGameIcon v-else :name="row.icon_shown" :size="34" />
+                </v-avatar>
+              </button>
+            </td>
             <td>
               <div class="py-2">
                 <div class="d-flex align-center flex-wrap ga-2">
@@ -103,6 +113,14 @@
       <div class="text-title-medium">{{ $t('shop.empty') }}</div>
       <div class="text-body-medium">{{ $t('shop.emptyHint') }}</div>
     </div>
+
+    <SharedGameIconPicker
+      v-model="iconPickerOpen"
+      :item-name="iconRow?.name ?? ''"
+      :current="iconRow?.icon ?? null"
+      :guess="!iconRow ? 'swap-bag' : iconRow.icon ? guessShopIcon(iconRow.name, iconRow.category) : iconRow.icon_shown"
+      @pick="saveIcon"
+    />
 
     <!-- Add / edit an item -->
     <v-dialog v-model="editOpen" max-width="600">
@@ -390,6 +408,7 @@ import {
   type ShopItem,
   type ShopSaleResult,
 } from '~~/types/shop'
+import { guessShopIcon } from '~~/types/shopIcons'
 import { tiersFor, type RepSubjectType } from '~~/types/reputation'
 
 const props = defineProps<{ locationId: number }>()
@@ -454,6 +473,19 @@ function priceLabel(row: ShopItem): string {
   if (row.price_cp === null) return note || '—'
   if (row.price_cp === 0) return note ? `${t('shop.free')} ${note}` : t('shop.free')
   return [formatCoins(row.price_cp, denominations.value), note].filter(Boolean).join(' ')
+}
+
+// --- icons ---------------------------------------------------------------
+const iconPickerOpen = ref(false)
+const iconRow = ref<ShopItem | null>(null)
+function openIconPicker(row: ShopItem) {
+  iconRow.value = row
+  iconPickerOpen.value = true
+}
+async function saveIcon(icon: string | null) {
+  if (!iconRow.value) return
+  await $fetch(`/api/shop-items/${iconRow.value.id}`, { method: 'PATCH', body: { icon } })
+  await load()
 }
 
 async function load() {
@@ -742,6 +774,20 @@ watch(() => props.locationId, load, { immediate: true })
 </script>
 
 <style scoped>
+.icon-col {
+  width: 62px;
+  padding-right: 0 !important;
+}
+.item-icon {
+  display: block;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+.item-icon:hover {
+  filter: brightness(1.2);
+}
 .black-market-head {
   border-top: 1px dashed rgba(var(--v-theme-on-surface), 0.25);
   padding-top: 12px;

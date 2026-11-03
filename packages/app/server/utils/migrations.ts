@@ -3479,6 +3479,16 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 82: Roll table columns')
     },
   },
+  {
+    version: 83,
+    name: 'shop_item_icons',
+    up: (db) => {
+      // A picked icon per shop item (game-icons.net name); null = guessed from the name
+      const cols = (db.prepare('PRAGMA table_info(shop_items)').all() as { name: string }[]).map(c => c.name)
+      if (!cols.includes('icon')) db.exec('ALTER TABLE shop_items ADD COLUMN icon TEXT')
+      console.log('✅ Migration 83: Shop item icons')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

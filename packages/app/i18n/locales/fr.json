@@ -3947,5 +3947,14 @@
       "senses": "Senses",
       "languages": "Languages"
     }
+  },
+  "icons": {
+    "pickTitle": "Choisir une icône",
+    "search": "Chercher des icônes — sword, potion, ring…",
+    "ideas": "Quelques idées — ou cherche parmi plus de 4 000 icônes (noms en anglais)",
+    "none": "Aucune icône de ce nom.",
+    "credit": "Icônes de",
+    "auto": "Automatique",
+    "change": "Changer l'icône"
   }
 }

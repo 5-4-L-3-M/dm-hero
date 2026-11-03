@@ -3947,5 +3947,14 @@
       "senses": "Senses",
       "languages": "Languages"
     }
+  },
+  "icons": {
+    "pickTitle": "选择图标",
+    "search": "搜索图标——sword、potion、ring…",
+    "ideas": "一些建议——或搜索 4000 多个图标（英文名称）",
+    "none": "没有这个名称的图标。",
+    "credit": "图标来自",
+    "auto": "自动",
+    "change": "更换图标"
   }
 }

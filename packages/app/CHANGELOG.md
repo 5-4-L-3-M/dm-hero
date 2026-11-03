@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.25.0
+
+### Minor Changes
+
+- Shop items have icons: every item gets one picked from its name (a potion, a sword, a lantern, a map …), tinted by rarity. Click an icon to pick another from over 4,000 game-icons.net icons, or go back to Automatic. A linked item with its own picture shows that instead. Icons by Lorc, Delapouite and contributors at game-icons.net (CC BY 3.0), bundled with the app.
+
 ## 1.24.0
 
 ### Minor Changes

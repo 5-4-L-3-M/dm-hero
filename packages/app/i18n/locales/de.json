@@ -3947,5 +3947,14 @@
       "senses": "Sinne",
       "languages": "Sprachen"
     }
+  },
+  "icons": {
+    "pickTitle": "Symbol wählen",
+    "search": "Symbole suchen – sword, potion, ring…",
+    "ideas": "Ein paar Ideen – oder über 4.000 Symbole durchsuchen (englische Namen)",
+    "none": "Kein Symbol mit diesem Namen.",
+    "credit": "Symbole von",
+    "auto": "Automatisch",
+    "change": "Symbol ändern"
   }
 }

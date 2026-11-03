@@ -32,6 +32,12 @@ export interface ShopItem {
   req_subject_type: 'NPC' | 'Faction' | 'Location' | null
   /** Whether the party (or one of its players) meets the reputation lock; null = no lock */
   req_met: boolean | null
+  /** Icon picked for it (game-icons.net name); null = guessed from the name */
+  icon: string | null
+  /** The icon shown: the picked one or the guess */
+  icon_shown: string
+  /** The linked item's own picture, shown instead of an icon when there is one */
+  item_image: string | null
 }
 
 export interface ShopItemInput {
@@ -47,6 +53,7 @@ export interface ShopItemInput {
   requirement?: string | null
   req_subject_id?: number | null
   req_tier?: string | null
+  icon?: string | null
 }
 
 export interface ShopSaleResult {

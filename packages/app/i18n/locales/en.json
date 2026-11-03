@@ -3947,5 +3947,14 @@
       "senses": "Senses",
       "languages": "Languages"
     }
+  },
+  "icons": {
+    "pickTitle": "Pick an icon",
+    "search": "Search icons — sword, potion, ring…",
+    "ideas": "Some ideas — or search over 4,000 icons",
+    "none": "No icon by that name.",
+    "credit": "Icons from",
+    "auto": "Automatic",
+    "change": "Change icon"
   }
 }
