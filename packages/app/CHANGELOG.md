@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.26.0
+
+### Minor Changes
+
+- Next session band and run sheet keep your tray order again — no more regrouping by cluster. Each beat is a short row (number, title, its cluster in small text, a colored edge); click it to open the beat right there and read the whole thing, click again to close it. "Open all / Fold all" in the header, and what you've opened is remembered. On the band, drag rows to reorder; the pencil edits.
+
 ## 1.25.0
 
 ### Minor Changes
