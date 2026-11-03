@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- Next session: a band across the top, the plan for the table, grouped by cluster -->
+    <!-- Next session: a band across the top, the plan for the table, in your order -->
     <v-card class="tray-band mb-3" color="primary" variant="tonal">
       <div class="d-flex align-center flex-wrap ga-2 px-4 pt-3">
         <v-icon color="primary">mdi-calendar-star</v-icon>
@@ -8,13 +8,13 @@
         <v-chip size="x-small" color="primary" variant="flat">{{ store.tray.length }}</v-chip>
         <v-spacer />
         <v-btn
-          v-if="trayGroups.length > 1"
+          v-if="store.tray.length > 1"
           variant="text"
           size="small"
-          :prepend-icon="allTrayFolded ? 'mdi-unfold-more-horizontal' : 'mdi-unfold-less-horizontal'"
-          @click="trayFolds.setAll(trayGroups, !allTrayFolded)"
+          :prepend-icon="allTrayOpen ? 'mdi-unfold-less-horizontal' : 'mdi-unfold-more-horizontal'"
+          @click="trayOpen = allTrayOpen ? [] : store.tray.map(b => b.id)"
         >
-          {{ allTrayFolded ? $t('story.tray.openAll') : $t('story.tray.foldAll') }}
+          {{ allTrayOpen ? $t('story.tray.foldAll') : $t('story.tray.openAll') }}
         </v-btn>
         <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-format-list-numbered" :disabled="!store.tray.length" @click="$emit('open-run-sheet')">
           {{ $t('story.run.open') }}
@@ -22,32 +22,34 @@
       </div>
       <div class="px-4 pb-3 pt-2">
         <div v-if="!store.tray.length" class="text-body-small text-medium-emphasis">{{ $t('story.tray.empty') }}</div>
-        <div v-for="g in trayGroups" :key="g.key" class="tray-group" :style="{ '--group-color': colorCss(g.cluster ? colorOf(g.cluster) : NO_COLOR) }">
-          <button type="button" class="tray-group__head" @click="trayFolds.toggle(g.key, g.beats.length)">
-            <v-icon size="small">{{ trayFolds.isFolded(g.key, g.beats.length) ? 'mdi-chevron-right' : 'mdi-chevron-down' }}</v-icon>
-            <span class="tray-group__dot" />
-            <span class="tray-group__title">{{ g.cluster?.title ?? $t('story.sparks.title') }}</span>
-            <span class="tray-group__count">{{ g.beats.length }}</span>
-            <span v-if="trayFolds.isFolded(g.key, g.beats.length)" class="tray-group__preview">{{ g.beats.map(b => b.title).join(' · ') }}</span>
-          </button>
-          <draggable
-            v-if="!trayFolds.isFolded(g.key, g.beats.length)"
-            :model-value="g.beats"
-            item-key="id"
-            :animation="180"
-            class="tray-list"
-            @update:model-value="(v: StoryBeat[]) => reorderTrayGroup(g.key, v)"
-          >
-            <template #item="{ element }">
-              <div class="tray-row" role="button" tabindex="0" @click="editBeat(element)" @keydown.enter="editBeat(element)">
-                <span class="tray-row__num">{{ trayNum.get(element.id) }}</span>
+        <!-- Your order; drag to change it. The arrow opens a beat right here. -->
+        <draggable v-model="trayList" item-key="id" :animation="180" class="tray-list" @change="saveTray">
+          <template #item="{ element, index }">
+            <div class="tray-entry" :style="{ '--group-color': colorCss(beatColor(element)) }">
+              <div class="tray-row" role="button" tabindex="0" @click="toggleTrayOpen(element.id)" @keydown.enter="toggleTrayOpen(element.id)">
+                <v-icon size="small" class="tray-row__chevron">{{ trayOpen.includes(element.id) ? 'mdi-chevron-down' : 'mdi-chevron-right' }}</v-icon>
+                <span class="tray-row__num">{{ index + 1 }}</span>
                 <v-icon size="small" class="tray-row__icon">{{ BEAT_KIND_ICONS[element.kind as BeatKind] }}</v-icon>
                 <span class="tray-row__title">{{ element.title }}</span>
-                <v-btn icon="mdi-close" size="x-small" variant="text" class="tray-row__remove" :aria-label="$t('story.tray.remove')" @click.stop="toggleTray(element)" />
+                <span class="tray-row__cluster">{{ clusterTitle(element) }}</span>
+                <v-btn icon="mdi-pencil" size="x-small" variant="text" class="tray-row__btn" :aria-label="$t('common.edit')" @click.stop="editBeat(element)" />
+                <v-btn icon="mdi-close" size="x-small" variant="text" class="tray-row__btn" :aria-label="$t('story.tray.remove')" @click.stop="toggleTray(element)" />
               </div>
-            </template>
-          </draggable>
-        </div>
+              <div v-if="trayOpen.includes(element.id)" class="tray-detail">
+                <SharedFormattedText v-if="element.body" :text="element.body" class="text-body-medium" />
+                <div v-else-if="!element.location_name && !element.entities.length" class="text-body-small text-medium-emphasis">{{ $t('story.beat.noDetails') }}</div>
+                <div v-if="element.location_name || element.entities.length" class="d-flex flex-wrap ga-1 mt-1">
+                  <v-chip v-if="element.location_name" size="x-small" variant="tonal" color="green" prepend-icon="mdi-map-marker">
+                    <SharedEntityLink :id="element.location_id" type="Location" :name="element.location_name" />
+                  </v-chip>
+                  <v-chip v-for="e in element.entities" :key="e.id" size="x-small" variant="tonal">
+                    <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
+                  </v-chip>
+                </div>
+              </div>
+            </div>
+          </template>
+        </draggable>
       </div>
     </v-card>
 
@@ -266,7 +268,6 @@ import StoryBeatDialog from './StoryBeatDialog.vue'
 import StoryClusterDialog from './StoryClusterDialog.vue'
 import StorylineManager from './StorylineManager.vue'
 import StoryArchiveDialog from './StoryArchiveDialog.vue'
-import { groupTray, reorderTray, TRAY_BIG_GROUP, trayNumbers } from '~/utils/storyTray'
 import {
   BEAT_STATUSES,
   colorCss, storylineColor,
@@ -407,12 +408,22 @@ async function onLaneChange(lane: Lane & { items: StoryCluster[] }, e: { added?:
 }
 
 // --- tray & sparks -------------------------------------------------------
-const trayGroups = computed(() => groupTray(store.tray, store.clusters))
-const trayNum = computed(() => trayNumbers(store.tray))
-const trayFolds = useTrayFolds('trayFolds', TRAY_BIG_GROUP)
-const allTrayFolded = computed(() => trayGroups.value.every(g => trayFolds.isFolded(g.key, g.beats.length)))
-function reorderTrayGroup(key: string, beats: StoryBeat[]) {
-  store.saveOrder({ tray: reorderTray(trayGroups.value, key, beats) })
+const trayList = ref<StoryBeat[]>([])
+watch(() => store.tray, v => (trayList.value = [...v]), { immediate: true })
+function saveTray() {
+  store.saveOrder({ tray: trayList.value.map(b => b.id) })
+}
+// Opened beats (remembered per campaign) — opening never moves anything
+const trayOpen = remember<number[]>('trayOpen', [])
+const allTrayOpen = computed(() => store.tray.length > 0 && store.tray.every(b => trayOpen.value.includes(b.id)))
+function toggleTrayOpen(id: number) {
+  trayOpen.value = trayOpen.value.includes(id) ? trayOpen.value.filter(x => x !== id) : [...trayOpen.value, id]
+}
+const clusterOfBeat = (b: StoryBeat) => (b.cluster_id ? store.clusters.find(c => c.id === b.cluster_id) ?? null : null)
+const clusterTitle = (b: StoryBeat) => clusterOfBeat(b)?.title ?? ''
+const beatColor = (b: StoryBeat) => {
+  const c = clusterOfBeat(b)
+  return c ? colorOf(c) : NO_COLOR
 }
 
 const sparks = computed(() => store.sparks.filter(b => shownStatuses.value.includes(b.status)))
@@ -477,59 +488,14 @@ async function confirmDelete(withBeats: boolean) {
 .tray-band {
   border: 1px solid rgba(var(--v-theme-primary), 0.5);
 }
-.tray-group {
-  border-left: 3px solid var(--group-color);
-  padding-left: 10px;
-  margin-top: 6px;
-}
-.tray-group + .tray-group {
-  margin-top: 10px;
-}
-.tray-group__head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 4px 0;
-  text-align: left;
-  color: inherit;
-  background: none;
-  border: 0;
-  cursor: pointer;
-  min-width: 0;
-}
-.tray-group__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--group-color);
-  flex-shrink: 0;
-}
-.tray-group__title {
-  font-weight: 700;
-  white-space: nowrap;
-}
-.tray-group__count {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0 7px;
-  border-radius: 999px;
-  background: rgba(var(--v-theme-on-surface), 0.1);
-}
-.tray-group__preview {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.85rem;
-  opacity: 0.6;
-}
 .tray-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 2px 16px;
-  padding: 2px 0 4px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tray-entry {
+  border-left: 3px solid var(--group-color);
+  border-radius: 4px;
 }
 .tray-row {
   display: flex;
@@ -538,12 +504,16 @@ async function confirmDelete(withBeats: boolean) {
   min-width: 0;
   padding: 3px 4px 3px 6px;
   border-radius: 6px;
-  cursor: grab;
+  cursor: pointer;
 }
 .tray-row:hover,
 .tray-row:focus-visible {
   background: rgba(var(--v-theme-on-surface), 0.06);
   outline: none;
+}
+.tray-row__chevron,
+.tray-row__icon {
+  opacity: 0.7;
 }
 .tray-row__num {
   min-width: 1.6em;
@@ -552,22 +522,33 @@ async function confirmDelete(withBeats: boolean) {
   font-size: 0.85rem;
   color: rgb(var(--v-theme-primary));
 }
-.tray-row__icon {
-  opacity: 0.7;
-}
 .tray-row__title {
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tray-row__cluster {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.85rem;
+  opacity: 0.55;
 }
-.tray-row__remove {
+.tray-row__btn {
   opacity: 0;
 }
-.tray-row:hover .tray-row__remove,
-.tray-row:focus-within .tray-row__remove {
-  opacity: 0.7;
+.tray-row:hover .tray-row__btn,
+.tray-row:focus-within .tray-row__btn {
+  opacity: 0.8;
+}
+.tray-detail {
+  padding: 2px 8px 8px 52px;
+  max-width: 80ch;
+  line-height: 1.5;
 }
 
 /* Lanes */
