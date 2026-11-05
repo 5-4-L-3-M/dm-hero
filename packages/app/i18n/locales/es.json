@@ -1445,7 +1445,8 @@
       "pinned": "Fijado",
       "pinnedSuccess": "Fijado correctamente",
       "unpinnedSuccess": "Fijación eliminada"
-    }
+    },
+    "numberLabel": "Sesión {n}"
   },
   "encounters": {
     "title": "Encuentros",

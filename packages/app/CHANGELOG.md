@@ -1,5 +1,12 @@
 # @dm-hero/app
 
+## 1.27.0
+
+### Minor Changes
+
+- Reading a session: the cover image is a banner across the top that fades into the page, with the session number, date and title on it (click the banner to see the full image). The summary sits in its own box, the notes are on the normal background instead of black, a plain line right before a list ("The tent") reads as a section heading, and lists get room to breathe.
+- Name tags in notes (people, places, players …) are a soft tint of their color with normal text instead of solid bright pills, everywhere notes are shown.
+
 ## 1.26.0
 
 ### Minor Changes

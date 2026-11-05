@@ -1445,7 +1445,8 @@
       "pinned": "In evidenza",
       "pinnedSuccess": "Messo in evidenza",
       "unpinnedSuccess": "Rimosso dalla bacheca"
-    }
+    },
+    "numberLabel": "Sessione {n}"
   },
   "encounters": {
     "title": "Incontri",

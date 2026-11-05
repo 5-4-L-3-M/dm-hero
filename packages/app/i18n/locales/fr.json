@@ -1445,7 +1445,8 @@
       "pinned": "Épinglé",
       "pinnedSuccess": "Épinglé avec succès",
       "unpinnedSuccess": "Épingle retirée"
-    }
+    },
+    "numberLabel": "Séance {n}"
   },
   "encounters": {
     "title": "Rencontres",

@@ -1445,7 +1445,8 @@
       "pinned": "Pinned",
       "pinnedSuccess": "Successfully pinned",
       "unpinnedSuccess": "Pin removed"
-    }
+    },
+    "numberLabel": "Session {n}"
   },
   "encounters": {
     "title": "Encounters",
