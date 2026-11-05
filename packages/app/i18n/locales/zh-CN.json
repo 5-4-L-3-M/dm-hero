@@ -1445,7 +1445,8 @@
       "pinned": "已固定",
       "pinnedSuccess": "已成功固定",
       "unpinnedSuccess": "销钉已移除"
-    }
+    },
+    "numberLabel": "第 {n} 次会话"
   },
   "encounters": {
     "title": "遭遇",

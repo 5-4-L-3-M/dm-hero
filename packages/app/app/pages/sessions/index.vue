@@ -624,29 +624,40 @@
     </v-dialog>
 
     <!-- View Session Dialog -->
-    <v-dialog v-model="showViewDialog" max-width="900" scrollable>
+    <v-dialog v-model="showViewDialog" max-width="980" scrollable>
       <v-card v-if="viewingSession">
-        <v-card-title class="d-flex align-center">
-          <v-icon icon="mdi-book-open-page-variant" class="mr-2" color="primary" />
-          <span v-if="viewingSession.session_number" class="text-medium-emphasis mr-2">
-            #{{ viewingSession.session_number }}
-          </span>
-          {{ viewingSession.title }}
-        </v-card-title>
+        <!-- Header: the session's banner fading into the page, title on top of it -->
+        <div class="session-hero" :class="{ 'session-hero--plain': !viewingSession.cover_image_url }">
+          <div
+            v-if="viewingSession.cover_image_url"
+            class="session-hero__img"
+            :style="{ backgroundImage: `url('/uploads/${viewingSession.cover_image_url}')` }"
+            role="button"
+            :aria-label="$t('sessions.cover')"
+            @click="openImagePreview(`/uploads/${viewingSession.cover_image_url}`, viewingSession.title)"
+          />
+          <div class="session-hero__text">
+            <div class="session-hero__meta">
+              <v-icon icon="mdi-book-open-page-variant" size="small" class="mr-1" />
+              <span v-if="viewingSession.session_number">{{ $t('sessions.numberLabel', { n: viewingSession.session_number }) }}</span>
+              <span v-if="viewingSession.session_number && viewingSession.date" class="mx-1">·</span>
+              <span v-if="viewingSession.date">{{ formatRealDate(viewingSession.date) }}</span>
+            </div>
+            <div class="session-hero__title">{{ viewingSession.title }}</div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" class="session-hero__close" :aria-label="$t('common.close')" @click="showViewDialog = false" />
+        </div>
 
-        <v-card-subtitle v-if="viewingSession.date">
-          {{ formatRealDate(viewingSession.date) }}
-        </v-card-subtitle>
-
-        <v-card-text style="max-height: 70vh">
-          <div v-if="viewingSession.summary" class="text-body-large mb-4">
+        <v-card-text class="session-read" style="max-height: 75vh">
+          <!-- The short version first, set apart from the notes -->
+          <div v-if="viewingSession.summary" class="session-read__summary mb-5">
+            <div class="session-read__label">{{ $t('sessions.summary') }}</div>
             {{ viewingSession.summary }}
           </div>
 
-          <v-divider v-if="viewingSession.notes" class="my-4" />
-
           <ClientOnly v-if="viewingSession.notes">
             <MdPreview
+              class="session-read__notes"
               :model-value="viewingSession.notes"
               :language="currentLocale"
               :theme="editorTheme"
@@ -1159,7 +1170,7 @@ function sanitizeHtml(html: string): string {
       const humanName = resolvePlayerHumanName(entityId)
       if (humanName) {
         // Spielername groß, Character-Name klein in Klammern
-        displayHtml = `${humanName} <span style="font-size: 0.75rem; opacity: 0.8;">(${name})</span>`
+        displayHtml = playerBadgeLabel(name, humanName)
       }
       else {
         // Kein Spielername - Character name kursiv
@@ -1167,7 +1178,7 @@ function sanitizeHtml(html: string): string {
       }
     }
 
-    return `<span class="entity-badge" data-type="${type}" data-id="${id}" style="background-color: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><i class="mdi ${icon}"></i>${displayHtml}</span>`
+    return entityBadgeHtml(type, id, color, icon, displayHtml)
   }
 
   // First: Remove entity links from heading IDs to prevent broken HTML
@@ -1511,6 +1522,112 @@ function closeDialog() {
 
 .markdown-content {
   line-height: 1.6;
+}
+
+/* Reading a session: banner header, calm text, clear sections, soft name tags */
+.session-hero {
+  position: relative;
+  min-height: 240px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.session-hero--plain {
+  min-height: 0;
+  padding-top: 8px;
+}
+.session-hero__img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 30%;
+  cursor: zoom-in;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95) 30%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95) 30%, rgba(0, 0, 0, 0) 100%);
+}
+.session-hero__text {
+  position: relative;
+  padding: 16px 24px 10px;
+  pointer-events: none;
+}
+.session-hero:not(.session-hero--plain) .session-hero__text {
+  text-shadow: 0 1px 8px rgba(var(--v-theme-surface), 0.95), 0 0 2px rgba(var(--v-theme-surface), 0.9);
+}
+.session-hero__meta {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(var(--v-theme-primary));
+}
+.session-hero__title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.session-hero__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(var(--v-theme-surface), 0.6);
+}
+.session-read__summary {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border-left: 4px solid rgb(var(--v-theme-primary));
+  background: rgba(var(--v-theme-primary), 0.08);
+}
+.session-read__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(var(--v-theme-primary));
+  margin-bottom: 2px;
+}
+.session-read__notes,
+.session-read__notes :deep(.md-editor-preview-wrapper) {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.session-read__notes :deep(.md-editor-preview) {
+  font-size: 1rem;
+  line-height: 1.7;
+  max-width: 78ch;
+  color: rgba(var(--v-theme-on-surface), 0.88);
+}
+/* A plain line right before a list ("The tent") reads as a section heading */
+.session-read__notes :deep(.md-editor-preview > p:has(+ ul)),
+.session-read__notes :deep(.md-editor-preview > p:has(+ ol)),
+.session-read__notes :deep(.md-editor-preview h1),
+.session-read__notes :deep(.md-editor-preview h2),
+.session-read__notes :deep(.md-editor-preview h3),
+.session-read__notes :deep(.md-editor-preview h4) {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: rgb(var(--v-theme-primary));
+  margin: 1.4em 0 0.4em;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+.session-read__notes :deep(.md-editor-preview > :first-child) {
+  margin-top: 0;
+}
+.session-read__notes :deep(.md-editor-preview ul),
+.session-read__notes :deep(.md-editor-preview ol) {
+  margin: 0 0 0.6em;
+  padding-left: 1.4em;
+}
+.session-read__notes :deep(.md-editor-preview li) {
+  margin: 0 0 0.45em;
+  padding-left: 2px;
+}
+.session-read__notes :deep(.md-editor-preview li::marker) {
+  color: rgba(var(--v-theme-primary), 0.7);
 }
 
 .markdown-content :deep(h1),

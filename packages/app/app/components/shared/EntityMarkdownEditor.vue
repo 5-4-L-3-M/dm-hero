@@ -780,7 +780,7 @@ function sanitizeHtml(html: string): string {
     if (type === 'player') {
       const humanName = resolvePlayerHumanName(entityId)
       if (humanName) {
-        displayHtml = `${humanName} <span style="font-size: 0.75rem; opacity: 0.8;">(${name})</span>`
+        displayHtml = playerBadgeLabel(name, humanName)
       }
       else {
         displayHtml = `<em>${name}</em>`
@@ -789,7 +789,7 @@ function sanitizeHtml(html: string): string {
 
     // Sessions are not clickable (no preview dialog), so no pointer cursor
     const cursor = type === 'session' ? 'default' : 'pointer'
-    return `<span class="entity-badge" data-type="${type}" data-id="${id}" style="background-color: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px; cursor: ${cursor};"><i class="mdi ${icon}"></i>${displayHtml}</span>`
+    return entityBadgeHtml(type, id, color, icon, displayHtml, cursor === 'pointer')
   }
 
   // First: Remove entity links from heading IDs to prevent broken HTML
