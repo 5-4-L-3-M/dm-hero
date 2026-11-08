@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { dirname, join } from 'path'
 import { existsSync, mkdirSync, copyFileSync } from 'fs'
 import { getDatabasePath } from './paths'
+import { applyPendingRestore } from './hostedRestore'
 
 const DB_PATH = getDatabasePath()
 const DB_DIR = dirname(DB_PATH)
@@ -19,6 +20,7 @@ let db: Database.Database | null = null
 
 export function getDb() {
   if (!db) {
+    applyPendingRestore()
     db = new Database(DB_PATH)
     db.pragma('journal_mode = WAL') // Write-Ahead Logging for better performance
     db.pragma('foreign_keys = ON') // Enable foreign keys

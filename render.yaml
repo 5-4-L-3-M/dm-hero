@@ -1,0 +1,33 @@
+# Hosted DM Hero on Render: one web service with a saved disk.
+# The database and uploads both live on the disk so they survive restarts
+# and redeploys. DM_HERO_PASSPHRASE is set in the Render dashboard.
+services:
+  - type: web
+    name: dm-hero
+    runtime: docker
+    plan: starter
+    region: ohio
+    branch: main
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    disk:
+      name: dm-hero-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: RUN_AS
+        value: root
+      - key: DATABASE_PATH
+        value: /var/data/dm-hero.db
+      - key: UPLOAD_PATH
+        value: /var/data/uploads
+      - key: LOG_PATH
+        value: /var/data/logs
+      - key: NITRO_HOST
+        value: 0.0.0.0
+      - key: NITRO_PORT
+        value: '3000'
+      - key: DM_HERO_PASSPHRASE
+        sync: false
+      - key: DM_HERO_ALLOW_RESTORE
+        value: '1'

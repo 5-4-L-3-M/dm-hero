@@ -84,8 +84,10 @@ RUN mkdir -p /app/data && \
     mkdir -p /app/uploads/audio && \
     chown -R node:node /app
 
-# Use non-root user for security
-USER node
+# Use non-root user for security. Hosts whose mounted disks are root-owned
+# (Render) set RUN_AS=root so the app can write its database there.
+ARG RUN_AS=node
+USER ${RUN_AS}
 
 # Expose port
 EXPOSE 3000
