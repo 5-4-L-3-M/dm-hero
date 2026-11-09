@@ -3426,6 +3426,33 @@
       "restore": "Restore",
       "put": "Archive",
       "beatCount": "{n} beats"
+    },
+    "wrap": {
+      "open": "收尾",
+      "title": "会话收尾",
+      "hint": "把下次会话列表过一遍。已进行的情节会记录到会话中；标为“下次再说”的留在列表里。",
+      "newSession": "新会话",
+      "played": "已进行",
+      "next": "下次再说",
+      "cut": "删除",
+      "what": "实际发生了什么？（可选，一行）",
+      "summary": "{played} 已进行 · {next} 下次 · {cut} 删除",
+      "save": "保存收尾",
+      "sessionTitle": "第 {n} 次会话",
+      "playedNote": "已进行 {session}："
+    },
+    "places": {
+      "title": "地点",
+      "hint": "根据你的关系显示谁在哪里，并为每个地点附一条简短笔记。",
+      "search": "搜索地点或人物",
+      "empty": "还没有带人物、笔记或未完成情节的地点。",
+      "liveBeats": "此处未完成的情节",
+      "notePlaceholder": "钩子、柜台下的货品、桌边要记住的事",
+      "addNote": "添加笔记",
+      "editNote": "编辑笔记"
+    },
+    "done": {
+      "title": "已进行和已删除（{n}）"
     }
   },
   "quests": {

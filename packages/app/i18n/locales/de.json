@@ -3426,6 +3426,33 @@
       "restore": "Wiederherstellen",
       "put": "Archivieren",
       "beatCount": "{n} Beats"
+    },
+    "wrap": {
+      "open": "Abschluss",
+      "title": "Sitzungsabschluss",
+      "hint": "Geh die Liste für die nächste Sitzung einmal durch. Gespielte Beats werden der Sitzung zugeordnet; alles auf „Nächstes Mal“ bleibt in der Liste.",
+      "newSession": "Neue Sitzung",
+      "played": "Gespielt",
+      "next": "Nächstes Mal",
+      "cut": "Gestrichen",
+      "what": "Was ist wirklich passiert? (optional, eine Zeile)",
+      "summary": "{played} gespielt · {next} nächstes Mal · {cut} gestrichen",
+      "save": "Abschluss speichern",
+      "sessionTitle": "Sitzung {n}",
+      "playedNote": "Gespielt {session}:"
+    },
+    "places": {
+      "title": "Orte",
+      "hint": "Wer wo ist, aus deinen Beziehungen, plus eine kurze Notiz pro Ort.",
+      "search": "Orte oder Personen suchen",
+      "empty": "Noch keine Orte mit Personen, Notizen oder offenen Beats.",
+      "liveBeats": "Offene Beats hier",
+      "notePlaceholder": "Aufhänger, Ware unter der Theke, was du am Tisch wissen musst",
+      "addNote": "Notiz hinzufügen",
+      "editNote": "Notiz bearbeiten"
+    },
+    "done": {
+      "title": "Gespielt & gestrichen ({n})"
     }
   },
   "quests": {

@@ -80,12 +80,27 @@
       <div v-show="compact ? peek : !cluster.collapsed" class="px-2 pb-2">
         <div v-if="cluster.notes" class="text-body-small text-medium-emphasis px-2 pb-2 cluster-notes">{{ cluster.notes }}</div>
         <StoryBeatList
-          :beats="visibleBeats"
+          :beats="liveBeats"
           :cluster-id="cluster.id"
           :empty-text="$t('story.cluster.dropHere')"
           @edit="$emit('edit-beat', $event)"
           @toggle-tray="$emit('toggle-tray', $event)"
         />
+        <!-- Played & cut: folded away at the bottom, one click to put a beat back -->
+        <div v-if="doneBeats.length" class="done">
+          <button type="button" class="done__toggle" :aria-expanded="doneOpen" @click="toggleDone">
+            <v-icon size="x-small">{{ doneOpen ? 'mdi-chevron-down' : 'mdi-chevron-right' }}</v-icon>
+            <v-icon size="x-small" color="success">mdi-check-all</v-icon>
+            {{ $t('story.done.title', { n: doneBeats.length }) }}
+          </button>
+          <div v-if="doneOpen" class="done__list">
+            <div v-for="b in doneBeats" :key="b.id" class="done__row" :class="{ 'done__row--cut': b.status === 'cut' }">
+              <v-icon size="x-small" :color="b.status === 'cut' ? undefined : 'success'">{{ b.status === 'cut' ? 'mdi-close' : 'mdi-check' }}</v-icon>
+              <span class="done__title" role="button" tabindex="0" @click="$emit('edit-beat', b)" @keydown.enter="$emit('edit-beat', b)">{{ b.title }}</span>
+              <v-btn size="x-small" variant="text" prepend-icon="mdi-restore" class="done__restore" @click="restore(b)">{{ $t('story.run.restore') }}</v-btn>
+            </div>
+          </div>
+        </div>
         <v-text-field
           v-model="newBeat"
           :placeholder="$t('story.beat.quickAdd')"
@@ -122,6 +137,18 @@ const cluster = computed(() => store.clusters.find(c => c.id === props.cluster.i
 const storyline = computed(() => store.storylines.find(s => s.id === cluster.value.storyline_id) ?? null)
 const beats = computed(() => store.beatsOf(cluster.value.id))
 const visibleBeats = computed(() => (props.statuses ? beats.value.filter(b => props.statuses!.includes(b.status)) : beats.value))
+const isDone = (b: StoryBeat) => b.status === 'played' || b.status === 'cut'
+const liveBeats = computed(() => visibleBeats.value.filter(b => !isDone(b)))
+const doneBeats = computed(() => visibleBeats.value.filter(isDone))
+const doneOpenIds = useStoryPref<number[]>('doneOpen', [])
+const doneOpen = computed(() => doneOpenIds.value.includes(cluster.value.id))
+function toggleDone() {
+  const id = cluster.value.id
+  doneOpenIds.value = doneOpen.value ? doneOpenIds.value.filter(x => x !== id) : [...doneOpenIds.value, id]
+}
+async function restore(b: StoryBeat) {
+  await store.updateBeat(b.id, { status: 'ready', played_session_id: null })
+}
 const inTray = computed(() => beats.value.some(b => b.tray_order != null))
 const playedCount = computed(() => beats.value.filter(b => b.status === 'played').length)
 
@@ -166,6 +193,51 @@ async function addBeat() {
 }
 .cluster-title {
   cursor: pointer;
+}
+.done {
+  margin-top: 4px;
+  padding: 0 4px;
+}
+.done__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 0;
+  color: inherit;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.done__toggle:hover {
+  opacity: 1;
+}
+.done__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  padding: 1px 4px 1px 18px;
+  opacity: 0.75;
+}
+.done__row--cut .done__title {
+  text-decoration: line-through;
+}
+.done__title {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.done__restore {
+  opacity: 0;
+}
+.done__row:hover .done__restore,
+.done__row:focus-within .done__restore {
+  opacity: 1;
 }
 .cluster-notes {
   white-space: pre-line;

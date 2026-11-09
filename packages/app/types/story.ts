@@ -122,6 +122,16 @@ export interface Questline {
   sort_order: number
 }
 
+/** A place kit: who's at a location (from relations), its table note, and live beats there. */
+export interface PlaceKit {
+  id: number
+  name: string
+  parent_name: string | null
+  note: string | null
+  people: Array<{ id: number, name: string, role: string }>
+  live_beats: number
+}
+
 export interface StoryBoard {
   settings: StoryBoardSettings
   storylines: StoryLine[]

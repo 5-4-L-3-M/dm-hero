@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3'
 import { getTestDb } from '../utils/test-db'
 import {
   clampClock, clusterColor, nearbyLocationIds, nextStoryColor, readQuestMetadata,
-  type FactionAgenda, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine, type StoryMap, type StoryMapEdge, type StoryMapNode,
+  type FactionAgenda, type Quest, type Questline, type StoryBeat, type PlaceKit, type StoryBoard, type StoryCluster, type StoryLine, type StoryMap, type StoryMapEdge, type StoryMapNode,
 } from '../../types/story'
 import { matchSubRoute } from '../../server/utils/subRouter'
 
@@ -353,5 +353,33 @@ describe('story board export / import', () => {
     expect(await story('PATCH', `storylines/${line.id}`, { color: 5 })).toMatchObject({ color: 5, custom_color: null })
     const settings = await story<{ palette: unknown }>('PATCH', 'settings', { campaignId, palette: { custom: ['#112233', 'nope', '#112233'], hidden: [3, 99] } })
     expect(settings.palette).toEqual({ custom: ['#112233'], hidden: [3] })
+  })
+})
+
+describe('place kits', () => {
+  it('builds kits from relations, keeps a note per place, and counts open beats', async () => {
+    const city = entity('Location', 'Vaelrun City')
+    const tavern = entity('Location', 'The Last Round', city)
+    const empty = entity('Location', 'Quiet Lane', city)
+    const lucan = entity('NPC', 'Lucan')
+    const faelan = entity('NPC', 'Faelan')
+    const rel = db.prepare('INSERT INTO entity_relations (from_entity_id, to_entity_id, relation_type) VALUES (?, ?, ?)')
+    rel.run(lucan, tavern, 'owns')
+    rel.run(tavern, faelan, 'worksAt') // stored the other way round
+    rel.run(lucan, city, 'livesIn') // only residents → not a kit on its own
+    await story('POST', 'beats', { campaignId, title: 'Spiked drink', location_id: tavern })
+
+    let kits = await story<PlaceKit[]>('GET', 'places', undefined, { campaignId })
+    expect(kits.map(k => k.name)).toEqual(['The Last Round'])
+    expect(kits[0]!.parent_name).toBe('Vaelrun City')
+    expect(kits[0]!.people.map(p => [p.name, p.role])).toEqual([['Lucan', 'owns'], ['Faelan', 'worksAt']])
+    expect(kits[0]!.live_beats).toBe(1)
+
+    await story('PUT', `places/${empty}`, { campaignId, note: 'Mag feeds the pigeons here' })
+    kits = await story<PlaceKit[]>('GET', 'places', undefined, { campaignId })
+    expect(kits.find(k => k.id === empty)?.note).toBe('Mag feeds the pigeons here')
+    await story('PUT', `places/${empty}`, { campaignId, note: '  ' })
+    kits = await story<PlaceKit[]>('GET', 'places', undefined, { campaignId })
+    expect(kits.some(k => k.id === empty)).toBe(false)
   })
 })

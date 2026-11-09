@@ -3426,6 +3426,33 @@
       "restore": "Restore",
       "put": "Archive",
       "beatCount": "{n} beats"
+    },
+    "wrap": {
+      "open": "Clôturer",
+      "title": "Bilan de séance",
+      "hint": "Parcours une fois la liste de la prochaine séance. Les beats joués sont rattachés à la séance ; ce qui reste sur « La prochaine fois » reste dans la liste.",
+      "newSession": "Nouvelle séance",
+      "played": "Joué",
+      "next": "La prochaine fois",
+      "cut": "Coupé",
+      "what": "Que s’est-il vraiment passé ? (facultatif, une ligne)",
+      "summary": "{played} joués · {next} la prochaine fois · {cut} coupés",
+      "save": "Enregistrer le bilan",
+      "sessionTitle": "Séance {n}",
+      "playedNote": "Joué {session} :"
+    },
+    "places": {
+      "title": "Lieux",
+      "hint": "Qui est où, d’après tes relations, plus une courte note par lieu.",
+      "search": "Chercher des lieux ou des personnes",
+      "empty": "Pas encore de lieux avec des personnes, des notes ou des beats ouverts.",
+      "liveBeats": "Beats ouverts ici",
+      "notePlaceholder": "Accroches, marchandise sous le comptoir, ce qu’il faut retenir à la table",
+      "addNote": "Ajouter une note",
+      "editNote": "Modifier la note"
+    },
+    "done": {
+      "title": "Joués et coupés ({n})"
     }
   },
   "quests": {

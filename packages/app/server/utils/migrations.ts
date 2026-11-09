@@ -3489,6 +3489,24 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 83: Shop item icons')
     },
   },
+  {
+    version: 84,
+    name: 'story_place_kits',
+    up: (db) => {
+      // Place kits: a short table note per location (hooks, under-the-counter items) shown on the Story Board
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS story_place_kits (
+          campaign_id INTEGER NOT NULL,
+          location_id INTEGER NOT NULL,
+          note TEXT,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (campaign_id, location_id),
+          FOREIGN KEY (location_id) REFERENCES entities(id) ON DELETE CASCADE
+        )
+      `)
+      console.log('✅ Migration 84: Story place kits')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

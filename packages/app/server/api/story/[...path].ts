@@ -20,6 +20,8 @@ import agendaList from '../../handlers/story/agendas/index.get'
 import agendaCreate from '../../handlers/story/agendas/index.post'
 import agendaUpdate from '../../handlers/story/agendas/[id].patch'
 import agendaDelete from '../../handlers/story/agendas/[id].delete'
+import placeList from '../../handlers/story/places/index.get'
+import placeNote from '../../handlers/story/places/[id].put'
 
 /** Story Board API: /api/story/… (see server/handlers/story for each endpoint). */
 const routes: SubRoutes = {
@@ -43,6 +45,8 @@ const routes: SubRoutes = {
   'map/edges/:id': { PATCH: storyMap.updateEdge, DELETE: storyMap.removeEdge },
   'agendas': { GET: agendaList, POST: agendaCreate },
   'agendas/:id': { PATCH: agendaUpdate, DELETE: agendaDelete },
+  'places': { GET: placeList },
+  'places/:id': { PUT: placeNote },
 }
 
 export default defineEventHandler(event => dispatchSubRoute(event, routes, getRouterParam(event, 'path') ?? ''))

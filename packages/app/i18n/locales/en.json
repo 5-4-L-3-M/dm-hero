@@ -3426,6 +3426,33 @@
       "restore": "Restore",
       "put": "Archive",
       "beatCount": "{n} beats"
+    },
+    "wrap": {
+      "open": "Wrap up",
+      "title": "Session wrap",
+      "hint": "Go through the next-session list once. Played beats are logged to the session; anything you leave on \"Next time\" stays in the list.",
+      "newSession": "New session",
+      "played": "Played",
+      "next": "Next time",
+      "cut": "Cut",
+      "what": "What actually happened? (optional, one line)",
+      "summary": "{played} played · {next} next time · {cut} cut",
+      "save": "Save wrap-up",
+      "sessionTitle": "Session {n}",
+      "playedNote": "Played {session}:"
+    },
+    "places": {
+      "title": "Places",
+      "hint": "Who’s where, from your relations, plus a short note per place.",
+      "search": "Search places or people",
+      "empty": "No places with people, notes or open beats yet.",
+      "liveBeats": "Open beats here",
+      "notePlaceholder": "Hooks, under-the-counter items, what to remember at the table",
+      "addNote": "Add note",
+      "editNote": "Edit note"
+    },
+    "done": {
+      "title": "Played & cut ({n})"
     }
   },
   "quests": {

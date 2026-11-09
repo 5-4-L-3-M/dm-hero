@@ -3426,6 +3426,33 @@
       "restore": "Restore",
       "put": "Archive",
       "beatCount": "{n} beats"
+    },
+    "wrap": {
+      "open": "Cerrar sesión",
+      "title": "Cierre de sesión",
+      "hint": "Repasa una vez la lista de la próxima sesión. Lo jugado se registra en la sesión; lo que dejes en «La próxima» sigue en la lista.",
+      "newSession": "Nueva sesión",
+      "played": "Jugado",
+      "next": "La próxima",
+      "cut": "Descartado",
+      "what": "¿Qué pasó en realidad? (opcional, una línea)",
+      "summary": "{played} jugados · {next} la próxima · {cut} descartados",
+      "save": "Guardar cierre",
+      "sessionTitle": "Sesión {n}",
+      "playedNote": "Jugado {session}:"
+    },
+    "places": {
+      "title": "Lugares",
+      "hint": "Quién está dónde, según tus relaciones, más una nota breve por lugar.",
+      "search": "Buscar lugares o personas",
+      "empty": "Aún no hay lugares con personas, notas o beats abiertos.",
+      "liveBeats": "Beats abiertos aquí",
+      "notePlaceholder": "Ganchos, mercancía bajo el mostrador, qué recordar en la mesa",
+      "addNote": "Añadir nota",
+      "editNote": "Editar nota"
+    },
+    "done": {
+      "title": "Jugados y descartados ({n})"
     }
   },
   "quests": {

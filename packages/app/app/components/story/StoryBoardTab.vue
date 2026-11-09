@@ -1,57 +1,58 @@
 <template>
   <div>
-    <!-- Next session: a band across the top, the plan for the table, in your order -->
-    <v-card class="tray-band mb-3" color="primary" variant="tonal">
-      <div class="d-flex align-center flex-wrap ga-2 px-4 pt-3">
-        <v-icon color="primary">mdi-calendar-star</v-icon>
-        <span class="text-title-medium font-weight-bold">{{ $t('story.tray.title') }}</span>
+    <!-- Next session: one slim strip of chips, in your order (drag to reorder). Click a chip to read it here. -->
+    <div class="strip mb-3">
+      <div class="strip__bar">
+        <v-icon color="primary" size="small">mdi-calendar-star</v-icon>
+        <span class="text-body-medium font-weight-bold text-no-wrap">{{ $t('story.tray.title') }}</span>
         <v-chip size="x-small" color="primary" variant="flat">{{ store.tray.length }}</v-chip>
-        <v-spacer />
-        <v-btn
-          v-if="store.tray.length > 1"
-          variant="text"
-          size="small"
-          :prepend-icon="allTrayOpen ? 'mdi-unfold-less-horizontal' : 'mdi-unfold-more-horizontal'"
-          @click="trayOpen = allTrayOpen ? [] : store.tray.map(b => b.id)"
-        >
-          {{ allTrayOpen ? $t('story.tray.foldAll') : $t('story.tray.openAll') }}
-        </v-btn>
+        <div class="strip__chips">
+          <span v-if="!store.tray.length" class="text-body-small text-medium-emphasis">{{ $t('story.tray.empty') }}</span>
+          <draggable v-model="trayList" item-key="id" :animation="180" class="strip__list" @change="saveTray">
+            <template #item="{ element, index }">
+              <button
+                type="button"
+                class="strip__chip"
+                :class="{ 'strip__chip--open': stripOpen === element.id }"
+                :style="{ '--group-color': colorCss(beatColor(element)) }"
+                :title="[element.title, clusterTitle(element)].filter(Boolean).join(' · ')"
+                @click="stripOpen = stripOpen === element.id ? null : element.id"
+              >
+                <span class="strip__num">{{ index + 1 }}</span>
+                <v-icon size="x-small" class="strip__icon">{{ BEAT_KIND_ICONS[element.kind as BeatKind] }}</v-icon>
+                <span class="strip__title">{{ element.title }}</span>
+              </button>
+            </template>
+          </draggable>
+        </div>
+        <v-btn variant="text" size="small" prepend-icon="mdi-flag-checkered" :disabled="!store.tray.length" @click="wrapOpen = true">{{ $t('story.wrap.open') }}</v-btn>
         <v-btn color="primary" variant="flat" size="small" prepend-icon="mdi-format-list-numbered" :disabled="!store.tray.length" @click="$emit('open-run-sheet')">
           {{ $t('story.run.open') }}
         </v-btn>
       </div>
-      <div class="px-4 pb-3 pt-2">
-        <div v-if="!store.tray.length" class="text-body-small text-medium-emphasis">{{ $t('story.tray.empty') }}</div>
-        <!-- Your order; drag to change it. The arrow opens a beat right here. -->
-        <draggable v-model="trayList" item-key="id" :animation="180" class="tray-list" @change="saveTray">
-          <template #item="{ element, index }">
-            <div class="tray-entry" :style="{ '--group-color': colorCss(beatColor(element)) }">
-              <div class="tray-row" role="button" tabindex="0" @click="toggleTrayOpen(element.id)" @keydown.enter="toggleTrayOpen(element.id)">
-                <v-icon size="small" class="tray-row__chevron">{{ trayOpen.includes(element.id) ? 'mdi-chevron-down' : 'mdi-chevron-right' }}</v-icon>
-                <span class="tray-row__num">{{ index + 1 }}</span>
-                <v-icon size="small" class="tray-row__icon">{{ BEAT_KIND_ICONS[element.kind as BeatKind] }}</v-icon>
-                <span class="tray-row__title">{{ element.title }}</span>
-                <span class="tray-row__cluster">{{ clusterTitle(element) }}</span>
-                <v-btn icon="mdi-pencil" size="x-small" variant="text" class="tray-row__btn" :aria-label="$t('common.edit')" @click.stop="editBeat(element)" />
-                <v-btn icon="mdi-close" size="x-small" variant="text" class="tray-row__btn" :aria-label="$t('story.tray.remove')" @click.stop="toggleTray(element)" />
-              </div>
-              <div v-if="trayOpen.includes(element.id)" class="tray-detail">
-                <SharedFormattedText v-if="element.body" :text="element.body" class="text-body-medium" />
-                <div v-else-if="!element.location_name && !element.entities.length" class="text-body-small text-medium-emphasis">{{ $t('story.beat.noDetails') }}</div>
-                <div v-if="element.location_name || element.entities.length" class="d-flex flex-wrap ga-1 mt-1">
-                  <v-chip v-if="element.location_name" size="x-small" variant="tonal" color="green" prepend-icon="mdi-map-marker">
-                    <SharedEntityLink :id="element.location_id" type="Location" :name="element.location_name" />
-                  </v-chip>
-                  <v-chip v-for="e in element.entities" :key="e.id" size="x-small" variant="tonal">
-                    <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
-                  </v-chip>
-                </div>
-              </div>
-            </div>
-          </template>
-        </draggable>
+      <!-- The opened chip, read in place -->
+      <div v-if="openBeat" class="strip__detail" :style="{ '--group-color': colorCss(beatColor(openBeat)) }">
+        <div class="d-flex align-center ga-2 mb-1">
+          <v-icon size="small">{{ BEAT_KIND_ICONS[openBeat.kind as BeatKind] }}</v-icon>
+          <span class="text-title-small font-weight-bold">{{ openBeat.title }}</span>
+          <span class="text-body-small text-medium-emphasis">{{ clusterTitle(openBeat) }}</span>
+          <v-spacer />
+          <v-btn icon="mdi-pencil" size="x-small" variant="text" :aria-label="$t('common.edit')" @click="editBeat(openBeat)" />
+          <v-btn icon="mdi-calendar-remove" size="x-small" variant="text" :title="$t('story.tray.remove')" :aria-label="$t('story.tray.remove')" @click="toggleTray(openBeat); stripOpen = null" />
+          <v-btn icon="mdi-close" size="x-small" variant="text" :aria-label="$t('common.close')" @click="stripOpen = null" />
+        </div>
+        <SharedFormattedText v-if="openBeat.body" :text="openBeat.body" class="text-body-medium" />
+        <div v-else-if="!openBeat.location_name && !openBeat.entities.length" class="text-body-small text-medium-emphasis">{{ $t('story.beat.noDetails') }}</div>
+        <div v-if="openBeat.location_name || openBeat.entities.length" class="d-flex flex-wrap ga-1 mt-1">
+          <v-chip v-if="openBeat.location_name" size="x-small" variant="tonal" color="green" prepend-icon="mdi-map-marker">
+            <SharedEntityLink :id="openBeat.location_id" type="Location" :name="openBeat.location_name" />
+          </v-chip>
+          <v-chip v-for="e in openBeat.entities" :key="e.id" size="x-small" variant="tonal">
+            <SharedEntityLink :id="e.id" :type="e.type" :name="e.name" />
+          </v-chip>
+        </div>
       </div>
-    </v-card>
+    </div>
 
     <!-- Toolbar: lanes, colors, filters -->
     <v-card variant="tonal" class="pa-3 mb-3">
@@ -216,12 +217,11 @@
       <!-- Right rail: the sparks shelf (sticky-note look: loose ideas, not plans) -->
       <div class="board-rail">
         <div class="rail">
-          <div class="sparks">
-            <div class="d-flex align-center mb-1">
-              <v-icon class="mr-2" color="warning">mdi-lightbulb-on</v-icon>
-              <span class="text-title-small font-weight-bold">{{ $t('story.sparks.title') }}</span>
-              <v-chip size="x-small" class="ml-2" color="warning" variant="flat">{{ store.sparks.length }}</v-chip>
-            </div>
+          <v-btn-toggle v-model="railTab" mandatory density="compact" variant="outlined" divided class="mb-2 rail__tabs">
+            <v-btn value="sparks" size="small" prepend-icon="mdi-lightbulb-on">{{ $t('story.sparks.title') }}<v-chip size="x-small" class="ml-1" variant="flat" color="warning">{{ store.sparks.length }}</v-chip></v-btn>
+            <v-btn value="places" size="small" prepend-icon="mdi-storefront-outline">{{ $t('story.places.title') }}</v-btn>
+          </v-btn-toggle>
+          <div v-if="railTab === 'sparks'" class="sparks">
             <div class="text-body-small text-medium-emphasis mb-2">{{ $t('story.sparks.hint') }}</div>
             <v-text-field
               v-model="newSpark"
@@ -236,6 +236,10 @@
             />
             <StoryBeatList :beats="sparks" :cluster-id="null" :empty-text="$t('story.sparks.empty')" @edit="editBeat" @toggle-tray="toggleTray" />
           </div>
+          <div v-else class="places">
+            <div class="text-body-small text-medium-emphasis mb-2">{{ $t('story.places.hint') }}</div>
+            <StoryPlaceKits />
+          </div>
         </div>
       </div>
     </div>
@@ -244,6 +248,7 @@
     <StoryClusterDialog v-model="clusterOpen" :cluster="clusterEditing" />
     <StorylineManager v-model="storylinesOpen" />
     <StoryArchiveDialog v-model="archiveOpen" />
+    <StorySessionWrap v-model="wrapOpen" />
 
     <v-dialog v-model="deleteOpen" max-width="440">
       <v-card>
@@ -268,6 +273,8 @@ import StoryBeatDialog from './StoryBeatDialog.vue'
 import StoryClusterDialog from './StoryClusterDialog.vue'
 import StorylineManager from './StorylineManager.vue'
 import StoryArchiveDialog from './StoryArchiveDialog.vue'
+import StorySessionWrap from './StorySessionWrap.vue'
+import StoryPlaceKits from './StoryPlaceKits.vue'
 import {
   BEAT_STATUSES,
   colorCss, storylineColor,
@@ -413,12 +420,11 @@ watch(() => store.tray, v => (trayList.value = [...v]), { immediate: true })
 function saveTray() {
   store.saveOrder({ tray: trayList.value.map(b => b.id) })
 }
-// Opened beats (remembered per campaign) — opening never moves anything
-const trayOpen = remember<number[]>('trayOpen', [])
-const allTrayOpen = computed(() => store.tray.length > 0 && store.tray.every(b => trayOpen.value.includes(b.id)))
-function toggleTrayOpen(id: number) {
-  trayOpen.value = trayOpen.value.includes(id) ? trayOpen.value.filter(x => x !== id) : [...trayOpen.value, id]
-}
+// The one chip read in place under the strip (opening never moves anything)
+const stripOpen = ref<number | null>(null)
+const openBeat = computed(() => store.tray.find(b => b.id === stripOpen.value) ?? null)
+const wrapOpen = ref(false)
+const railTab = remember<'sparks' | 'places'>('railTab', 'sparks')
 const clusterOfBeat = (b: StoryBeat) => (b.cluster_id ? store.clusters.find(c => c.id === b.cluster_id) ?? null : null)
 const clusterTitle = (b: StoryBeat) => clusterOfBeat(b)?.title ?? ''
 const beatColor = (b: StoryBeat) => {
@@ -484,70 +490,74 @@ async function confirmDelete(withBeats: boolean) {
   }
 }
 
-/* Next-session band */
-.tray-band {
-  border: 1px solid rgba(var(--v-theme-primary), 0.5);
+/* Next-session strip: one line of chips */
+.strip {
+  border: 1px solid rgba(var(--v-theme-primary), 0.45);
+  background: rgba(var(--v-theme-primary), 0.06);
+  border-radius: 10px;
 }
-.tray-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.tray-entry {
-  border-left: 3px solid var(--group-color);
-  border-radius: 4px;
-}
-.tray-row {
+.strip__bar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 4px 8px;
   min-width: 0;
-  padding: 3px 4px 3px 6px;
-  border-radius: 6px;
+}
+.strip__chips {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.strip__list {
+  display: flex;
+  gap: 4px;
+  padding: 2px 0;
+}
+.strip__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  max-width: 220px;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
+  border-left: 3px solid var(--group-color);
+  background: rgb(var(--v-theme-surface));
+  color: inherit;
+  font-size: 0.8rem;
   cursor: pointer;
 }
-.tray-row:hover,
-.tray-row:focus-visible {
+.strip__chip:hover,
+.strip__chip:focus-visible {
   background: rgba(var(--v-theme-on-surface), 0.06);
   outline: none;
 }
-.tray-row__chevron,
-.tray-row__icon {
-  opacity: 0.7;
+.strip__chip--open {
+  border-color: rgb(var(--v-theme-primary));
+  border-left-color: var(--group-color);
+  background: rgba(var(--v-theme-primary), 0.12);
 }
-.tray-row__num {
-  min-width: 1.6em;
-  text-align: right;
+.strip__num {
   font-weight: 700;
-  font-size: 0.85rem;
   color: rgb(var(--v-theme-primary));
 }
-.tray-row__title {
-  min-width: 0;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.strip__icon {
+  opacity: 0.7;
 }
-.tray-row__cluster {
-  flex: 1;
+.strip__title {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.85rem;
-  opacity: 0.55;
 }
-.tray-row__btn {
-  opacity: 0;
-}
-.tray-row:hover .tray-row__btn,
-.tray-row:focus-within .tray-row__btn {
-  opacity: 0.8;
-}
-.tray-detail {
-  padding: 2px 8px 8px 52px;
-  max-width: 80ch;
+.strip__detail {
+  border-top: 1px solid rgba(var(--v-theme-primary), 0.25);
+  border-left: 3px solid var(--group-color);
+  margin: 0 8px 8px;
+  padding: 8px 10px 4px;
+  max-width: 90ch;
   line-height: 1.5;
 }
 
@@ -610,6 +620,19 @@ async function confirmDelete(withBeats: boolean) {
 .rail {
   position: sticky;
   top: 72px;
+}
+.rail__tabs {
+  width: 100%;
+}
+.rail__tabs .v-btn {
+  flex: 1;
+}
+.places {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-radius: 12px;
+  padding: 12px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
 }
 .sparks {
   background: rgba(var(--v-theme-warning), 0.12);

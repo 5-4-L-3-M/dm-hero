@@ -1,5 +1,14 @@
 # @dm-hero/app
 
+## 1.28.0
+
+### Minor Changes
+
+- Story Board cleanup, part 1. The next-session band is now one slim strip of numbered chips across the top, in your order (drag to reorder). Click a chip to read that beat right under the strip; click again to close it.
+- Session wrap: a "Wrap up" button on the strip walks the next-session list once. Mark each beat Played, Next time or Cut, add an optional "what actually happened" line, and pick the session (or make a new one). Played beats are logged to that session with your line kept on the beat, cut beats leave the list, and a short wrap-up list is added to the session's notes. Everything starts on "Next time", so nothing changes by accident.
+- Played & cut drawer: finished beats fold into a small "Played & cut" line at the bottom of each cluster. Open it to see them; Restore puts a beat back.
+- Places: the side rail has a Places tab next to Sparks. Each place lists who owns it, works there, guards it, frequents it or lives there, straight from your relations, plus how many open beats sit there and a short table note you can edit. The party's current place floats to the top, and you can search by place, person or note.
+
 ## 1.27.0
 
 ### Minor Changes

@@ -3426,6 +3426,33 @@
       "restore": "Restore",
       "put": "Archive",
       "beatCount": "{n} beats"
+    },
+    "wrap": {
+      "open": "Chiudi sessione",
+      "title": "Chiusura sessione",
+      "hint": "Ripassa una volta la lista della prossima sessione. I beat giocati vengono registrati nella sessione; ciò che lasci su «La prossima volta» resta nella lista.",
+      "newSession": "Nuova sessione",
+      "played": "Giocato",
+      "next": "La prossima volta",
+      "cut": "Scartato",
+      "what": "Cosa è successo davvero? (facoltativo, una riga)",
+      "summary": "{played} giocati · {next} la prossima volta · {cut} scartati",
+      "save": "Salva chiusura",
+      "sessionTitle": "Sessione {n}",
+      "playedNote": "Giocato {session}:"
+    },
+    "places": {
+      "title": "Luoghi",
+      "hint": "Chi è dove, dalle tue relazioni, più una breve nota per luogo.",
+      "search": "Cerca luoghi o persone",
+      "empty": "Ancora nessun luogo con persone, note o beat aperti.",
+      "liveBeats": "Beat aperti qui",
+      "notePlaceholder": "Agganci, merce sotto banco, cosa ricordare al tavolo",
+      "addNote": "Aggiungi nota",
+      "editNote": "Modifica nota"
+    },
+    "done": {
+      "title": "Giocati e scartati ({n})"
     }
   },
   "quests": {
