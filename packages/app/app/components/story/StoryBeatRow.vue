@@ -17,6 +17,13 @@
         <v-icon v-if="beat.status === 'played'" size="x-small" color="success" :title="$t('story.beatStatus.played')">mdi-check-circle</v-icon>
         <v-icon v-else-if="beat.status === 'ready'" size="x-small" color="primary" :title="$t('story.beatStatus.ready')">mdi-circle</v-icon>
       </div>
+      <!-- Folded: the first line of the details, so you know what it is without opening it -->
+      <div v-if="!open && summary" class="beat-summary text-body-small">{{ summary }}</div>
+      <!-- Fires when … (glows when the party is there) -->
+      <div v-if="triggerText" class="beat-trigger text-body-small" :class="{ 'beat-trigger--armed': armed }">
+        <v-icon size="x-small" :color="armed ? 'warning' : undefined">mdi-lightning-bolt</v-icon>
+        <span>{{ armed ? $t('story.trigger.armed') : $t('story.trigger.when') }} {{ triggerText }}</span>
+      </div>
       <!-- Details: click the beat to unfold, click again to fold -->
       <div v-if="open" class="beat-details mt-1" @click.stop>
         <SharedFormattedText v-if="beat.body" :text="beat.body" class="text-body-small mb-1" />
@@ -58,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { BEAT_KIND_ICONS, type StoryBeat } from '~~/types/story'
+import { BEAT_KIND_ICONS, isArmed, type StoryBeat } from '~~/types/story'
 import { ENTITY_PREVIEW_CONFIG } from '~/utils/entityPreview'
 import { toPreviewType } from '~/stores/entityTabs'
 
@@ -67,6 +74,19 @@ const props = withDefaults(defineProps<{ beat: StoryBeat, maxChips?: number }>()
 defineEmits<{ 'edit': [beat: StoryBeat], 'toggle-tray': [beat: StoryBeat] }>()
 
 const open = ref(false)
+const store = useStoryBoardStore()
+const { t } = useI18n()
+/** First line of the body, without markdown marks, kept short */
+const summary = computed(() => {
+  const line = (props.beat.body ?? '').split('\n').map(l => l.replace(/^[#>\-*\s]+/, '').replace(/\*\*|__|`/g, '').trim()).find(Boolean) ?? ''
+  return line.length > 110 ? `${line.slice(0, 107)}…` : line
+})
+const triggerText = computed(() => [
+  props.beat.trigger_location_name ? t('story.trigger.atPlace', { place: props.beat.trigger_location_name }) : '',
+  props.beat.trigger_npc_name ? t('story.trigger.meets', { name: props.beat.trigger_npc_name }) : '',
+  props.beat.trigger_note ?? '',
+].filter(Boolean).join(' · '))
+const armed = computed(() => isArmed(props.beat, store.nearby))
 const statusColor = computed(() => ({ idea: undefined, ready: 'primary', played: 'success', cut: undefined })[props.beat.status])
 
 function entityIcon(type: string) {
@@ -93,6 +113,23 @@ function entityIcon(type: string) {
 }
 .beat-details {
   cursor: default;
+}
+.beat-summary {
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.beat-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.65;
+}
+.beat-trigger--armed {
+  opacity: 1;
+  color: rgb(var(--v-theme-warning));
+  font-weight: 600;
 }
 .beat-edit {
   opacity: 0.5;

@@ -3230,7 +3230,16 @@
       "hidePreset": "Diese Vorgabe ausblenden",
       "showPreset": "Wieder zeigen",
       "presetsHint": "Theme-Farben lassen sich ausblenden (und zurückholen); eigene Farben lassen sich löschen.",
-      "reorder": "Zum Umsortieren ziehen"
+      "reorder": "Zum Umsortieren ziehen",
+      "kind": {
+        "world": "Welt",
+        "champion": "Champion"
+      },
+      "band": {
+        "world": "Hauptbogen",
+        "champion": "Champions"
+      },
+      "player": "Spieler"
     },
     "cluster": {
       "new": "Neuer Cluster",
@@ -3426,6 +3435,74 @@
       "restore": "Wiederherstellen",
       "put": "Archivieren",
       "beatCount": "{n} Beats"
+    },
+    "wrap": {
+      "open": "Abschluss",
+      "title": "Sitzungsabschluss",
+      "hint": "Geh die Liste für die nächste Sitzung einmal durch. Gespielte Beats werden der Sitzung zugeordnet; alles auf „Nächstes Mal“ bleibt in der Liste.",
+      "newSession": "Neue Sitzung",
+      "played": "Gespielt",
+      "next": "Nächstes Mal",
+      "cut": "Gestrichen",
+      "what": "Was ist wirklich passiert? (optional, eine Zeile)",
+      "summary": "{played} gespielt · {next} nächstes Mal · {cut} gestrichen",
+      "save": "Abschluss speichern",
+      "sessionTitle": "Sitzung {n}",
+      "playedNote": "Gespielt {session}:"
+    },
+    "places": {
+      "title": "Orte",
+      "hint": "Wer wo ist, aus deinen Beziehungen, plus eine kurze Notiz pro Ort.",
+      "search": "Orte oder Personen suchen",
+      "empty": "Noch keine Orte mit Personen, Notizen oder offenen Beats.",
+      "liveBeats": "Offene Beats hier",
+      "notePlaceholder": "Aufhänger, Ware unter der Theke, was du am Tisch wissen musst",
+      "addNote": "Notiz hinzufügen",
+      "editNote": "Notiz bearbeiten"
+    },
+    "done": {
+      "title": "Gespielt & gestrichen ({n})"
+    },
+    "trigger": {
+      "title": "Löst aus, wenn",
+      "place": "Die Gruppe ist in…",
+      "person": "Sie treffen…",
+      "note": "Oder eine Notiz",
+      "notePlaceholder": "z. B. drei Tage nach dem Fest",
+      "when": "Wenn",
+      "armed": "Jetzt scharf:",
+      "atPlace": "in {place}",
+      "meets": "trifft {name}",
+      "onlyArmed": "Nur scharfe"
+    },
+    "drift": {
+      "pin": "Hitze festhalten",
+      "unpin": "Hitze lösen",
+      "pinned": "Hitze festgehalten (verändert sich nicht)",
+      "moved": "Hitze geändert:"
+    },
+    "quest": {
+      "make": "Quest daraus machen",
+      "linkHint": "Was die Gruppe weiß, dass sie tut. „Quest daraus machen\" im Cluster-Menü legt eine an."
+    },
+    "clock": {
+      "title": "Uhr",
+      "size": "Uhr",
+      "none": "Keine Uhr",
+      "segments": "{n} Segmente",
+      "label": "Worauf sie zuläuft",
+      "labelPlaceholder": "z. B. Mirelle sagt es Cassian"
+    },
+    "fold": {
+      "more": "{n} weitere",
+      "less": "Weniger"
+    },
+    "focus": {
+      "label": "Fokus",
+      "hint": "Nur heiße Cluster, Filter eingeklappt"
+    },
+    "players": {
+      "label": "Spieler"
     }
   },
   "quests": {

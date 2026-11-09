@@ -3230,7 +3230,16 @@
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
       "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
-      "reorder": "Arrastra para reordenar"
+      "reorder": "Arrastra para reordenar",
+      "kind": {
+        "world": "Mundo",
+        "champion": "Campeón"
+      },
+      "band": {
+        "world": "Arco principal",
+        "champion": "Campeones"
+      },
+      "player": "Jugador"
     },
     "cluster": {
       "new": "New cluster",
@@ -3426,6 +3435,74 @@
       "restore": "Restore",
       "put": "Archive",
       "beatCount": "{n} beats"
+    },
+    "wrap": {
+      "open": "Cerrar sesión",
+      "title": "Cierre de sesión",
+      "hint": "Repasa una vez la lista de la próxima sesión. Lo jugado se registra en la sesión; lo que dejes en «La próxima» sigue en la lista.",
+      "newSession": "Nueva sesión",
+      "played": "Jugado",
+      "next": "La próxima",
+      "cut": "Descartado",
+      "what": "¿Qué pasó en realidad? (opcional, una línea)",
+      "summary": "{played} jugados · {next} la próxima · {cut} descartados",
+      "save": "Guardar cierre",
+      "sessionTitle": "Sesión {n}",
+      "playedNote": "Jugado {session}:"
+    },
+    "places": {
+      "title": "Lugares",
+      "hint": "Quién está dónde, según tus relaciones, más una nota breve por lugar.",
+      "search": "Buscar lugares o personas",
+      "empty": "Aún no hay lugares con personas, notas o beats abiertos.",
+      "liveBeats": "Beats abiertos aquí",
+      "notePlaceholder": "Ganchos, mercancía bajo el mostrador, qué recordar en la mesa",
+      "addNote": "Añadir nota",
+      "editNote": "Editar nota"
+    },
+    "done": {
+      "title": "Jugados y descartados ({n})"
+    },
+    "trigger": {
+      "title": "Se activa cuando",
+      "place": "El grupo está en…",
+      "person": "Conocen a…",
+      "note": "O una nota",
+      "notePlaceholder": "p. ej. tres días después del festival",
+      "when": "Cuando",
+      "armed": "Activo ahora:",
+      "atPlace": "en {place}",
+      "meets": "conoce a {name}",
+      "onlyArmed": "Solo activos"
+    },
+    "drift": {
+      "pin": "Fijar calor",
+      "unpin": "Soltar calor",
+      "pinned": "Calor fijado (no cambia)",
+      "moved": "El calor cambió:"
+    },
+    "quest": {
+      "make": "Convertir en misión",
+      "linkHint": "Lo que el grupo sabe que está haciendo. «Convertir en misión» en el menú del grupo crea una."
+    },
+    "clock": {
+      "title": "Reloj",
+      "size": "Reloj",
+      "none": "Sin reloj",
+      "segments": "{n} segmentos",
+      "label": "Hacia qué avanza",
+      "labelPlaceholder": "p. ej. Mirelle se lo dice a Cassian"
+    },
+    "fold": {
+      "more": "{n} más",
+      "less": "Mostrar menos"
+    },
+    "focus": {
+      "label": "Foco",
+      "hint": "Solo grupos calientes, filtros ocultos"
+    },
+    "players": {
+      "label": "Jugadores"
     }
   },
   "quests": {

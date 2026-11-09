@@ -1,5 +1,22 @@
 # @dm-hero/app
 
+## 1.28.0
+
+### Minor Changes
+
+- Story Board cleanup, part 1. The next-session band is now one slim strip of numbered chips across the top, in your order (drag to reorder). Click a chip to read that beat right under the strip; click again to close it.
+- Session wrap: a "Wrap up" button on the strip walks the next-session list once. Mark each beat Played, Next time or Cut, add an optional "what actually happened" line, and pick the session (or make a new one). Played beats are logged to that session with your line kept on the beat, cut beats leave the list, and a short wrap-up list is added to the session's notes. Everything starts on "Next time", so nothing changes by accident.
+- Played & cut drawer: finished beats fold into a small "Played & cut" line at the bottom of each cluster. Open it to see them; Restore puts a beat back.
+- Places: the side rail has a Places tab next to Sparks. Each place lists who owns it, works there, guards it, frequents it or lives there, straight from your relations, plus how many open beats sit there and a short table note you can edit. The party's current place floats to the top, and you can search by place, person or note.
+- Focus switch: only hot clusters, with the filter rows tucked away.
+- Clusters show their next two open beats; the rest fold behind "N more". Folded beats show the first line of their details under the title.
+- Heat drift: every session wrap warms up clusters where something was played and cools clusters left alone two sessions in a row. Editing a cluster counts as touching it. Pin a cluster's heat (cluster menu or dialog) and it never drifts. Wrap-up tells you what moved.
+- Triggers: a beat can say when it fires: when the party is at a place, when they meet someone, or a free note. Once the party is at (or near) that place the beat glows "Armed now", and "Only armed" shows just those clusters.
+- Clocks on clusters: pick 4, 6 or 8 segments and what it counts toward; tick it right on the card.
+- Storylines are World or Champion (with the player). The board shows the main arc first, then a Champions section. Existing "The Champion of …" storylines become champion lines, matched to the player with that patron.
+- Player chips: click a player to see every cluster tied to them (their champion line, or linked on the cluster or a beat).
+- Make it a quest: from a cluster's menu, creates the quest (as a rumor) and links it. Playing a beat in that cluster makes the quest active.
+
 ## 1.27.0
 
 ### Minor Changes

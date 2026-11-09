@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest'
 import type Database from 'better-sqlite3'
 import { getTestDb } from '../utils/test-db'
 import {
-  clampClock, clusterColor, nearbyLocationIds, nextStoryColor, readQuestMetadata,
-  type FactionAgenda, type Quest, type Questline, type StoryBeat, type StoryBoard, type StoryCluster, type StoryLine, type StoryMap, type StoryMapEdge, type StoryMapNode,
+  clampClock, clusterColor, isArmed, nearbyLocationIds, nextStoryColor, readQuestMetadata,
+  type FactionAgenda, type Quest, type Questline, type StoryBeat, type PlaceKit, type StoryBoard, type StoryCluster, type StoryLine, type StoryMap, type StoryMapEdge, type StoryMapNode,
 } from '../../types/story'
 import { matchSubRoute } from '../../server/utils/subRouter'
 
@@ -353,5 +353,84 @@ describe('story board export / import', () => {
     expect(await story('PATCH', `storylines/${line.id}`, { color: 5 })).toMatchObject({ color: 5, custom_color: null })
     const settings = await story<{ palette: unknown }>('PATCH', 'settings', { campaignId, palette: { custom: ['#112233', 'nope', '#112233'], hidden: [3, 99] } })
     expect(settings.palette).toEqual({ custom: ['#112233'], hidden: [3] })
+  })
+})
+
+describe('place kits', () => {
+  it('builds kits from relations, keeps a note per place, and counts open beats', async () => {
+    const city = entity('Location', 'Vaelrun City')
+    const tavern = entity('Location', 'The Last Round', city)
+    const empty = entity('Location', 'Quiet Lane', city)
+    const lucan = entity('NPC', 'Lucan')
+    const faelan = entity('NPC', 'Faelan')
+    const rel = db.prepare('INSERT INTO entity_relations (from_entity_id, to_entity_id, relation_type) VALUES (?, ?, ?)')
+    rel.run(lucan, tavern, 'owns')
+    rel.run(tavern, faelan, 'worksAt') // stored the other way round
+    rel.run(lucan, city, 'livesIn') // only residents → not a kit on its own
+    await story('POST', 'beats', { campaignId, title: 'Spiked drink', location_id: tavern })
+
+    let kits = await story<PlaceKit[]>('GET', 'places', undefined, { campaignId })
+    expect(kits.map(k => k.name)).toEqual(['The Last Round'])
+    expect(kits[0]!.parent_name).toBe('Vaelrun City')
+    expect(kits[0]!.people.map(p => [p.name, p.role])).toEqual([['Lucan', 'owns'], ['Faelan', 'worksAt']])
+    expect(kits[0]!.live_beats).toBe(1)
+
+    await story('PUT', `places/${empty}`, { campaignId, note: 'Mag feeds the pigeons here' })
+    kits = await story<PlaceKit[]>('GET', 'places', undefined, { campaignId })
+    expect(kits.find(k => k.id === empty)?.note).toBe('Mag feeds the pigeons here')
+    await story('PUT', `places/${empty}`, { campaignId, note: '  ' })
+    kits = await story<PlaceKit[]>('GET', 'places', undefined, { campaignId })
+    expect(kits.some(k => k.id === empty)).toBe(false)
+  })
+})
+
+describe('heat drift, clocks, triggers and champion lines', () => {
+  it('warms touched clusters, cools ones idle two sessions, leaves pinned ones alone', async () => {
+    const mk = (title: string, heat: string) => story<StoryCluster>('POST', 'clusters', { campaignId, title, heat })
+    const touched = await mk('Poked', 'cold')
+    const idle = await mk('Idle', 'hot')
+    const pinned = await mk('Pinned', 'hot')
+    await story('PATCH', `clusters/${pinned.id}`, { heat_pinned: true })
+    await story('POST', 'drift', { campaignId, touched: [touched.id] })
+    let res = await story<{ changes: { id: number, to: string }[] }>('POST', 'drift', { campaignId, touched: [] })
+    const heat = async (id: number) => (await board()).clusters.find(c => c.id === id)!.heat
+    expect(await heat(touched.id)).toBe('warm')
+    expect(await heat(idle.id)).toBe('warm') // two idle sessions → one step cooler
+    expect(await heat(pinned.id)).toBe('hot')
+    expect(res.changes.some(c => c.id === idle.id && c.to === 'warm')).toBe(true)
+    // Editing it counts as touching: the idle count starts over
+    await story('POST', 'drift', { campaignId, touched: [] })
+    await story('PATCH', `clusters/${idle.id}`, { notes: 'worked on it' })
+    res = await story('POST', 'drift', { campaignId, touched: [] })
+    expect(await heat(idle.id)).toBe('warm')
+  })
+
+  it('keeps a clock in range, stores beat triggers, and wakes a rumor quest when a beat is played', async () => {
+    const c = await story<StoryCluster>('POST', 'clusters', { campaignId, title: 'Mirelle notices Henry' })
+    await story('PATCH', `clusters/${c.id}`, { clock_size: 4, clock_filled: 9, clock_label: 'Tells Cassian' })
+    let cl = (await board()).clusters.find(x => x.id === c.id)!
+    expect([cl.clock_size, cl.clock_filled, cl.clock_label]).toEqual([4, 4, 'Tells Cassian'])
+
+    const shop = entity('Location', 'Foxglove & Fennel')
+    const mirelle = entity('NPC', 'Mirelle')
+    const beat = await story<StoryBeat>('POST', 'beats', { campaignId, cluster_id: c.id, title: 'She sees the tattoo', trigger_location_id: shop, trigger_npc_id: mirelle, trigger_note: 'if Henry shows it' })
+    expect([beat.trigger_location_name, beat.trigger_npc_name, beat.trigger_note]).toEqual(['Foxglove & Fennel', 'Mirelle', 'if Henry shows it'])
+    expect(isArmed(beat, new Set([shop]))).toBe(true)
+    expect(isArmed(beat, new Set())).toBe(false)
+
+    const q = await quests<Quest>('POST', '', { campaignId, name: 'The coin', status: 'rumor' })
+    await story('PATCH', `clusters/${c.id}`, { quest_id: q.id })
+    await story('PATCH', `beats/${beat.id}`, { status: 'played' })
+    const meta = JSON.parse((db.prepare('SELECT metadata FROM entities WHERE id = ?').get(q.id) as { metadata: string }).metadata)
+    expect(meta.status).toBe('active')
+    cl = (await board()).clusters.find(x => x.id === c.id)!
+    expect(cl.idle_sessions).toBe(0)
+  })
+
+  it('a storyline can be a champion line for one player', async () => {
+    const henry = entity('Player', 'Henry Kidd')
+    const line = await story<StoryLine>('POST', 'storylines', { campaignId, name: 'The Champion of Umberlee' })
+    const updated = await story<StoryLine>('PATCH', `storylines/${line.id}`, { kind: 'champion', player_id: henry })
+    expect([updated.kind, updated.player_id]).toEqual(['champion', henry])
   })
 })

@@ -24,9 +24,12 @@
         </v-select>
 
         <div class="text-body-small text-medium-emphasis mb-1">{{ $t('story.cluster.heat') }}</div>
-        <v-btn-toggle v-model="form.heat" mandatory density="comfortable" variant="outlined" divided class="mb-3">
-          <v-btn v-for="h in CLUSTER_HEATS" :key="h" :value="h" size="small" :color="heatColor(h)">{{ $t(`story.heat.${h}`) }}</v-btn>
-        </v-btn-toggle>
+        <div class="d-flex align-center flex-wrap ga-3 mb-3">
+          <v-btn-toggle v-model="form.heat" mandatory density="comfortable" variant="outlined" divided>
+            <v-btn v-for="h in CLUSTER_HEATS" :key="h" :value="h" size="small" :color="heatColor(h)">{{ $t(`story.heat.${h}`) }}</v-btn>
+          </v-btn-toggle>
+          <v-switch v-model="form.heat_pinned" :label="$t('story.drift.pin')" color="primary" density="compact" hide-details />
+        </div>
 
         <div class="text-body-small text-medium-emphasis mb-1">{{ $t('story.cluster.status') }}</div>
         <v-btn-toggle v-model="form.status" mandatory density="comfortable" variant="outlined" divided class="mb-4">
@@ -58,12 +61,28 @@
           item-title="name"
           item-value="id"
           :label="$t('story.cluster.quest')"
+          :hint="$t('story.quest.linkHint')"
+          persistent-hint
           prepend-inner-icon="mdi-script-text"
           variant="outlined"
           density="comfortable"
           clearable
           class="mb-3"
         />
+        <!-- Optional progress clock (e.g. "Mirelle tells Cassian") -->
+        <div class="d-flex align-center ga-2 mb-3">
+          <v-select
+            v-model="form.clock_size"
+            :items="clockSizes"
+            :label="$t('story.clock.size')"
+            prepend-inner-icon="mdi-chart-donut"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            class="clock-size"
+          />
+          <v-text-field v-if="form.clock_size" v-model="form.clock_label" :label="$t('story.clock.label')" :placeholder="$t('story.clock.labelPlaceholder')" variant="outlined" density="comfortable" hide-details />
+        </div>
         <v-autocomplete
           v-model:search="quickEntitiesSearch"
           v-model="form.entity_ids"
@@ -110,18 +129,21 @@ const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 const store = useStoryBoardStore()
 const { dockAttrs, dockOutside, dockAccept } = useDockedDialog(620)
 
-interface Form { title: string, storyline_id: number | null, heat: ClusterHeat, status: ClusterStatus, location_id: number | null, quest_id: number | null, notes: string, entity_ids: number[] }
-const form = ref<Form>({ title: '', storyline_id: null, heat: 'warm', status: 'active', location_id: null, quest_id: null, notes: '', entity_ids: [] })
+interface Form { title: string, storyline_id: number | null, heat: ClusterHeat, status: ClusterStatus, location_id: number | null, quest_id: number | null, notes: string, entity_ids: number[], heat_pinned: boolean, clock_size: number | null, clock_label: string }
+const blank = (): Form => ({ title: '', storyline_id: store.storylines[0]?.id ?? null, heat: 'warm', status: 'active', location_id: null, quest_id: null, notes: '', entity_ids: [], heat_pinned: false, clock_size: null, clock_label: '' })
+const form = ref<Form>(blank())
 const saving = ref(false)
 
 watch(() => props.modelValue, (open) => {
   if (!open) return
   const c = props.cluster
   form.value = c
-    ? { title: c.title, storyline_id: c.storyline_id, heat: c.heat, status: c.status, location_id: c.location_id, quest_id: c.quest_id, notes: c.notes ?? '', entity_ids: (c.entities ?? []).map(e => e.id) }
-    : { title: '', storyline_id: store.storylines[0]?.id ?? null, heat: 'warm', status: 'active', location_id: null, quest_id: null, notes: '', entity_ids: [] }
+    ? { title: c.title, storyline_id: c.storyline_id, heat: c.heat, status: c.status, location_id: c.location_id, quest_id: c.quest_id, notes: c.notes ?? '', entity_ids: (c.entities ?? []).map(e => e.id), heat_pinned: !!c.heat_pinned, clock_size: c.clock_size ?? null, clock_label: c.clock_label ?? '' }
+    : blank()
 }, { immediate: true })
 
+const { t } = useI18n()
+const clockSizes = computed(() => [{ title: t('story.clock.none'), value: null }, ...[4, 6, 8].map(n => ({ title: t('story.clock.segments', { n }), value: n }))])
 const storylineOptions = computed(() => store.storylines.map(s => ({ title: s.name, value: s.id, color: s.color })))
 
 async function save() {
@@ -150,6 +172,9 @@ function quickEntitiesCreated(e: { id: number, name: string }) {
 </script>
 
 <style scoped>
+.clock-size {
+  max-width: 180px;
+}
 .swatch {
   display: inline-block;
   width: 14px;

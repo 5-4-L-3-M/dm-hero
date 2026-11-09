@@ -3230,7 +3230,16 @@
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
       "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
-      "reorder": "Drag to reorder"
+      "reorder": "Drag to reorder",
+      "kind": {
+        "world": "World",
+        "champion": "Champion"
+      },
+      "band": {
+        "world": "Main arc",
+        "champion": "Champions"
+      },
+      "player": "Player"
     },
     "cluster": {
       "new": "New cluster",
@@ -3426,6 +3435,74 @@
       "restore": "Restore",
       "put": "Archive",
       "beatCount": "{n} beats"
+    },
+    "wrap": {
+      "open": "Wrap up",
+      "title": "Session wrap",
+      "hint": "Go through the next-session list once. Played beats are logged to the session; anything you leave on \"Next time\" stays in the list.",
+      "newSession": "New session",
+      "played": "Played",
+      "next": "Next time",
+      "cut": "Cut",
+      "what": "What actually happened? (optional, one line)",
+      "summary": "{played} played · {next} next time · {cut} cut",
+      "save": "Save wrap-up",
+      "sessionTitle": "Session {n}",
+      "playedNote": "Played {session}:"
+    },
+    "places": {
+      "title": "Places",
+      "hint": "Who’s where, from your relations, plus a short note per place.",
+      "search": "Search places or people",
+      "empty": "No places with people, notes or open beats yet.",
+      "liveBeats": "Open beats here",
+      "notePlaceholder": "Hooks, under-the-counter items, what to remember at the table",
+      "addNote": "Add note",
+      "editNote": "Edit note"
+    },
+    "done": {
+      "title": "Played & cut ({n})"
+    },
+    "trigger": {
+      "title": "Fires when",
+      "place": "The party is at…",
+      "person": "They meet…",
+      "note": "Or a note",
+      "notePlaceholder": "e.g. three days after the festival",
+      "when": "When",
+      "armed": "Armed now:",
+      "atPlace": "at {place}",
+      "meets": "meets {name}",
+      "onlyArmed": "Only armed"
+    },
+    "drift": {
+      "pin": "Pin heat",
+      "unpin": "Unpin heat",
+      "pinned": "Heat pinned (won’t drift)",
+      "moved": "Heat moved:"
+    },
+    "quest": {
+      "make": "Make it a quest",
+      "linkHint": "What the party knows they’re doing. \"Make it a quest\" in the cluster menu creates one for you."
+    },
+    "clock": {
+      "title": "Clock",
+      "size": "Clock",
+      "none": "No clock",
+      "segments": "{n} segments",
+      "label": "What it counts toward",
+      "labelPlaceholder": "e.g. Mirelle tells Cassian"
+    },
+    "fold": {
+      "more": "{n} more",
+      "less": "Show less"
+    },
+    "focus": {
+      "label": "Focus",
+      "hint": "Only hot clusters, filters tucked away"
+    },
+    "players": {
+      "label": "Players"
     }
   },
   "quests": {

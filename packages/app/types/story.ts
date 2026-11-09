@@ -48,6 +48,9 @@ export interface LinkedEntity {
   image_url?: string | null
 }
 
+export const STORYLINE_KINDS = ['world', 'champion'] as const
+export type StorylineKind = typeof STORYLINE_KINDS[number]
+
 export interface StoryLine {
   id: number
   name: string
@@ -55,6 +58,9 @@ export interface StoryLine {
   /** Own color ("#a03cd8") instead of a theme one */
   custom_color?: string | null
   sort_order: number
+  /** world = the main arc; champion = one player's own line */
+  kind?: StorylineKind
+  player_id?: number | null
 }
 
 export interface StoryCluster {
@@ -74,6 +80,14 @@ export interface StoryCluster {
   /** In the archive: hidden from the board, restore any time */
   archived: boolean
   sort_order: number
+  /** Pinned heat never drifts between sessions */
+  heat_pinned?: boolean
+  /** Sessions in a row nothing in this cluster happened (heat drift) */
+  idle_sessions?: number
+  /** Optional progress clock (null = none) */
+  clock_size?: number | null
+  clock_filled?: number
+  clock_label?: string | null
 }
 
 export interface StoryBeat {
@@ -91,6 +105,12 @@ export interface StoryBeat {
   /** In the archive: hidden from the board and tray, restore any time */
   archived: boolean
   entities: LinkedEntity[]
+  /** Fires when the party is at this place / meets this person / (free text) */
+  trigger_location_id?: number | null
+  trigger_location_name?: string | null
+  trigger_npc_id?: number | null
+  trigger_npc_name?: string | null
+  trigger_note?: string | null
 }
 
 export interface StoryBoardSettings {
@@ -120,6 +140,16 @@ export interface Questline {
   optional: boolean
   notes: string | null
   sort_order: number
+}
+
+/** A place kit: who's at a location (from relations), its table note, and live beats there. */
+export interface PlaceKit {
+  id: number
+  name: string
+  parent_name: string | null
+  note: string | null
+  people: Array<{ id: number, name: string, role: string }>
+  live_beats: number
 }
 
 export interface StoryBoard {
@@ -371,4 +401,9 @@ export interface StoryMapEdge {
 export interface StoryMap {
   nodes: StoryMapNode[]
   edges: StoryMapEdge[]
+}
+
+/** A beat is armed when it's still open and the party is at (or near) its trigger place. */
+export function isArmed(beat: Pick<StoryBeat, 'status' | 'trigger_location_id'>, nearby: Set<number>): boolean {
+  return !!beat.trigger_location_id && (beat.status === 'idea' || beat.status === 'ready') && nearby.has(beat.trigger_location_id)
 }
