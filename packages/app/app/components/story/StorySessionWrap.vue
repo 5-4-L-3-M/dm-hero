@@ -64,7 +64,7 @@ import { BEAT_KIND_ICONS, type StoryBeat } from '~~/types/story'
  * Next time → stays in the tray, Cut → out of the tray, marked cut.
  */
 const props = defineProps<{ modelValue: boolean }>()
-const emit = defineEmits<{ 'update:modelValue': [open: boolean] }>()
+const emit = defineEmits<{ 'update:modelValue': [open: boolean], 'drifted': [summary: string] }>()
 
 type Choice = 'played' | 'next' | 'cut'
 type SessionRow = Record<string, unknown> & { id: number, session_number: number | null, title: string, notes: string | null }
@@ -145,6 +145,10 @@ async function save() {
       const { id, ...rest } = session
       await $fetch(`/api/sessions/${id}`, { method: 'PATCH', body: { ...rest, notes: session.notes ? `${session.notes}\n\n${block}` : block } })
     }
+    // Heat drift: what the party touched warms up, what sat idle two sessions cools
+    const touched = [...new Set(beats.value.filter(b => choice.value[b.id] === 'played' && b.cluster_id).map(b => b.cluster_id!))]
+    const changes = await store.drift(touched)
+    if (changes.length) emit('drifted', changes.map(c => `${c.title}: ${t(`story.heat.${c.to}`)}`).join(' · '))
     emit('update:modelValue', false)
   }
   finally {

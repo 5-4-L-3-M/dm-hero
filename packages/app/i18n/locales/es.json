@@ -3230,7 +3230,16 @@
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
       "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
-      "reorder": "Arrastra para reordenar"
+      "reorder": "Arrastra para reordenar",
+      "kind": {
+        "world": "Mundo",
+        "champion": "Campeón"
+      },
+      "band": {
+        "world": "Arco principal",
+        "champion": "Campeones"
+      },
+      "player": "Jugador"
     },
     "cluster": {
       "new": "New cluster",
@@ -3453,6 +3462,47 @@
     },
     "done": {
       "title": "Jugados y descartados ({n})"
+    },
+    "trigger": {
+      "title": "Se activa cuando",
+      "place": "El grupo está en…",
+      "person": "Conocen a…",
+      "note": "O una nota",
+      "notePlaceholder": "p. ej. tres días después del festival",
+      "when": "Cuando",
+      "armed": "Activo ahora:",
+      "atPlace": "en {place}",
+      "meets": "conoce a {name}",
+      "onlyArmed": "Solo activos"
+    },
+    "drift": {
+      "pin": "Fijar calor",
+      "unpin": "Soltar calor",
+      "pinned": "Calor fijado (no cambia)",
+      "moved": "El calor cambió:"
+    },
+    "quest": {
+      "make": "Convertir en misión",
+      "linkHint": "Lo que el grupo sabe que está haciendo. «Convertir en misión» en el menú del grupo crea una."
+    },
+    "clock": {
+      "title": "Reloj",
+      "size": "Reloj",
+      "none": "Sin reloj",
+      "segments": "{n} segmentos",
+      "label": "Hacia qué avanza",
+      "labelPlaceholder": "p. ej. Mirelle se lo dice a Cassian"
+    },
+    "fold": {
+      "more": "{n} más",
+      "less": "Mostrar menos"
+    },
+    "focus": {
+      "label": "Foco",
+      "hint": "Solo grupos calientes, filtros ocultos"
+    },
+    "players": {
+      "label": "Jugadores"
     }
   },
   "quests": {

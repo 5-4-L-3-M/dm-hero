@@ -99,7 +99,7 @@ export function getSettings(db: Database.Database, campaignId: number): StoryBoa
 }
 
 export function loadStorylines(db: Database.Database, campaignId: number): StoryLine[] {
-  return db.prepare('SELECT id, name, color, custom_color, sort_order FROM story_lines WHERE campaign_id = ? ORDER BY sort_order, id').all(campaignId) as StoryLine[]
+  return db.prepare('SELECT id, name, color, custom_color, sort_order, kind, player_id FROM story_lines WHERE campaign_id = ? ORDER BY sort_order, id').all(campaignId) as StoryLine[]
 }
 
 /** The whole board in one go: settings, storylines, clusters, beats with links. */
@@ -111,8 +111,8 @@ export function loadBoard(db: Database.Database, campaignId: number): StoryBoard
     LEFT JOIN entities q ON q.id = c.quest_id AND q.deleted_at IS NULL
     WHERE c.campaign_id = ?
     ORDER BY c.sort_order, c.id
-  `).all(campaignId) as Array<Omit<StoryCluster, 'collapsed' | 'archived'> & { collapsed: number, archived_at: string | null, campaign_id?: number, created_at?: string, updated_at?: string }>)
-    .map(({ campaign_id: _c, created_at: _a, updated_at: _u, archived_at, ...c }): StoryCluster => ({ ...c, entities: [], collapsed: !!c.collapsed, archived: !!archived_at, quest_id: c.quest_name ? c.quest_id : null }))
+  `).all(campaignId) as Array<Omit<StoryCluster, 'collapsed' | 'archived' | 'heat_pinned'> & { collapsed: number, heat_pinned: number, archived_at: string | null, campaign_id?: number, created_at?: string, updated_at?: string }>)
+    .map(({ campaign_id: _c, created_at: _a, updated_at: _u, archived_at, ...c }): StoryCluster => ({ ...c, entities: [], collapsed: !!c.collapsed, heat_pinned: !!c.heat_pinned, archived: !!archived_at, quest_id: c.quest_name ? c.quest_id : null }))
 
   const clusterLinks = db.prepare(`
     SELECT ce.cluster_id, e.id, e.name, et.name AS type
@@ -139,9 +139,12 @@ export function loadBoard(db: Database.Database, campaignId: number): StoryBoard
 
   const beats = (db.prepare(`
     SELECT b.id, b.cluster_id, b.title, b.body, b.kind, b.status, b.location_id, l.name AS location_name,
-           b.sort_order, b.tray_order, b.played_session_id, b.archived_at
+           b.sort_order, b.tray_order, b.played_session_id, b.archived_at,
+           b.trigger_location_id, tl.name AS trigger_location_name, b.trigger_npc_id, tn.name AS trigger_npc_name, b.trigger_note
     FROM story_beats b
     LEFT JOIN entities l ON l.id = b.location_id AND l.deleted_at IS NULL
+    LEFT JOIN entities tl ON tl.id = b.trigger_location_id AND tl.deleted_at IS NULL
+    LEFT JOIN entities tn ON tn.id = b.trigger_npc_id AND tn.deleted_at IS NULL
     WHERE b.campaign_id = ?
     ORDER BY b.sort_order, b.id
   `).all(campaignId) as Array<Omit<StoryBeat, 'entities' | 'archived'> & { archived_at: string | null }>).map(({ archived_at, ...b }) => ({

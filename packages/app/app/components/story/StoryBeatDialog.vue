@@ -100,6 +100,43 @@
             />
           </v-col>
         </v-row>
+        <!-- Fires when: the board marks it "armed" once the party is at (or near) the place -->
+        <div class="text-body-small text-medium-emphasis mt-4 mb-2 d-flex align-center ga-1">
+          <v-icon size="small" color="warning">mdi-lightning-bolt</v-icon>{{ $t('story.trigger.title') }}
+        </div>
+        <v-row dense>
+          <v-col cols="12" sm="6">
+            <v-autocomplete
+              v-model="form.trigger_location_id"
+              :items="store.locations"
+              item-title="name"
+              item-value="id"
+              :label="$t('story.trigger.place')"
+              prepend-inner-icon="mdi-map-marker"
+              variant="outlined"
+              density="comfortable"
+              clearable
+              hide-details
+            />
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-autocomplete
+              v-model="form.trigger_npc_id"
+              :items="npcs"
+              item-title="name"
+              item-value="id"
+              :label="$t('story.trigger.person')"
+              prepend-inner-icon="mdi-account"
+              variant="outlined"
+              density="comfortable"
+              clearable
+              hide-details
+            />
+          </v-col>
+          <v-col cols="12">
+            <v-text-field v-model="form.trigger_note" :label="$t('story.trigger.note')" :placeholder="$t('story.trigger.notePlaceholder')" variant="outlined" density="comfortable" hide-details />
+          </v-col>
+        </v-row>
       </v-card-text>
       <v-card-actions>
         <v-btn v-if="beat" color="error" variant="text" prepend-icon="mdi-delete" @click="remove">{{ $t('common.delete') }}</v-btn>
@@ -135,8 +172,11 @@ interface Form {
   entity_ids: number[]
   in_tray: boolean
   played_session_id: number | null
+  trigger_location_id: number | null
+  trigger_npc_id: number | null
+  trigger_note: string
 }
-const empty = (): Form => ({ title: '', body: '', kind: 'scene', status: 'idea', cluster_id: props.defaultClusterId ?? null, location_id: null, entity_ids: [], in_tray: false, played_session_id: null })
+const empty = (): Form => ({ title: '', body: '', kind: 'scene', status: 'idea', cluster_id: props.defaultClusterId ?? null, location_id: null, entity_ids: [], in_tray: false, played_session_id: null, trigger_location_id: null, trigger_npc_id: null, trigger_note: '' })
 const form = ref<Form>(empty())
 const saving = ref(false)
 const sessions = ref<{ id: number, session_number: number | null, title: string }[]>([])
@@ -153,7 +193,7 @@ watch(() => props.modelValue, async (open) => {
   if (!open) return
   const b = props.beat
   form.value = b
-    ? { title: b.title, body: b.body ?? '', kind: b.kind, status: b.status, cluster_id: b.cluster_id, location_id: b.location_id, entity_ids: b.entities.map(e => e.id), in_tray: b.tray_order !== null, played_session_id: b.played_session_id }
+    ? { title: b.title, body: b.body ?? '', kind: b.kind, status: b.status, cluster_id: b.cluster_id, location_id: b.location_id, entity_ids: b.entities.map(e => e.id), in_tray: b.tray_order !== null, played_session_id: b.played_session_id, trigger_location_id: b.trigger_location_id ?? null, trigger_npc_id: b.trigger_npc_id ?? null, trigger_note: b.trigger_note ?? '' }
     : { ...empty(), entity_ids: clusterDefaults(props.defaultClusterId ?? null) }
   if (store.campaignId) {
     sessions.value = await $fetch<typeof sessions.value>('/api/sessions', { query: { campaignId: store.campaignId } }).catch(() => [])
@@ -174,6 +214,7 @@ const clusterOptions = computed(() => [
 ])
 const sessionOptions = computed(() => sessions.value.map(s => ({ title: s.session_number ? `#${s.session_number} ${s.title}` : s.title, value: s.id })))
 const linkable = computed(() => store.entities)
+const npcs = computed(() => store.entities.filter(e => e.type === 'NPC'))
 
 function iconFor(type: string) {
   const p = toPreviewType(type)

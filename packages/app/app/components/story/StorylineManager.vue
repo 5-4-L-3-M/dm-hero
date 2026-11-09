@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :model-value="modelValue" max-width="600" scrollable @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog :model-value="modelValue" max-width="760" scrollable @update:model-value="$emit('update:modelValue', $event)">
     <v-card>
       <v-card-title>{{ $t('story.storyline.manage') }}</v-card-title>
       <v-card-subtitle class="text-wrap">{{ $t('story.storyline.manageHint') }}</v-card-subtitle>
@@ -48,6 +48,31 @@
                 density="compact"
                 hide-details
                 @change="(e: Event) => store.updateStoryline(line.id, { name: (e.target as HTMLInputElement).value })"
+              />
+              <!-- World arc or one player's champion line -->
+              <v-btn
+                size="small"
+                variant="tonal"
+                :color="line.kind === 'champion' ? 'warning' : undefined"
+                :prepend-icon="line.kind === 'champion' ? 'mdi-shield-crown' : 'mdi-earth'"
+                class="text-none kind-btn"
+                @click="store.updateStoryline(line.id, { kind: line.kind === 'champion' ? 'world' : 'champion' })"
+              >
+                {{ $t(`story.storyline.kind.${line.kind ?? 'world'}`) }}
+              </v-btn>
+              <v-select
+                v-if="line.kind === 'champion'"
+                :model-value="line.player_id ?? null"
+                :items="players"
+                item-title="name"
+                item-value="id"
+                :placeholder="$t('story.storyline.player')"
+                variant="outlined"
+                density="compact"
+                hide-details
+                clearable
+                class="player-pick"
+                @update:model-value="store.updateStoryline(line.id, { player_id: $event ?? null })"
               />
               <v-btn icon="mdi-delete" variant="text" size="small" color="error" :aria-label="$t('common.delete')" @click="store.deleteStoryline(line.id)" />
             </div>
@@ -110,6 +135,7 @@ defineProps<{ modelValue: boolean }>()
 defineEmits<{ 'update:modelValue': [value: boolean] }>()
 
 const store = useStoryBoardStore()
+const players = computed(() => store.entities.filter(e => e.type === 'Player'))
 const newName = ref('')
 const draftColor = ref<Record<number, string>>({})
 const newPreset = ref('#8a5cf6')
@@ -177,6 +203,12 @@ async function add() {
 </script>
 
 <style scoped>
+.kind-btn {
+  flex: 0 0 auto;
+}
+.player-pick {
+  max-width: 170px;
+}
 .swatch {
   width: 26px;
   height: 26px;

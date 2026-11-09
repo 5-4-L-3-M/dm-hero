@@ -44,6 +44,7 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     tray(): StoryBeat[] {
       return this.beats.filter(b => b.tray_order !== null).sort((a, b) => a.tray_order! - b.tray_order!)
     },
+    players: (s): LinkedEntity[] => s.entities.filter(e => e.type === 'Player'),
     nearby(): Set<number> {
       return nearbyLocationIds(this.settings.party_location_id, this.locations)
     },
@@ -236,6 +237,12 @@ export const useStoryBoardStore = defineStore('storyBoard', {
     },
 
     // --- quests ----------------------------------------------------------
+    /** Once per session: clusters something happened in warm up, idle ones cool after two sessions */
+    async drift(touched: number[]) {
+      const res = await $fetch<{ changes: Array<{ id: number, title: string, from: string, to: string }> }>('/api/story/drift', { method: 'POST', body: { campaignId: this.campaignId, touched } })
+      await this.reload()
+      return res.changes
+    },
     async loadQuests() {
       if (!this.campaignId) return
       this.quests = await $fetch<Quest[]>('/api/quests', { query: { campaignId: this.campaignId } })

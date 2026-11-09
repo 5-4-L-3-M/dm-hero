@@ -65,6 +65,24 @@ export default defineEventHandler(async (event) => {
       row.id,
     )
     if (has('entity_ids')) setBeatEntities(db, campaignId, row.id, body.entity_ids)
+    if (has('trigger_location_id')) db.prepare('UPDATE story_beats SET trigger_location_id = ? WHERE id = ?').run(entityInCampaign(db, campaignId, body.trigger_location_id, 'Location'), row.id)
+    if (has('trigger_npc_id')) db.prepare('UPDATE story_beats SET trigger_npc_id = ? WHERE id = ?').run(entityInCampaign(db, campaignId, body.trigger_npc_id), row.id)
+    if (has('trigger_note')) db.prepare('UPDATE story_beats SET trigger_note = ? WHERE id = ?').run(typeof body.trigger_note === 'string' && body.trigger_note.trim() ? body.trigger_note.trim() : null, row.id)
+    // Something in the cluster happened: its heat drift starts over, and a rumor quest on it becomes active
+    if (status === 'played' && b.status !== 'played' && clusterId) {
+      db.prepare('UPDATE story_clusters SET idle_sessions = 0 WHERE id = ?').run(clusterId)
+      const q = db.prepare('SELECT e.id, e.metadata FROM story_clusters c JOIN entities e ON e.id = c.quest_id AND e.deleted_at IS NULL WHERE c.id = ?').get(clusterId) as { id: number, metadata: string | null } | undefined
+      if (q) {
+        let m: Record<string, unknown> = {}
+        try {
+          m = q.metadata ? JSON.parse(q.metadata) ?? {} : {}
+        }
+        catch {
+          m = {}
+        }
+        if (!m.status || m.status === 'rumor') db.prepare('UPDATE entities SET metadata = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify({ ...m, status: 'active' }), q.id)
+      }
+    }
     // Archive / restore (archived beats leave the next-session tray)
     if (has('archived')) {
       db.prepare(`UPDATE story_beats SET archived_at = ${body.archived ? 'CURRENT_TIMESTAMP' : 'NULL'}${body.archived ? ', tray_order = NULL' : ''} WHERE id = ?`).run(row.id)

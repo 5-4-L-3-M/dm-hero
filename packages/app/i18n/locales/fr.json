@@ -3230,7 +3230,16 @@
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
       "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
-      "reorder": "Glisser pour réordonner"
+      "reorder": "Glisser pour réordonner",
+      "kind": {
+        "world": "Monde",
+        "champion": "Champion"
+      },
+      "band": {
+        "world": "Arc principal",
+        "champion": "Champions"
+      },
+      "player": "Joueur"
     },
     "cluster": {
       "new": "New cluster",
@@ -3453,6 +3462,47 @@
     },
     "done": {
       "title": "Joués et coupés ({n})"
+    },
+    "trigger": {
+      "title": "Se déclenche quand",
+      "place": "Le groupe est à…",
+      "person": "Ils rencontrent…",
+      "note": "Ou une note",
+      "notePlaceholder": "p. ex. trois jours après la fête",
+      "when": "Quand",
+      "armed": "Armé :",
+      "atPlace": "à {place}",
+      "meets": "rencontre {name}",
+      "onlyArmed": "Seulement armés"
+    },
+    "drift": {
+      "pin": "Épingler la chaleur",
+      "unpin": "Désépingler",
+      "pinned": "Chaleur épinglée (ne bouge pas)",
+      "moved": "Chaleur modifiée :"
+    },
+    "quest": {
+      "make": "En faire une quête",
+      "linkHint": "Ce que le groupe sait qu’il fait. « En faire une quête » dans le menu du groupe en crée une."
+    },
+    "clock": {
+      "title": "Horloge",
+      "size": "Horloge",
+      "none": "Pas d’horloge",
+      "segments": "{n} segments",
+      "label": "Vers quoi elle avance",
+      "labelPlaceholder": "p. ex. Mirelle le dit à Cassian"
+    },
+    "fold": {
+      "more": "{n} de plus",
+      "less": "Moins"
+    },
+    "focus": {
+      "label": "Focus",
+      "hint": "Seulement les groupes chauds, filtres repliés"
+    },
+    "players": {
+      "label": "Joueurs"
     }
   },
   "quests": {

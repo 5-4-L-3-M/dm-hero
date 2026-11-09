@@ -3507,6 +3507,51 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 84: Story place kits')
     },
   },
+  {
+    version: 85,
+    name: 'story_board_cleanup',
+    up: (db) => {
+      const cols = (t: string) => (db.prepare(`PRAGMA table_info(${t})`).all() as { name: string }[]).map(c => c.name)
+      const add = (t: string, col: string, def: string) => {
+        if (!cols(t).includes(col)) db.exec(`ALTER TABLE ${t} ADD COLUMN ${col} ${def}`)
+      }
+      // Storylines: world arc or one player's champion line
+      add('story_lines', 'kind', "TEXT NOT NULL DEFAULT 'world'")
+      add('story_lines', 'player_id', 'INTEGER REFERENCES entities(id) ON DELETE SET NULL')
+      // Clusters: heat that drifts between sessions (unless pinned), and an optional progress clock
+      add('story_clusters', 'heat_pinned', 'INTEGER NOT NULL DEFAULT 0')
+      add('story_clusters', 'idle_sessions', 'INTEGER NOT NULL DEFAULT 0')
+      add('story_clusters', 'clock_size', 'INTEGER')
+      add('story_clusters', 'clock_filled', 'INTEGER NOT NULL DEFAULT 0')
+      add('story_clusters', 'clock_label', 'TEXT')
+      // Beats: what makes them fire
+      add('story_beats', 'trigger_location_id', 'INTEGER REFERENCES entities(id) ON DELETE SET NULL')
+      add('story_beats', 'trigger_npc_id', 'INTEGER REFERENCES entities(id) ON DELETE SET NULL')
+      add('story_beats', 'trigger_note', 'TEXT')
+
+      // "The Champion of X" storylines become champion lines, matched to the player whose patron is X
+      const lines = db.prepare("SELECT id, campaign_id, name FROM story_lines WHERE name LIKE 'The Champion of %'").all() as { id: number, campaign_id: number, name: string }[]
+      const players = db.prepare(`
+        SELECT e.id, e.campaign_id, e.metadata FROM entities e JOIN entity_types et ON et.id = e.type_id AND et.name = 'Player'
+        WHERE e.deleted_at IS NULL
+      `).all() as { id: number, campaign_id: number, metadata: string | null }[]
+      const patron = (m: string | null) => {
+        try {
+          return String((m ? JSON.parse(m) : {})?.patron ?? '').toLowerCase()
+        }
+        catch {
+          return ''
+        }
+      }
+      const set = db.prepare("UPDATE story_lines SET kind = 'champion', player_id = ? WHERE id = ?")
+      for (const l of lines) {
+        const god = l.name.slice('The Champion of '.length).replace(/^the /i, '').toLowerCase().trim()
+        const p = players.find(x => x.campaign_id === l.campaign_id && god && patron(x.metadata).includes(god))
+        set.run(p?.id ?? null, l.id)
+      }
+      console.log('✅ Migration 85: Story board cleanup (champion lines, heat drift, clocks, triggers)')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {

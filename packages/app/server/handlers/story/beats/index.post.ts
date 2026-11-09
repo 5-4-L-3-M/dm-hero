@@ -35,6 +35,12 @@ export default defineEventHandler(async (event) => {
     // No entries sent (quick add) → start with the cluster's entries and its quest's involved ones
     const ids = Array.isArray(body.entity_ids) ? body.entity_ids : (clusterId ? clusterDefaultEntityIds(db, clusterId) : [])
     setBeatEntities(db, campaignId, beatId, ids)
+    db.prepare('UPDATE story_beats SET trigger_location_id = ?, trigger_npc_id = ?, trigger_note = ? WHERE id = ?').run(
+      entityInCampaign(db, campaignId, body.trigger_location_id, 'Location'),
+      entityInCampaign(db, campaignId, body.trigger_npc_id),
+      typeof body.trigger_note === 'string' && body.trigger_note.trim() ? body.trigger_note.trim() : null,
+      beatId,
+    )
     return beatId
   })()
   return loadBeat(db, id)

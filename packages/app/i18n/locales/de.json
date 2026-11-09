@@ -3230,7 +3230,16 @@
       "hidePreset": "Diese Vorgabe ausblenden",
       "showPreset": "Wieder zeigen",
       "presetsHint": "Theme-Farben lassen sich ausblenden (und zurückholen); eigene Farben lassen sich löschen.",
-      "reorder": "Zum Umsortieren ziehen"
+      "reorder": "Zum Umsortieren ziehen",
+      "kind": {
+        "world": "Welt",
+        "champion": "Champion"
+      },
+      "band": {
+        "world": "Hauptbogen",
+        "champion": "Champions"
+      },
+      "player": "Spieler"
     },
     "cluster": {
       "new": "Neuer Cluster",
@@ -3453,6 +3462,47 @@
     },
     "done": {
       "title": "Gespielt & gestrichen ({n})"
+    },
+    "trigger": {
+      "title": "Löst aus, wenn",
+      "place": "Die Gruppe ist in…",
+      "person": "Sie treffen…",
+      "note": "Oder eine Notiz",
+      "notePlaceholder": "z. B. drei Tage nach dem Fest",
+      "when": "Wenn",
+      "armed": "Jetzt scharf:",
+      "atPlace": "in {place}",
+      "meets": "trifft {name}",
+      "onlyArmed": "Nur scharfe"
+    },
+    "drift": {
+      "pin": "Hitze festhalten",
+      "unpin": "Hitze lösen",
+      "pinned": "Hitze festgehalten (verändert sich nicht)",
+      "moved": "Hitze geändert:"
+    },
+    "quest": {
+      "make": "Quest daraus machen",
+      "linkHint": "Was die Gruppe weiß, dass sie tut. „Quest daraus machen\" im Cluster-Menü legt eine an."
+    },
+    "clock": {
+      "title": "Uhr",
+      "size": "Uhr",
+      "none": "Keine Uhr",
+      "segments": "{n} Segmente",
+      "label": "Worauf sie zuläuft",
+      "labelPlaceholder": "z. B. Mirelle sagt es Cassian"
+    },
+    "fold": {
+      "more": "{n} weitere",
+      "less": "Weniger"
+    },
+    "focus": {
+      "label": "Fokus",
+      "hint": "Nur heiße Cluster, Filter eingeklappt"
+    },
+    "players": {
+      "label": "Spieler"
     }
   },
   "quests": {

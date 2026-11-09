@@ -27,6 +27,9 @@
       >
         {{ cluster.title }}
       </span>
+      <span v-if="cluster.clock_size" class="mr-1 d-inline-flex" :title="cluster.clock_label || $t('story.clock.title')">
+        <ClockDial :size="cluster.clock_size" :filled="cluster.clock_filled ?? 0" :diameter="26" color="warning" @update:filled="store.updateCluster(cluster.id, { clock_filled: $event })" />
+      </span>
       <v-chip size="x-small" variant="tonal" class="mr-1" :title="$t('story.cluster.progress')">
         {{ playedCount }}/{{ beats.length }}
       </v-chip>
@@ -42,6 +45,12 @@
             :title="inTray ? $t('story.map.outOfNext') : $t('story.map.intoNext')"
             @click="store.clusterToTray(cluster.id, !inTray)"
           />
+          <v-list-item
+            :prepend-icon="cluster.heat_pinned ? 'mdi-pin-off' : 'mdi-pin'"
+            :title="cluster.heat_pinned ? $t('story.drift.unpin') : $t('story.drift.pin')"
+            @click="store.updateCluster(cluster.id, { heat_pinned: !cluster.heat_pinned })"
+          />
+          <v-list-item v-if="!cluster.quest_id" prepend-icon="mdi-script-text-outline" :title="$t('story.quest.make')" @click="makeQuest" />
           <v-list-item prepend-icon="mdi-archive-arrow-down-outline" :title="$t('story.archive.put')" @click="store.updateCluster(cluster.id, { archived: true })" />
           <v-list-item prepend-icon="mdi-delete" base-color="error" :title="$t('common.delete')" @click="$emit('delete', cluster)" />
         </v-list>
@@ -53,6 +62,7 @@
       <v-chip v-if="storyline" size="x-small" :color="storylineColor(storyline)" variant="flat">{{ storyline.name }}</v-chip>
       <v-chip size="x-small" :color="heatColor(cluster.heat)" variant="tonal">
         <v-icon start size="x-small">{{ HEAT_ICONS[cluster.heat] }}</v-icon>{{ $t(`story.heat.${cluster.heat}`) }}
+        <v-icon v-if="cluster.heat_pinned" end size="x-small" :title="$t('story.drift.pinned')">mdi-pin</v-icon>
       </v-chip>
       <v-chip v-if="cluster.status !== 'active'" size="x-small" variant="tonal">{{ $t(`story.clusterStatus.${cluster.status}`) }}</v-chip>
       <v-chip v-if="cluster.location_name" size="x-small" variant="tonal" color="green">
@@ -80,12 +90,17 @@
       <div v-show="compact ? peek : !cluster.collapsed" class="px-2 pb-2">
         <div v-if="cluster.notes" class="text-body-small text-medium-emphasis px-2 pb-2 cluster-notes">{{ cluster.notes }}</div>
         <StoryBeatList
-          :beats="liveBeats"
+          :beats="shownLive"
           :cluster-id="cluster.id"
           :empty-text="$t('story.cluster.dropHere')"
           @edit="$emit('edit-beat', $event)"
           @toggle-tray="$emit('toggle-tray', $event)"
         />
+        <!-- Only the next few beats show; the rest wait one click away -->
+        <button v-if="hiddenLive" type="button" class="more" :aria-expanded="moreOpen" @click="toggleMore">
+          <v-icon size="x-small">{{ moreOpen ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+          {{ moreOpen ? $t('story.fold.less') : $t('story.fold.more', { n: hiddenLive }) }}
+        </button>
         <!-- Played & cut: folded away at the bottom, one click to put a beat back -->
         <div v-if="doneBeats.length" class="done">
           <button type="button" class="done__toggle" :aria-expanded="doneOpen" @click="toggleDone">
@@ -118,6 +133,7 @@
 
 <script setup lang="ts">
 import StoryBeatList from './StoryBeatList.vue'
+import ClockDial from './ClockDial.vue'
 import { colorCss, heatColor, storylineColor, type ClusterHeat, type StoryBeat, type StoryCluster } from '~~/types/story'
 
 /** A folding cluster of beats, color-coded by the board's color-by parameter. */
@@ -140,11 +156,26 @@ const visibleBeats = computed(() => (props.statuses ? beats.value.filter(b => pr
 const isDone = (b: StoryBeat) => b.status === 'played' || b.status === 'cut'
 const liveBeats = computed(() => visibleBeats.value.filter(b => !isDone(b)))
 const doneBeats = computed(() => visibleBeats.value.filter(isDone))
+/** Show the next two live beats; fold the rest when there are more than three */
+const FOLD_AT = 2
+const moreIds = useStoryPref<number[]>('moreOpen', [])
+const moreOpen = computed(() => moreIds.value.includes(cluster.value.id))
+const hiddenLive = computed(() => (liveBeats.value.length > FOLD_AT + 1 && !moreOpen.value ? liveBeats.value.length - FOLD_AT : (moreOpen.value && liveBeats.value.length > FOLD_AT + 1 ? -1 : 0)))
+const shownLive = computed(() => (hiddenLive.value > 0 ? liveBeats.value.slice(0, FOLD_AT) : liveBeats.value))
+function toggleMore() {
+  const id = cluster.value.id
+  moreIds.value = moreOpen.value ? moreIds.value.filter(x => x !== id) : [...moreIds.value, id]
+}
 const doneOpenIds = useStoryPref<number[]>('doneOpen', [])
 const doneOpen = computed(() => doneOpenIds.value.includes(cluster.value.id))
 function toggleDone() {
   const id = cluster.value.id
   doneOpenIds.value = doneOpen.value ? doneOpenIds.value.filter(x => x !== id) : [...doneOpenIds.value, id]
+}
+/** The party now knows about this thread: make a quest for it (a rumor until something here is played) */
+async function makeQuest() {
+  const q = await store.saveQuest(null, { name: cluster.value.title, description: cluster.value.notes, status: 'rumor' })
+  await store.updateCluster(cluster.value.id, { quest_id: q.id })
 }
 async function restore(b: StoryBeat) {
   await store.updateBeat(b.id, { status: 'ready', played_session_id: null })
@@ -193,6 +224,17 @@ async function addBeat() {
 }
 .cluster-title {
   cursor: pointer;
+}
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 0;
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 2px 8px;
 }
 .done {
   margin-top: 4px;

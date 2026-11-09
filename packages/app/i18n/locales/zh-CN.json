@@ -3230,7 +3230,16 @@
       "hidePreset": "Hide this preset",
       "showPreset": "Show it again",
       "presetsHint": "Theme colors can be hidden (and brought back); your own colors can be deleted.",
-      "reorder": "拖动以排序"
+      "reorder": "拖动以排序",
+      "kind": {
+        "world": "世界",
+        "champion": "勇士"
+      },
+      "band": {
+        "world": "主线",
+        "champion": "勇士线"
+      },
+      "player": "玩家"
     },
     "cluster": {
       "new": "New cluster",
@@ -3453,6 +3462,47 @@
     },
     "done": {
       "title": "已进行和已删除（{n}）"
+    },
+    "trigger": {
+      "title": "触发条件",
+      "place": "队伍到达…",
+      "person": "他们遇到…",
+      "note": "或备注",
+      "notePlaceholder": "例如：节日后三天",
+      "when": "当",
+      "armed": "已就绪：",
+      "atPlace": "在 {place}",
+      "meets": "遇到 {name}",
+      "onlyArmed": "仅显示就绪"
+    },
+    "drift": {
+      "pin": "固定热度",
+      "unpin": "取消固定",
+      "pinned": "热度已固定（不会变化）",
+      "moved": "热度变化："
+    },
+    "quest": {
+      "make": "设为任务",
+      "linkHint": "队伍知道自己在做的事。在集群菜单中点“设为任务”即可创建。"
+    },
+    "clock": {
+      "title": "进度钟",
+      "size": "进度钟",
+      "none": "无进度钟",
+      "segments": "{n} 格",
+      "label": "倒计时目标",
+      "labelPlaceholder": "例如：Mirelle 告诉 Cassian"
+    },
+    "fold": {
+      "more": "还有 {n} 个",
+      "less": "收起"
+    },
+    "focus": {
+      "label": "专注",
+      "hint": "只显示火热的集群，筛选收起"
+    },
+    "players": {
+      "label": "玩家"
     }
   },
   "quests": {

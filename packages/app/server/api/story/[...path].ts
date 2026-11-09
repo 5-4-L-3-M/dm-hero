@@ -20,6 +20,7 @@ import agendaList from '../../handlers/story/agendas/index.get'
 import agendaCreate from '../../handlers/story/agendas/index.post'
 import agendaUpdate from '../../handlers/story/agendas/[id].patch'
 import agendaDelete from '../../handlers/story/agendas/[id].delete'
+import drift from '../../handlers/story/drift.post'
 import placeList from '../../handlers/story/places/index.get'
 import placeNote from '../../handlers/story/places/[id].put'
 
@@ -45,6 +46,7 @@ const routes: SubRoutes = {
   'map/edges/:id': { PATCH: storyMap.updateEdge, DELETE: storyMap.removeEdge },
   'agendas': { GET: agendaList, POST: agendaCreate },
   'agendas/:id': { PATCH: agendaUpdate, DELETE: agendaDelete },
+  'drift': { POST: drift },
   'places': { GET: placeList },
   'places/:id': { PUT: placeNote },
 }

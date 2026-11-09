@@ -25,6 +25,17 @@ export default defineEventHandler(async (event) => {
     has('sort_order') ? Number(body.sort_order) || 0 : c.sort_order,
     row.id,
   )
+  // Pin / clock
+  if (has('heat_pinned')) db.prepare('UPDATE story_clusters SET heat_pinned = ? WHERE id = ?').run(body.heat_pinned ? 1 : 0, row.id)
+  if (has('clock_size')) {
+    const size = Number(body.clock_size)
+    const clock = Number.isFinite(size) && size >= 2 ? Math.min(12, Math.round(size)) : null
+    db.prepare('UPDATE story_clusters SET clock_size = ?, clock_filled = MIN(clock_filled, COALESCE(?, 0)) WHERE id = ?').run(clock, clock, row.id)
+  }
+  if (has('clock_filled')) db.prepare('UPDATE story_clusters SET clock_filled = MAX(0, MIN(?, COALESCE(clock_size, 0))) WHERE id = ?').run(Number(body.clock_filled) || 0, row.id)
+  if (has('clock_label')) db.prepare('UPDATE story_clusters SET clock_label = ? WHERE id = ?').run(typeof body.clock_label === 'string' && body.clock_label.trim() ? body.clock_label.trim() : null, row.id)
+  // Working on a cluster counts as touching it: its heat drift starts over
+  if (['title', 'notes', 'heat', 'status', 'clock_filled'].some(has)) db.prepare('UPDATE story_clusters SET idle_sessions = 0 WHERE id = ?').run(row.id)
   if (has('entity_ids')) setClusterEntities(db, row.campaign_id, row.id, body.entity_ids)
   // The whole cluster into (or out of) the next-session tray: every beat not played, cut or archived
   if (has('in_tray')) {

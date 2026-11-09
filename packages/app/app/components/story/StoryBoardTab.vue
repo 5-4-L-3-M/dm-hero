@@ -77,6 +77,7 @@
           hide-details
           @update:model-value="store.saveSettings({ compact: !!$event })"
         />
+        <v-switch v-model="focus" :label="$t('story.focus.label')" color="error" density="compact" hide-details :title="$t('story.focus.hint')" />
         <v-spacer />
         <v-btn variant="text" prepend-icon="mdi-archive-outline" @click="archiveOpen = true">
           {{ $t('story.archive.title') }}<v-chip v-if="archiveCount" size="x-small" class="ml-1">{{ archiveCount }}</v-chip>
@@ -85,7 +86,7 @@
         <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" @click="editCluster(null)">{{ $t('story.cluster.new') }}</v-btn>
       </div>
 
-      <div class="d-flex flex-wrap align-center ga-3 mt-3">
+      <div v-show="!focus" class="d-flex flex-wrap align-center ga-3 mt-3">
         <v-autocomplete
           :model-value="store.settings.party_location_id"
           :items="store.locations"
@@ -101,6 +102,9 @@
           @update:model-value="store.saveSettings({ party_location_id: $event ?? null })"
         />
         <v-switch v-model="onlyNear" :disabled="!store.settings.party_location_id" :label="$t('story.party.onlyNear')" color="primary" density="compact" hide-details />
+        <v-switch v-model="onlyArmed" :disabled="!store.settings.party_location_id" color="warning" density="compact" hide-details>
+          <template #label>{{ $t('story.trigger.onlyArmed') }}<v-chip v-if="armedCount" size="x-small" color="warning" variant="flat" class="ml-1">{{ armedCount }}</v-chip></template>
+        </v-switch>
         <!-- Which beats show: idea / ready / played / cut -->
         <div class="d-flex align-center flex-wrap ga-1">
           <span class="text-body-small text-medium-emphasis mr-1">{{ $t('story.filter.statuses') }}</span>
@@ -118,8 +122,24 @@
         </div>
       </div>
 
+      <!-- Player chips: everything one champion is tied to, across every cluster -->
+      <div v-if="store.players.length && !focus" class="d-flex flex-wrap align-center ga-2 mt-3">
+        <span class="text-body-small text-medium-emphasis mr-1">{{ $t('story.players.label') }}</span>
+        <v-chip
+          v-for="p in store.players"
+          :key="p.id"
+          size="small"
+          :variant="playerFilter === p.id ? 'flat' : 'outlined'"
+          :color="playerFilter === p.id ? 'primary' : undefined"
+          prepend-icon="mdi-account-star"
+          @click="playerFilter = playerFilter === p.id ? null : p.id"
+        >
+          {{ p.name }}
+        </v-chip>
+      </div>
+
       <!-- Storyline filter: click to show only those (none selected = all). Folds to just the picked ones. -->
-      <div v-if="store.storylines.length" class="d-flex flex-wrap align-center ga-2 mt-3">
+      <div v-if="store.storylines.length && !focus" class="d-flex flex-wrap align-center ga-2 mt-3">
         <v-btn
           size="small"
           variant="text"
@@ -145,7 +165,7 @@
       </div>
 
       <!-- Legend: what each color means right now -->
-      <div v-if="legend.length" class="d-flex flex-wrap align-center ga-3 mt-3">
+      <div v-if="legend.length && !focus" class="d-flex flex-wrap align-center ga-3 mt-3">
         <v-btn
           size="small"
           variant="text"
@@ -172,46 +192,53 @@
           <v-btn color="primary" prepend-icon="mdi-plus" @click="editCluster(null)">{{ $t('story.cluster.new') }}</v-btn>
         </div>
 
-        <section v-for="lane in laneLists" v-else :key="lane.key" class="lane" :style="{ '--lane-color': colorCss(lane.color) }">
-          <button type="button" class="lane__head" :aria-expanded="!foldedLanes.includes(lane.key)" @click="toggleLane(lane.key)">
-            <span class="lane__dot" />
-            <span class="text-title-small font-weight-bold">{{ lane.title }}</span>
-            <v-chip size="x-small" class="ml-2">{{ lane.items.length }}</v-chip>
-            <v-spacer />
-            <v-icon size="small" class="text-medium-emphasis">{{ foldedLanes.includes(lane.key) ? 'mdi-chevron-down' : 'mdi-chevron-up' }}</v-icon>
-          </button>
-          <draggable
-            v-show="!foldedLanes.includes(lane.key)"
-            v-model="lane.items"
-            item-key="id"
-            group="story-clusters"
-            handle=".cluster-handle"
-            :animation="180"
-            class="lane__grid"
-            :class="{ 'lane__grid--compact': store.settings.compact, 'lane__grid--empty': !lane.items.length }"
-            :data-empty-text="$t('story.lane.dropHere')"
-            @start="dragging = true"
-            @end="dragging = false"
-            @change="onLaneChange(lane, $event)"
-          >
-            <template #item="{ element }">
-              <div class="lane__item">
-                <StoryClusterCard
-                  :cluster="element"
-                  :color="colorOf(element)"
-                  :near="isNear(element)"
-                  :faded="false"
-                  :statuses="shownStatuses"
-                  :compact="store.settings.compact"
-                  @edit="editCluster"
-                  @delete="askDeleteCluster"
-                  @edit-beat="editBeat"
-                  @toggle-tray="toggleTray"
-                />
-              </div>
-            </template>
-          </draggable>
-        </section>
+        <template v-for="lane in laneLists" v-else :key="lane.key">
+          <div v-if="lane.band" class="band-head">
+            <v-icon size="small">{{ lane.band === 'champion' ? 'mdi-shield-crown' : 'mdi-earth' }}</v-icon>
+            {{ $t(`story.storyline.band.${lane.band}`) }}
+          </div>
+          <section class="lane" :class="{ 'lane--champion': lane.kind === 'champion' }" :style="{ '--lane-color': colorCss(lane.color) }">
+            <button type="button" class="lane__head" :aria-expanded="!foldedLanes.includes(lane.key)" @click="toggleLane(lane.key)">
+              <span class="lane__dot" />
+              <span class="text-title-small font-weight-bold">{{ lane.title }}</span>
+              <v-chip v-if="lane.player" size="x-small" variant="tonal" color="warning" class="ml-2" prepend-icon="mdi-account-star">{{ lane.player }}</v-chip>
+              <v-chip size="x-small" class="ml-2">{{ lane.items.length }}</v-chip>
+              <v-spacer />
+              <v-icon size="small" class="text-medium-emphasis">{{ foldedLanes.includes(lane.key) ? 'mdi-chevron-down' : 'mdi-chevron-up' }}</v-icon>
+            </button>
+            <draggable
+              v-show="!foldedLanes.includes(lane.key)"
+              v-model="lane.items"
+              item-key="id"
+              group="story-clusters"
+              handle=".cluster-handle"
+              :animation="180"
+              class="lane__grid"
+              :class="{ 'lane__grid--compact': store.settings.compact, 'lane__grid--empty': !lane.items.length }"
+              :data-empty-text="$t('story.lane.dropHere')"
+              @start="dragging = true"
+              @end="dragging = false"
+              @change="onLaneChange(lane, $event)"
+            >
+              <template #item="{ element }">
+                <div class="lane__item">
+                  <StoryClusterCard
+                    :cluster="element"
+                    :color="colorOf(element)"
+                    :near="isNear(element)"
+                    :faded="false"
+                    :statuses="shownStatuses"
+                    :compact="store.settings.compact"
+                    @edit="editCluster"
+                    @delete="askDeleteCluster"
+                    @edit-beat="editBeat"
+                    @toggle-tray="toggleTray"
+                  />
+                </div>
+              </template>
+            </draggable>
+          </section>
+        </template>
       </div>
 
       <!-- Right rail: the sparks shelf (sticky-note look: loose ideas, not plans) -->
@@ -248,7 +275,10 @@
     <StoryClusterDialog v-model="clusterOpen" :cluster="clusterEditing" />
     <StorylineManager v-model="storylinesOpen" />
     <StoryArchiveDialog v-model="archiveOpen" />
-    <StorySessionWrap v-model="wrapOpen" />
+    <StorySessionWrap v-model="wrapOpen" @drifted="driftText = $event; driftOpen = true" />
+    <v-snackbar v-model="driftOpen" :timeout="9000" location="bottom">
+      <v-icon start>mdi-thermometer</v-icon>{{ $t('story.drift.moved') }} {{ driftText }}
+    </v-snackbar>
 
     <v-dialog v-model="deleteOpen" max-width="440">
       <v-card>
@@ -278,7 +308,7 @@ import StoryPlaceKits from './StoryPlaceKits.vue'
 import {
   BEAT_STATUSES,
   colorCss, storylineColor,
-  BEAT_KIND_ICONS, CLUSTER_HEATS, CLUSTER_STATUSES, COLOR_BY, GROUP_BY, NO_COLOR, clusterColor, heatColor, statusColor,
+  BEAT_KIND_ICONS, isArmed, CLUSTER_HEATS, CLUSTER_STATUSES, COLOR_BY, GROUP_BY, NO_COLOR, clusterColor, heatColor, statusColor,
   type BeatKind, type StoryBeat, type StoryCluster,
 } from '~~/types/story'
 
@@ -292,6 +322,9 @@ const { t } = useI18n()
 const store = useStoryBoardStore()
 
 const onlyNear = ref(false)
+const onlyArmed = ref(false)
+const driftOpen = ref(false)
+const driftText = ref('')
 const newSpark = ref('')
 const dragging = ref(false)
 
@@ -300,6 +333,9 @@ function remember<T>(name: string, fallback: T) {
   return useStoryPref<T>(name, fallback)
 }
 const foldedLanes = remember<string[]>('foldedLanes', [])
+/** Focus: only the hot clusters and the strip, filters tucked away */
+const focus = remember<boolean>('focus', false)
+const playerFilter = remember<number | null>('playerFilter', null)
 const storylineFilter = remember<string[]>('storylineFilter', [])
 const shownStatuses = remember<string[]>('statuses', [...BEAT_STATUSES])
 function toggleStatus(st: string) {
@@ -345,14 +381,25 @@ function isNear(c: StoryCluster) {
   if (c.location_id && store.nearby.has(c.location_id)) return true
   return store.beatsOf(c.id).some(b => b.location_id && store.nearby.has(b.location_id))
 }
+const armedCount = computed(() => store.beats.filter(b => isArmed(b, store.nearby)).length)
+const hasArmed = (c: StoryCluster) => store.beatsOf(c.id).some(b => isArmed(b, store.nearby))
+/** Tied to a player: their champion storyline, or they're linked on the cluster or one of its beats */
+function involvesPlayer(c: StoryCluster, id: number) {
+  if (store.storylines.find(l => l.id === c.storyline_id)?.player_id === id) return true
+  if (c.entities?.some(e => e.id === id)) return true
+  return store.beatsOf(c.id).some(b => b.entities.some(e => e.id === id))
+}
 const visibleClusters = computed(() => store.clusters.filter(c =>
-  (!(onlyNear.value && store.settings.party_location_id) || isNear(c))
+  (!focus.value || c.heat === 'hot')
+  && (!playerFilter.value || involvesPlayer(c, playerFilter.value))
+  && (!(onlyArmed.value && store.settings.party_location_id) || hasArmed(c))
+  && (!(onlyNear.value && store.settings.party_location_id) || isNear(c))
   && (!storylineFilter.value.length || storylineFilter.value.includes(c.storyline_id ? String(c.storyline_id) : 'none')),
 ))
 
 // --- lanes -------------------------------------------------------------
 type LaneValue = number | string | null
-interface Lane { key: string, title: string, color: string, value: LaneValue }
+interface Lane { key: string, title: string, color: string, value: LaneValue, kind?: 'world' | 'champion', band?: 'world' | 'champion', player?: string }
 
 const lanes = computed<Lane[]>(() => {
   switch (store.settings.group_by) {
@@ -371,11 +418,25 @@ const lanes = computed<Lane[]>(() => {
       return [{ key: 'all', title: t('story.lane.all'), color: 'primary', value: null }]
     default: {
       const shown = store.storylines.filter(s => !storylineFilter.value.length || storylineFilter.value.includes(String(s.id)))
-      const lines: Lane[] = shown.map(s => ({ key: `line-${s.id}`, title: s.name, color: storylineColor(s), value: s.id }))
+      const lane = (l: typeof shown[number]): Lane => ({
+        key: `line-${l.id}`,
+        title: l.name,
+        color: storylineColor(l),
+        value: l.id,
+        kind: l.kind === 'champion' ? 'champion' : 'world',
+        player: l.kind === 'champion' ? store.players.find(p => p.id === l.player_id)?.name : undefined,
+      })
+      // The main arc first, then each player's champion line
+      const world: Lane[] = shown.filter(l => l.kind !== 'champion').map(lane)
       if (!storylineFilter.value.length || storylineFilter.value.includes('none')) {
-        lines.push({ key: 'line-none', title: t('story.storyline.noneShort'), color: NO_COLOR, value: null })
+        world.push({ key: 'line-none', title: t('story.storyline.noneShort'), color: NO_COLOR, value: null, kind: 'world' })
       }
-      return lines
+      const champions: Lane[] = shown.filter(l => l.kind === 'champion').map(lane)
+      if (champions.length) {
+        if (world.length) world[0] = { ...world[0]!, band: 'world' }
+        champions[0] = { ...champions[0]!, band: 'champion' }
+      }
+      return [...world, ...champions]
     }
   }
 })
@@ -562,6 +623,22 @@ async function confirmDelete(withBeats: boolean) {
 }
 
 /* Lanes */
+.band-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.15);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.lane--champion {
+  border-left-style: dashed;
+}
 .lane {
   margin-bottom: 16px;
   border-left: 4px solid var(--lane-color);
