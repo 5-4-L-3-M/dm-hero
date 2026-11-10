@@ -3551,7 +3551,8 @@ export const migrations: Migration[] = [
       }
       console.log('✅ Migration 85: Story board cleanup (champion lines, heat drift, clocks, triggers)')
     },
-  },  {
+  },
+  {
     version: 86,
     name: 'dm_reference',
     up: (db) => {

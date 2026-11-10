@@ -14,9 +14,13 @@ export default defineEventHandler(async (event) => {
     sets.push('title = ?')
     vals.push(title)
   }
-  if (body.body !== undefined) { sets.push('body = ?'); vals.push(String(body.body)) }
-  if (body.icon !== undefined) { sets.push('icon = ?'); vals.push(body.icon || null) }
-  if (body.sort_order !== undefined && Number.isFinite(Number(body.sort_order))) { sets.push('sort_order = ?'); vals.push(Math.round(Number(body.sort_order))) }
+  const set = (col: string, v: string | number | null) => {
+    sets.push(`${col} = ?`)
+    vals.push(v)
+  }
+  if (body.body !== undefined) set('body', String(body.body))
+  if (body.icon !== undefined) set('icon', body.icon || null)
+  if (body.sort_order !== undefined && Number.isFinite(Number(body.sort_order))) set('sort_order', Math.round(Number(body.sort_order)))
   if (sets.length) db.prepare(`UPDATE dm_reference_sections SET ${[...sets, 'updated_at = CURRENT_TIMESTAMP'].join(', ')} WHERE id = ?`).run(...vals, id)
   return db.prepare('SELECT id, title, icon, body, sort_order FROM dm_reference_sections WHERE id = ?').get(id)
 })
