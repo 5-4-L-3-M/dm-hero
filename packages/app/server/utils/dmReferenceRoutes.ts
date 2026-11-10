@@ -1,21 +1,21 @@
-import { dispatchSubRoute, type SubRoutes } from '../../utils/subRouter'
-import { getDb } from '../../utils/db'
-import { DM_REFERENCE_SEED } from '../../utils/dmReferenceSeed'
+import type { SubRoutes } from './subRouter'
+import { getDb } from './db'
+import { DM_REFERENCE_SEED } from './dmReferenceSeed'
 
 /**
  * DM Screen sections (side panel rules reference):
- *   GET    /api/dm-reference?campaignId     → sections (an empty screen gets the starter sections)
- *   POST   /api/dm-reference { campaignId, title, body?, icon? }
- *   PATCH  /api/dm-reference/reorder { ids }
- *   PATCH  /api/dm-reference/:id { title?, body?, icon?, sort_order? }
- *   DELETE /api/dm-reference/:id
- * One catch-all route keeps the typed route list small.
+ *   GET    /api/dashboard/reference?campaignId     → sections (an empty screen gets the starter sections)
+ *   POST   /api/dashboard/reference { campaignId, title, body?, icon? }
+ *   PATCH  /api/dashboard/reference/reorder { ids }
+ *   PATCH  /api/dashboard/reference/:id { title?, body?, icon?, sort_order? }
+ *   DELETE /api/dashboard/reference/:id
+ * Served by the dashboard catch-all, so no new API files (keeps the typed route list small).
  */
 const COLS = 'id, title, icon, body, sort_order'
 const one = (id: number | bigint) => getDb().prepare(`SELECT ${COLS} FROM dm_reference_sections WHERE id = ?`).get(id)
 
 export const dmReferenceRoutes: SubRoutes = {
-  '': {
+  'reference': {
     GET: defineEventHandler((event) => {
       const campaignId = Number(getQuery(event).campaignId)
       if (!campaignId) throw createError({ statusCode: 400, message: 'Campaign ID is required' })
@@ -41,7 +41,7 @@ export const dmReferenceRoutes: SubRoutes = {
       return one(id)
     }),
   },
-  'reorder': {
+  'reference/reorder': {
     PATCH: defineEventHandler(async (event) => {
       const body = await readBody<{ ids?: number[] }>(event)
       const ids = Array.isArray(body?.ids) ? body.ids.map(Number).filter(Boolean) : []
@@ -51,7 +51,7 @@ export const dmReferenceRoutes: SubRoutes = {
       return { ok: true }
     }),
   },
-  ':id': {
+  'reference/:id': {
     PATCH: defineEventHandler(async (event) => {
       const id = Number(getRouterParam(event, 'id'))
       const body = await readBody<{ title?: string, body?: string, icon?: string | null, sort_order?: number }>(event) ?? {}
@@ -81,4 +81,3 @@ export const dmReferenceRoutes: SubRoutes = {
   },
 }
 
-export default defineEventHandler(event => dispatchSubRoute(event, dmReferenceRoutes, getRouterParam(event, 'path') ?? ''))

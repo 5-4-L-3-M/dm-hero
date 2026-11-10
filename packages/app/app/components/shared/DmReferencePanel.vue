@@ -84,7 +84,7 @@ async function load() {
   if (!campaignId.value) return
   loading.value = true
   try {
-    sections.value = await $fetch<Section[]>('/api/dm-reference', { query: { campaignId: campaignId.value } })
+    sections.value = await $fetch<Section[]>('/api/dashboard/reference', { query: { campaignId: campaignId.value } })
     try {
       const saved = JSON.parse(localStorage.getItem(openKey.value) ?? '[]')
       openIds.value = Array.isArray(saved) ? saved.filter((id: number) => sections.value.some(s => s.id === id)) : []
@@ -164,7 +164,7 @@ async function save(s: Section) {
   if (!draft.value.title.trim()) return
   saving.value = true
   try {
-    const updated = await $fetch<Section>(`/api/dm-reference/${s.id}`, { method: 'PATCH', body: { title: draft.value.title, body: draft.value.body } })
+    const updated = await $fetch<Section>(`/api/dashboard/reference/${s.id}`, { method: 'PATCH', body: { title: draft.value.title, body: draft.value.body } })
     Object.assign(s, updated)
     editingId.value = null
   }
@@ -175,7 +175,7 @@ async function save(s: Section) {
 
 async function add() {
   if (!campaignId.value) return
-  const created = await $fetch<Section>('/api/dm-reference', { method: 'POST', body: { campaignId: campaignId.value, title: t('dmReference.newSection'), body: '' } })
+  const created = await $fetch<Section>('/api/dashboard/reference', { method: 'POST', body: { campaignId: campaignId.value, title: t('dmReference.newSection'), body: '' } })
   sections.value.push(created)
   openIds.value = [...openIds.value, created.id]
   startEdit(created)
@@ -183,7 +183,7 @@ async function add() {
 
 async function remove(s: Section) {
   if (!window.confirm(t('dmReference.confirmDelete', { name: s.title }))) return
-  await $fetch(`/api/dm-reference/${s.id}`, { method: 'DELETE' })
+  await $fetch(`/api/dashboard/reference/${s.id}`, { method: 'DELETE' })
   sections.value = sections.value.filter(x => x.id !== s.id)
   editingId.value = null
 }
@@ -195,7 +195,7 @@ async function move(s: Section, dir: -1 | 1) {
   const list = [...sections.value]
   ;[list[i], list[j]] = [list[j]!, list[i]!]
   sections.value = list
-  await $fetch('/api/dm-reference/reorder', { method: 'PATCH', body: { ids: list.map(x => x.id) } })
+  await $fetch('/api/dashboard/reference/reorder', { method: 'PATCH', body: { ids: list.map(x => x.id) } })
 }
 </script>
 
