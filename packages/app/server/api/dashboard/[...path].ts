@@ -1,5 +1,6 @@
 import { dispatchSubRoute, type SubRoutes } from '../../utils/subRouter'
 import { getDb } from '../../utils/db'
+import { dmReferenceRoutes } from '../../utils/dmReferenceRoutes'
 import { requireCampaign } from '../../utils/storyBoard'
 import { DASHBOARD_BOARDS, DEFAULT_LAYOUTS, cleanLayout, type DashboardBoardKey } from '../../../types/dashboard'
 
@@ -11,6 +12,7 @@ import { DASHBOARD_BOARDS, DEFAULT_LAYOUTS, cleanLayout, type DashboardBoardKey 
 const boardOf = (v: unknown): DashboardBoardKey => ((DASHBOARD_BOARDS as readonly unknown[]).includes(v) ? v as DashboardBoardKey : 'table')
 
 export const dashboardRoutes: SubRoutes = {
+  ...dmReferenceRoutes,
   '': {
     GET: defineEventHandler((event) => {
       const db = getDb()

@@ -30,6 +30,10 @@
           style="min-width: 0"
           @update:model-value="onTabPicked"
         >
+          <v-tab :value="REFERENCE_KEY" class="entity-tabs-panel__tab entity-tabs-panel__tab--pinned text-none">
+            <v-icon size="small" start color="primary">mdi-book-open-variant</v-icon>
+            <span class="entity-tabs-panel__tab-name">{{ $t('dmReference.title') }}</span>
+          </v-tab>
           <v-tab
             v-for="tab in tabs.tabs"
             :key="keyOf(tab)"
@@ -65,7 +69,7 @@
           <v-list density="compact">
             <v-list-item prepend-icon="mdi-close-box-multiple-outline" :title="$t('entityTabs.closeAll')" @click="tabs.closeAll()" />
             <v-list-item
-              v-if="tabs.activeKey && tabs.count > 1"
+              v-if="tabs.activeKey && !showReference && tabs.count > 1"
               prepend-icon="mdi-close-box-outline"
               :title="$t('entityTabs.closeOthers')"
               @click="closeOthers"
@@ -91,7 +95,7 @@
       <v-divider />
 
       <!-- Quick open: type a name, pick it, it opens as a tab (Ctrl+O) -->
-      <div v-if="searchOpen || !tabs.count" class="px-3 pt-3 pb-2 flex-shrink-0">
+      <div v-if="searchOpen || (!tabs.count && !showReference)" class="px-3 pt-3 pb-2 flex-shrink-0">
         <v-autocomplete
           ref="searchRef"
           v-model:search="searchText"
@@ -118,11 +122,14 @@
             </v-list-item>
           </template>
         </v-autocomplete>
-        <div v-if="!tabs.count" class="text-body-small text-medium-emphasis mt-3">{{ $t('entityTabs.emptyHint') }}</div>
+        <div v-if="!tabs.count && !showReference" class="text-body-small text-medium-emphasis mt-3">{{ $t('entityTabs.emptyHint') }}</div>
       </div>
 
+      <!-- DM Screen (pinned) -->
+      <SharedDmReferencePanel v-if="showReference" class="flex-grow-1" style="min-height: 0" />
+
       <!-- Active entry -->
-      <template v-if="active">
+      <template v-else-if="active">
         <div class="d-flex align-center px-4 pt-3 pb-1 flex-shrink-0">
           <v-icon :icon="ENTITY_PREVIEW_CONFIG[active.type].icon" :color="ENTITY_PREVIEW_CONFIG[active.type].color" class="mr-2" />
           <div class="text-title-large font-weight-medium text-truncate flex-grow-1">{{ active.name }}</div>
@@ -176,7 +183,7 @@
 <script setup lang="ts">
 import { useDisplay } from 'vuetify'
 import { ENTITY_FULL_DIALOGS, ENTITY_PREVIEW_CONFIG, entityPageLink } from '~/utils/entityPreview'
-import { entityTabKey, toPreviewType, type EntityTab } from '~/stores/entityTabs'
+import { entityTabKey, toPreviewType, REFERENCE_KEY, type EntityTab } from '~/stores/entityTabs'
 import type { PreviewEntity } from './EntityPreviewBody.vue'
 
 /**
@@ -190,6 +197,7 @@ const router = useRouter()
 const { mobile } = useDisplay()
 
 const active = computed(() => tabs.activeTab)
+const showReference = computed(() => tabs.activeKey === REFERENCE_KEY)
 const fullOpen = ref(false)
 const viewOpen = ref(false)
 const bodyRef = ref<{ reload: () => Promise<void> } | null>(null)
@@ -318,6 +326,9 @@ function goToPage() {
 .entity-tabs-panel__tab {
   max-width: 220px;
   padding-inline: 10px 2px !important;
+}
+.entity-tabs-panel__tab--pinned {
+  padding-inline: 10px !important;
 }
 .entity-tabs-panel__close {
   border-radius: 50%;

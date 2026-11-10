@@ -4034,5 +4034,17 @@
     "credit": "Symbole von",
     "auto": "Automatisch",
     "change": "Symbol ändern"
+  },
+  "dmReference": {
+    "title": "SL-Schirm",
+    "search": "Regeln und Notizen durchsuchen",
+    "expandAll": "Alle öffnen",
+    "collapseAll": "Alle schließen",
+    "noMatch": "Nichts gefunden",
+    "sectionTitle": "Abschnittstitel",
+    "formatHint": "## Überschrift · - Punkt · Label: Text · **fett**",
+    "addSection": "Abschnitt hinzufügen",
+    "newSection": "Neuer Abschnitt",
+    "confirmDelete": "Abschnitt \"{name}\" löschen?"
   }
 }

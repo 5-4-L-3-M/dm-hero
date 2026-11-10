@@ -17,6 +17,8 @@ export interface EntityTab {
 /** Most tabs kept open; opening one more drops the oldest that isn't active. */
 const MAX_TABS = 20
 const STORAGE_PREFIX = 'dmhero.entityTabs.'
+/** The pinned DM Screen tab (rules reference) always sits first in the strip */
+export const REFERENCE_KEY = 'reference'
 const WIDTH_KEY = 'dmhero.entityTabs.width'
 export const PANEL_MIN_WIDTH = 320
 export const PANEL_DEFAULT_WIDTH = 460
@@ -83,8 +85,8 @@ export const useEntityTabsStore = defineStore('entityTabs', {
         this.tabs = Array.isArray(saved.tabs)
           ? saved.tabs.filter(t => toPreviewType(t?.type) && Number.isFinite(t?.id)).slice(0, MAX_TABS)
           : []
-        this.activeKey = this.tabs.some(t => entityTabKey(t) === saved.activeKey) ? saved.activeKey! : (this.tabs[0] ? entityTabKey(this.tabs[0]) : null)
-        this.panelOpen = !!saved.open && this.tabs.length > 0
+        this.activeKey = saved.activeKey === REFERENCE_KEY || this.tabs.some(t => entityTabKey(t) === saved.activeKey) ? saved.activeKey! : (this.tabs[0] ? entityTabKey(this.tabs[0]) : null)
+        this.panelOpen = !!saved.open && (this.tabs.length > 0 || this.activeKey === REFERENCE_KEY)
         this.width = savedWidth()
         this.wide = this.width >= 600
       }
@@ -124,7 +126,7 @@ export const useEntityTabsStore = defineStore('entityTabs', {
     },
 
     activate(key: string) {
-      if (!this.tabs.some(t => entityTabKey(t) === key)) return
+      if (key !== REFERENCE_KEY && !this.tabs.some(t => entityTabKey(t) === key)) return
       this.activeKey = key
       this.save()
     },
@@ -146,14 +148,21 @@ export const useEntityTabsStore = defineStore('entityTabs', {
         const next = this.tabs[i] ?? this.tabs[i - 1] ?? null
         this.activeKey = next ? entityTabKey(next) : null
       }
-      if (this.tabs.length === 0) this.panelOpen = false
+      if (this.tabs.length === 0 && this.activeKey !== REFERENCE_KEY) this.panelOpen = false
+      this.save()
+    },
+
+    /** Open the panel on the pinned DM Screen */
+    openReference() {
+      this.activeKey = REFERENCE_KEY
+      this.panelOpen = true
       this.save()
     },
 
     closeAll() {
       this.tabs = []
-      this.activeKey = null
-      this.panelOpen = false
+      this.activeKey = this.activeKey === REFERENCE_KEY ? REFERENCE_KEY : null
+      this.panelOpen = this.activeKey === REFERENCE_KEY
       this.save()
     },
 

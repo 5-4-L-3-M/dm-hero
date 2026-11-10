@@ -51,6 +51,18 @@
 
     <!-- Entry tabs side panel toggle (open it empty to search, Ctrl+O) -->
     <ClientOnly>
+      <!-- DM Screen: rules reference pinned in the side panel -->
+      <v-btn
+        icon
+        variant="text"
+        size="small"
+        class="mr-1"
+        :color="entityTabs.panelOpen && entityTabs.activeKey === 'reference' ? 'primary' : undefined"
+        @click="entityTabs.panelOpen && entityTabs.activeKey === 'reference' ? entityTabs.setPanelOpen(false) : entityTabs.openReference()"
+      >
+        <v-icon>mdi-book-open-variant</v-icon>
+        <v-tooltip activator="parent" location="bottom">{{ $t('dmReference.title') }}</v-tooltip>
+      </v-btn>
       <v-btn
         variant="text"
         class="mr-1 px-2"

@@ -4034,5 +4034,17 @@
     "credit": "Iconos de",
     "auto": "Automático",
     "change": "Cambiar icono"
+  },
+  "dmReference": {
+    "title": "Pantalla del DM",
+    "search": "Buscar reglas y recordatorios",
+    "expandAll": "Abrir todo",
+    "collapseAll": "Cerrar todo",
+    "noMatch": "Sin resultados",
+    "sectionTitle": "Título de la sección",
+    "formatHint": "## título · - viñeta · Etiqueta: texto · **negrita**",
+    "addSection": "Añadir sección",
+    "newSection": "Nueva sección",
+    "confirmDelete": "¿Eliminar la sección \"{name}\"?"
   }
 }

@@ -4034,5 +4034,17 @@
     "credit": "Icone da",
     "auto": "Automatica",
     "change": "Cambia icona"
+  },
+  "dmReference": {
+    "title": "Schermo del DM",
+    "search": "Cerca regole e promemoria",
+    "expandAll": "Apri tutto",
+    "collapseAll": "Chiudi tutto",
+    "noMatch": "Nessun risultato",
+    "sectionTitle": "Titolo della sezione",
+    "formatHint": "## titolo · - punto · Etichetta: testo · **grassetto**",
+    "addSection": "Aggiungi sezione",
+    "newSection": "Nuova sezione",
+    "confirmDelete": "Eliminare la sezione \"{name}\"?"
   }
 }
