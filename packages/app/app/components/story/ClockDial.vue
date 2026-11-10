@@ -34,6 +34,9 @@ function wedge(i: number) {
 </script>
 
 <style scoped>
+.clock {
+  flex-shrink: 0;
+}
 .clock__seg {
   fill: rgba(var(--v-theme-on-surface), 0.08);
   stroke: rgb(var(--v-theme-surface));
