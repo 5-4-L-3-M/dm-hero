@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.28.1
+
+### Patch Changes
+
+- Faction clocks keep their full size next to long next-step text.
+
 ## 1.28.0
 
 ### Minor Changes
