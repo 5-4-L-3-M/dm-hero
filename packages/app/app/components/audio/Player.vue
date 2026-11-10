@@ -557,7 +557,7 @@ async function saveMarker() {
 
   savingMarker.value = true
   try {
-    const result = await $fetch<AudioMarker>(`/api/session-audio/${props.audioId}/markers`, {
+    const result = await $fetch<AudioMarker>(`/api/session-audio/${props.audioId}/markers` as string, {
       method: 'POST',
       body: {
         timestampSeconds: newMarker.value.timestampSeconds,
