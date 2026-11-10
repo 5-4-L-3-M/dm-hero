@@ -1,6 +1,6 @@
 <template>
   <v-card
-    class="dashboard-card h-100"
+    class="dashboard-card dashboard-calendar h-100"
     variant="outlined"
     :to="hasCalendar ? '/calendar' : undefined"
     :hover="hasCalendar"
@@ -22,7 +22,7 @@
         <!-- Current Date -->
         <div class="current-date d-flex align-center ga-3 pa-3 rounded-lg mb-3">
           <div class="date-day text-headline-large font-weight-bold text-primary text-center">{{ currentDay }}.</div>
-          <div class="flex-grow-1">
+          <div class="flex-grow-1 current-date__text">
             <div class="text-title-medium font-weight-medium">{{ currentMonthName }}</div>
             <div class="text-body-small text-medium-emphasis">{{ currentMonth }}. {{ $t('dashboard.calendar.month') }}, {{ $t('dashboard.calendar.year') }} {{ currentYear }}</div>
             <div v-if="eraName" class="text-body-small text-medium-emphasis font-italic">{{ eraName }}</div>
@@ -126,5 +126,17 @@ const weatherLabel = computed(() => {
   min-width: 40px;
   flex-shrink: 0;
   line-height: 1;
+}
+
+/* Narrow card: day number above the month instead of squeezing beside it */
+.dashboard-calendar {
+  container-type: inline-size;
+}
+@container (max-width: 260px) {
+  .current-date {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 2px !important;
+  }
 }
 </style>

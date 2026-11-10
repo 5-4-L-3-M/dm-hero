@@ -3551,6 +3551,27 @@ export const migrations: Migration[] = [
       }
       console.log('✅ Migration 85: Story board cleanup (champion lines, heat drift, clocks, triggers)')
     },
+  },  {
+    version: 86,
+    name: 'dm_reference',
+    up: (db) => {
+      // DM Screen: editable rules / reminder sections shown in the side panel
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS dm_reference_sections (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          icon TEXT,
+          body TEXT NOT NULL DEFAULT '',
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_dm_reference_campaign ON dm_reference_sections(campaign_id, sort_order);
+      `)
+      console.log('✅ Migration 86: DM Screen reference')
+    },
   },
 ]
 

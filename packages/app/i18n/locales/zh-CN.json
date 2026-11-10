@@ -4034,5 +4034,17 @@
     "credit": "图标来自",
     "auto": "自动",
     "change": "更换图标"
+  },
+  "dmReference": {
+    "title": "DM 屏风",
+    "search": "搜索规则和提醒",
+    "expandAll": "全部展开",
+    "collapseAll": "全部收起",
+    "noMatch": "没有匹配",
+    "sectionTitle": "分区标题",
+    "formatHint": "## 标题 · - 列表 · 标签: 文本 · **粗体**",
+    "addSection": "添加分区",
+    "newSection": "新分区",
+    "confirmDelete": "删除分区“{name}”？"
   }
 }

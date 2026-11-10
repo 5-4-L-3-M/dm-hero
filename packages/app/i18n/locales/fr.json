@@ -4034,5 +4034,17 @@
     "credit": "Icônes de",
     "auto": "Automatique",
     "change": "Changer l'icône"
+  },
+  "dmReference": {
+    "title": "Écran du MJ",
+    "search": "Chercher règles et rappels",
+    "expandAll": "Tout ouvrir",
+    "collapseAll": "Tout fermer",
+    "noMatch": "Aucun résultat",
+    "sectionTitle": "Titre de la section",
+    "formatHint": "## titre · - puce · Libellé : texte · **gras**",
+    "addSection": "Ajouter une section",
+    "newSection": "Nouvelle section",
+    "confirmDelete": "Supprimer la section « {name} » ?"
   }
 }

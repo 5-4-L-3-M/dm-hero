@@ -1,5 +1,12 @@
 # @dm-hero/app
 
+## 1.29.0
+
+### Minor Changes
+
+- DM Screen: a rules reference pinned as the first tab of the side panel, so it opens on any page (book button in the top bar). Folding sections with a search box that opens the matching sections and shows only the matching lines. Starts with Combat basics, Conditions, Checks and DCs, Weapons, Armor and gear, and Campaign reminders; every section is editable in place, and you can add, reorder and delete sections.
+- Text fits any window size: card titles, subtitles and list titles wrap onto a second line instead of being cut off, text columns in flex rows shrink and wrap instead of running past the card edge, and long chips end in an ellipsis. The dashboard calendar card stacks the day above the month when it is narrow.
+
 ## 1.28.1
 
 ### Patch Changes

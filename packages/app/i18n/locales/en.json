@@ -4034,5 +4034,17 @@
     "credit": "Icons from",
     "auto": "Automatic",
     "change": "Change icon"
+  },
+  "dmReference": {
+    "title": "DM Screen",
+    "search": "Search rules and reminders",
+    "expandAll": "Open all",
+    "collapseAll": "Close all",
+    "noMatch": "Nothing matches",
+    "sectionTitle": "Section title",
+    "formatHint": "## heading · - bullet · Label: text · **bold**",
+    "addSection": "Add section",
+    "newSection": "New section",
+    "confirmDelete": "Delete the section \"{name}\"?"
   }
 }
