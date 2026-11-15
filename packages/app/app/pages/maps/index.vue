@@ -359,7 +359,7 @@
           <v-divider class="my-4" />
           <div class="text-title-small mb-2">{{ $t('maps.scale') }}</div>
           <v-row dense>
-            <v-col cols="6">
+            <v-col cols="4">
               <v-text-field
                 v-model.number="editForm.scale_value"
                 :label="$t('maps.scaleValue')"
@@ -370,7 +370,19 @@
                 density="compact"
               />
             </v-col>
-            <v-col cols="6">
+            <v-col cols="4">
+              <v-text-field
+                v-model.number="editForm.scale_height"
+                :label="$t('maps.scaleHeight')"
+                :placeholder="$t('maps.scaleHeightAuto')"
+                persistent-placeholder
+                variant="outlined"
+                type="number"
+                min="0"
+                density="compact"
+              />
+            </v-col>
+            <v-col cols="4">
               <v-select
                 v-model="editForm.scale_unit"
                 :label="$t('maps.scaleUnit')"
@@ -791,6 +803,7 @@ const editForm = ref({
   description: '',
   version_name: '',
   scale_value: null as number | null,
+  scale_height: null as number | null,
   scale_unit: null as string | null,
   newImage: null as File | null,
 })
@@ -818,22 +831,39 @@ const saving = ref(false)
 const measureMode = ref(false)
 const measurePoints = ref<{ x: number, y: number }[]>([])
 
+// Width ÷ height of the current map image, for maps with no height set
+const mapImageAspect = ref<number | null>(null)
+watch(() => selectedMap.value?.image_url, (url) => {
+  mapImageAspect.value = null
+  if (!url || !import.meta.client) return
+  const img = new Image()
+  img.onload = () => {
+    if (selectedMap.value?.image_url === url && img.naturalHeight) {
+      mapImageAspect.value = img.naturalWidth / img.naturalHeight
+    }
+  }
+  img.src = `/uploads/${url}`
+}, { immediate: true })
+
 // Calculate total measured distance
 const measuredDistance = computed(() => {
   if (measurePoints.value.length < 2 || !selectedMap.value?.scale_value) {
     return 0
   }
 
+  // Points are stored as % of width (x) and % of height (y), so each axis
+  // needs its own real-world size. Height falls back to the image's shape.
+  const width = selectedMap.value.scale_value
+  const height = selectedMap.value.scale_height
+    || (mapImageAspect.value ? width / mapImageAspect.value : width)
+
   let totalDistance = 0
   for (let i = 1; i < measurePoints.value.length; i++) {
     const p1 = measurePoints.value[i - 1]!
     const p2 = measurePoints.value[i]!
-    // Calculate distance in percentage units, then convert to map scale
-    const dx = p2.x - p1.x
-    const dy = p2.y - p1.y
-    const distPercent = Math.sqrt(dx * dx + dy * dy)
-    // Scale: 100% width = scale_value units
-    totalDistance += (distPercent / 100) * selectedMap.value.scale_value
+    const dx = ((p2.x - p1.x) / 100) * width
+    const dy = ((p2.y - p1.y) / 100) * height
+    totalDistance += Math.sqrt(dx * dx + dy * dy)
   }
 
   return totalDistance
@@ -1562,6 +1592,7 @@ function editMap(map: CampaignMap) {
     description: map.description || '',
     version_name: map.version_name || '',
     scale_value: map.scale_value,
+    scale_height: map.scale_height,
     scale_unit: map.scale_unit || distanceUnit.value,
     newImage: null,
   }
@@ -1581,6 +1612,7 @@ async function saveMapEdit() {
         description: editForm.value.description || null,
         version_name: editForm.value.version_name || null,
         scale_value: editForm.value.scale_value || null,
+        scale_height: editForm.value.scale_height || null,
         scale_unit: editForm.value.scale_unit || null,
       },
     })

@@ -1385,8 +1385,8 @@ export default defineEventHandler(async (event) => {
       // Maps are additive - no deletion, just add new maps
       const insertMap = db.prepare(`
         INSERT INTO campaign_maps (campaign_id, name, description, image_url, parent_map_id, version_name,
-          default_zoom, min_zoom, max_zoom, scale_value, scale_unit, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          default_zoom, min_zoom, max_zoom, scale_value, scale_height, scale_unit, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
 
       // First pass: insert without parent_map
@@ -1408,6 +1408,7 @@ export default defineEventHandler(async (event) => {
           map.min_zoom || null,
           map.max_zoom || null,
           map.scale_value || null,
+          map.scale_height || null,
           map.scale_unit || null,
           map.created_at || new Date().toISOString(),
           map.updated_at || new Date().toISOString(),

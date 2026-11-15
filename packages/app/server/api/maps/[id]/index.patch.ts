@@ -60,6 +60,10 @@ export default defineEventHandler(async (event) => {
     updates.push('scale_value = ?')
     values.push(body.scale_value)
   }
+  if (body.scale_height !== undefined) {
+    updates.push('scale_height = ?')
+    values.push(body.scale_height)
+  }
   if (body.scale_unit !== undefined) {
     updates.push('scale_unit = ?')
     values.push(body.scale_unit)

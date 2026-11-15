@@ -831,7 +831,7 @@ export default defineEventHandler(async (event) => {
       .prepare(
         `
       SELECT id, name, description, image_url, parent_map_id, version_name,
-             default_zoom, min_zoom, max_zoom, scale_value, scale_unit, created_at, updated_at
+             default_zoom, min_zoom, max_zoom, scale_value, scale_height, scale_unit, created_at, updated_at
       FROM campaign_maps
       WHERE campaign_id = ? AND deleted_at IS NULL
     `,
@@ -847,6 +847,7 @@ export default defineEventHandler(async (event) => {
       min_zoom: number | null
       max_zoom: number | null
       scale_value: number | null
+      scale_height: number | null
       scale_unit: string | null
       created_at: string
       updated_at: string
@@ -869,6 +870,7 @@ export default defineEventHandler(async (event) => {
         min_zoom: m.min_zoom || undefined,
         max_zoom: m.max_zoom || undefined,
         scale_value: m.scale_value || undefined,
+        scale_height: m.scale_height || undefined,
         scale_unit: m.scale_unit || undefined,
         created_at: m.created_at,
         updated_at: m.updated_at,

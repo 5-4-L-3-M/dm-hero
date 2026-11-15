@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.29.1
+
+### Patch Changes
+
+- Map scale now has a height as well as a width, so the measuring tool reads distances correctly on maps that aren't square. Before, the height was treated as equal to the width, which made north–south distances on a landscape map read too long. Leave the height empty and it's worked out from the image's shape.
+
 ## 1.29.0
 
 ### Minor Changes

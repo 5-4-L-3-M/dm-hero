@@ -487,6 +487,7 @@ export interface ExportMap {
   min_zoom?: number
   max_zoom?: number
   scale_value?: number
+  scale_height?: number
   scale_unit?: string
   created_at?: string
   updated_at?: string
