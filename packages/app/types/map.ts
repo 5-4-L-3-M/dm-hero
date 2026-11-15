@@ -12,6 +12,7 @@ export interface CampaignMap {
   min_zoom: number
   max_zoom: number
   scale_value: number | null
+  scale_height: number | null
   scale_unit: string | null
   created_at: string
   updated_at: string
@@ -65,6 +66,7 @@ export interface UpdateMapPayload {
   min_zoom?: number
   max_zoom?: number
   scale_value?: number | null
+  scale_height?: number | null
   scale_unit?: string | null
 }
 

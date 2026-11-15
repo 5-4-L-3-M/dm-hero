@@ -3574,6 +3574,15 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 86: DM Screen reference')
     },
   },
+  {
+    version: 87,
+    name: 'map_scale_height',
+    up: (db) => {
+      // Map height for the measurement tool. NULL = work it out from the image's shape.
+      db.exec(`ALTER TABLE campaign_maps ADD COLUMN scale_height REAL DEFAULT NULL;`)
+      console.log('✅ Migration 87: map scale height')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {
