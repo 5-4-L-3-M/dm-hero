@@ -3579,7 +3579,7 @@ export const migrations: Migration[] = [
     name: 'map_scale_height',
     up: (db) => {
       // Map height for the measurement tool. NULL = work it out from the image's shape.
-      db.exec(`ALTER TABLE campaign_maps ADD COLUMN scale_height REAL DEFAULT NULL;`)
+      db.exec('ALTER TABLE campaign_maps ADD COLUMN scale_height REAL DEFAULT NULL;')
       console.log('✅ Migration 87: map scale height')
     },
   },
