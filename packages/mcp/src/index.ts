@@ -530,6 +530,82 @@ server.registerTool('get_entity', {
   return asText({ ...(entity.body as object), relations: relations.body, documents: docs, tags: tags.body })
 })
 
+server.registerTool('update_item_links', {
+  description: 'Change items a character carries, or any other relation: clear or set the missing flag (stolen / lost / taken; null = back with them), set quantity, equipped or a note, or change the relation type. Target each by the relationId shown in get_entity, plus the entityId you read it from. Only the fields you pass change; the rest of the link is kept.',
+  inputSchema: {
+    updates: z.array(z.object({
+      entityId: z.number().int().positive().describe('The character/NPC whose get_entity shows this relation'),
+      relationId: z.number().int().positive(),
+      missing: z.enum(['stolen', 'lost', 'taken']).nullable().optional().describe('null clears it: the item is back with them'),
+      quantity: z.number().int().positive().optional(),
+      equipped: z.boolean().optional(),
+      text: z.string().nullable().optional(),
+      relationType: z.string().optional(),
+    }).strict()).min(1),
+  },
+}, async ({ updates }) => {
+  const results: unknown[] = []
+  const cache = new Map<number, Array<{ relationId: number, entityName: string, relationNotes: unknown }>>()
+  for (const u of updates) {
+    if (!cache.has(u.entityId)) {
+      const c = await callApi(`/api/entities/${u.entityId}/connections`)
+      const list = (c.body as { connections?: unknown[] } | null)?.connections
+      cache.set(u.entityId, Array.isArray(list) ? list as never : [])
+    }
+    const rel = cache.get(u.entityId)!.find(r => r.relationId === u.relationId)
+    if (!rel) {
+      results.push({ relationId: u.relationId, ok: false, result: `Relation ${u.relationId} not found on entity ${u.entityId}` })
+      continue
+    }
+    let current: Record<string, unknown> = {}
+    if (rel.relationNotes && typeof rel.relationNotes === 'object') current = { ...(rel.relationNotes as Record<string, unknown>) }
+    else if (typeof rel.relationNotes === 'string' && rel.relationNotes.trim()) current = { text: rel.relationNotes }
+    const notes: Record<string, unknown> = { quantity: 1, equipped: false, ...current }
+    if (u.quantity !== undefined) notes.quantity = u.quantity
+    if (u.equipped !== undefined) notes.equipped = u.equipped
+    if (u.text !== undefined) {
+      if (u.text) notes.text = u.text
+      else delete notes.text
+    }
+    if (u.missing !== undefined) {
+      if (u.missing) notes.missing = u.missing
+      else delete notes.missing
+    }
+    if (notes.missing) notes.equipped = false
+    const r = await callApi(`/api/entity-relations/${u.relationId}`, { method: 'PATCH', body: JSON.stringify({ relationType: u.relationType, notes }) })
+    results.push({ relationId: u.relationId, item: rel.entityName, ok: r.ok, notes: r.ok ? notes : undefined, result: r.ok ? undefined : r.body })
+  }
+  return asText(results)
+})
+
+server.registerTool('get_purse', {
+  description: 'Read a player character\'s purse (the coins on their Inventory tab): coin counts per currency code (e.g. PP, GP, SP, CP), the total in the base unit, and the campaign\'s currencies.',
+  inputSchema: { playerId: z.number().int().positive() },
+}, async ({ playerId }) => {
+  const r = await callApi(`/api/players/${playerId}/coins`)
+  return asText(r.body)
+})
+
+server.registerTool('update_purse', {
+  description: 'Change a player character\'s purse. add = coins to add per currency code (negative to spend, e.g. { GP: -212 }); coins = set the whole purse instead. Codes come from get_purse. Coins never go below 0. Show the user what you will change and wait for OK.',
+  inputSchema: {
+    playerId: z.number().int().positive(),
+    add: z.record(z.string(), z.number().int()).optional(),
+    coins: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  },
+}, async ({ playerId, add, coins }) => {
+  if (!add && !coins) return asText({ ok: false, error: 'Pass add or coins.' })
+  let next: Record<string, number> = { ...(coins ?? {}) }
+  if (!coins) {
+    const cur = await callApi(`/api/players/${playerId}/coins`)
+    if (!cur.ok) return asText(cur.body)
+    next = { ...((cur.body as { coins?: Record<string, number> }).coins ?? {}) }
+  }
+  for (const [code, n] of Object.entries(add ?? {})) next[code] = Math.max(0, (next[code] ?? 0) + n)
+  const r = await callApi(`/api/players/${playerId}/coins`, { method: 'PUT', body: JSON.stringify({ coins: next }) })
+  return asText(r.body)
+})
+
 // ---------------------------------------------------------------------------
 // Groups
 // ---------------------------------------------------------------------------
