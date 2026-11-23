@@ -196,6 +196,8 @@
               class="mb-3"
             />
 
+            <SharedShipRoleField v-model:role="form.ship_role" v-model:rank="form.ship_role_rank" class="mb-4" />
+
             <v-text-field
               v-model="form.email"
               :label="$t('players.email')"
@@ -443,6 +445,7 @@
 import { characterInfoToMetadata, emptyCharacterInfo, readCharacterInfo, type Player } from '~~/types/player'
 import PlayerCharacterFields from '~/components/players/PlayerCharacterFields.vue'
 import { readCarryBonus } from '~~/types/inventory'
+import { readShipRank, readShipRole } from '~~/types/ship'
 import EntityImageUpload from '../shared/EntityImageUpload.vue'
 import EntityImageGallery from '../shared/EntityImageGallery.vue'
 import EntityDocuments from '../shared/EntityDocuments.vue'
@@ -511,6 +514,9 @@ const form = ref({
   showBirthdayInCalendar: true,
   /** Carrying capacity bonus, always stored in lb */
   carry_bonus: 0,
+  /** Ship role held on top of the class (naval play) */
+  ship_role: undefined as string | undefined,
+  ship_role_rank: 1,
   character: emptyCharacterInfo(),
 })
 
@@ -636,6 +642,8 @@ async function loadPlayer(playerId: number) {
     birthday: data.metadata?.birthday || null,
     showBirthdayInCalendar,
     carry_bonus: readCarryBonus(data.metadata),
+    ship_role: readShipRole(data.metadata?.ship_role) ?? undefined,
+    ship_role_rank: readShipRank(data.metadata?.ship_role_rank),
     character: readCharacterInfo(data.metadata),
   }
   loadedMetadata.value = { ...(data.metadata ?? {}) }
@@ -665,6 +673,8 @@ function resetForm() {
     birthday: null,
     showBirthdayInCalendar: true,
     carry_bonus: 0,
+    ship_role: undefined,
+    ship_role_rank: 1,
     character: emptyCharacterInfo(),
   }
   loadedMetadata.value = {}
@@ -700,6 +710,8 @@ async function save() {
       birthday: birthdayToSave,
       showBirthdayInCalendar: hasBirthday.value ? form.value.showBirthdayInCalendar : false,
       carry_bonus: form.value.carry_bonus || 0,
+      ship_role: form.value.ship_role || null,
+      ship_role_rank: form.value.ship_role ? form.value.ship_role_rank : null,
       ...characterInfoToMetadata(form.value.character),
     }
 

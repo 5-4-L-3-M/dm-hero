@@ -2,6 +2,7 @@ import { getDb } from '~~/server/utils/db'
 import { NPC_RELATION_TYPES, NPC_TYPES, NPC_STATUSES, NPC_ITEM_RELATION_TYPES, NPC_LOCATION_RELATION_TYPES } from '~~/types/npc'
 import { LORE_TYPES } from '~~/types/lore'
 import { FACTION_TYPES, FACTION_RELATION_TYPES } from '~~/types/faction'
+import { SHIP_ROLES } from '~~/types/ship'
 
 /**
  * Self-describing contract for the AI bulk-import endpoint.
@@ -62,6 +63,8 @@ export default defineEventHandler(() => {
         gender: { type: 'string' },
         age: { type: 'number' },
         age_human: { type: 'string', note: 'human-equivalent age, e.g. "27" for a 102-year-old elf' },
+        ship_role: { type: 'string', oneOf: SHIP_ROLES, note: 'job held aboard a ship ON TOP of the class (naval play); null clears it' },
+        ship_role_rank: { type: 'number', oneOf: [1, 2, 3], note: 'ship rank I–III (normally rises at levels 9 and 16)' },
       },
       Item: {
         type: { type: 'string', oneOf: itemTypes.map(t => t.name) },
@@ -91,6 +94,8 @@ export default defineEventHandler(() => {
       // Players can't be imported, but update_entities edits them by id.
       Player: {
         carry_bonus: { type: 'number', note: 'extra carrying capacity in pounds (lb), added to STR × 15; can be negative; 0/unset = none. Edit with update_entities.' },
+        ship_role: { type: 'string', oneOf: SHIP_ROLES, note: 'job held aboard a ship ON TOP of the class (naval play); null clears it' },
+        ship_role_rank: { type: 'number', oneOf: [1, 2, 3], note: 'ship rank I–III' },
         // Character sheet header shown on player cards. Plain text unless noted; null clears a field.
         race: { type: 'string', note: 'free text, e.g. "Dragonborn (Copper)"' },
         classes: { type: 'array', note: 'one entry per class: [{ name: "Pirate", level: 3, subclass: "Buccaneer" }, { name: "Warlock", level: 1 }]; total level is the sum' },

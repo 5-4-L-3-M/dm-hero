@@ -27,12 +27,15 @@
             class="mb-4 rounded preview-image"
           />
 
-          <div v-if="npcMeta.status || npcTypes.length || npcLoyalty" class="d-flex flex-wrap ga-1 mb-3">
+          <div v-if="npcMeta.status || npcTypes.length || npcLoyalty || shipRole" class="d-flex flex-wrap ga-1 mb-3">
             <v-chip v-if="npcMeta.status" size="small" :color="npcMeta.status === 'dead' ? 'error' : npcMeta.status === 'alive' ? 'success' : 'warning'" variant="flat">
               {{ $te(`npcs.statuses.${npcMeta.status}`) ? $t(`npcs.statuses.${npcMeta.status}`) : npcMeta.status }}
             </v-chip>
             <v-chip v-if="npcLoyalty" size="small" :color="NPC_LOYALTY_COLORS[npcLoyalty]" variant="tonal">
               <v-icon start size="x-small">mdi-circle</v-icon>{{ $t(`npcs.loyalty.${npcLoyalty}`) }}
+            </v-chip>
+            <v-chip v-if="shipRole" size="small" color="info" variant="tonal" :prepend-icon="SHIP_ROLE_ICONS[shipRole.role]">
+              {{ $t(`naval.roles.${shipRole.role}`) }} {{ RANK_LABELS[shipRole.rank - 1] }}
             </v-chip>
             <v-chip v-for="nt in npcTypes" :key="nt" size="small" variant="tonal">
               {{ $te(`npcs.types.${nt}`) ? $t(`npcs.types.${nt}`) : nt }}
@@ -262,6 +265,9 @@
             class="mb-4 rounded preview-image"
           />
           <PlayerCharacterSummary :metadata="entity.metadata" class="mb-4" />
+          <v-chip v-if="shipRole" size="small" color="info" variant="tonal" class="mb-4" :prepend-icon="SHIP_ROLE_ICONS[shipRole.role]">
+            {{ $t(`naval.roles.${shipRole.role}`) }} {{ RANK_LABELS[shipRole.rank - 1] }}
+          </v-chip>
           <!-- Inventory right here: purse, load, items (add, equip, mark stolen/missing …) -->
           <v-expansion-panels v-model="inventoryOpen" variant="accordion" class="mb-4 panel-inventory">
             <v-expansion-panel value="inv">
@@ -428,6 +434,7 @@ import type { PlayerInventory } from '~~/types/inventory'
 import type { Roster, RosterRole } from '~~/types/roster'
 import RepSection from '~/components/reputation/RepSection.vue'
 import { NPC_LOYALTY_COLORS, readLoyalty } from '~~/types/npc'
+import { RANK_LABELS, SHIP_ROLE_ICONS, readShipRank, readShipRole } from '~~/types/ship'
 import { QUEST_STATUS_ICONS, readQuestMetadata, storylineColor, type LinkedEntity, type QuestObjective, type QuestStatus } from '~~/types/story'
 import type { EntityPreviewType } from './EntityPreviewDialog.vue'
 
@@ -495,6 +502,10 @@ const { t, te } = useI18n()
 // NPC: race/class/gender/age/location/factions from metadata + connections
 const { raceName, classNames } = useReferenceNames()
 const npcMeta = computed(() => ((entity.value?.metadata ?? {}) as Record<string, unknown>))
+const shipRole = computed(() => {
+  const role = readShipRole(npcMeta.value.ship_role)
+  return role ? { role, rank: readShipRank(npcMeta.value.ship_role_rank) } : null
+})
 const npcLoyalty = computed(() => (type.value === 'npc' ? readLoyalty(npcMeta.value.loyalty) : null))
 const npcTypes = computed(() => {
   const v = npcMeta.value.type

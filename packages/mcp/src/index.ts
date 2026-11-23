@@ -183,6 +183,9 @@ server.registerTool('what_can_i_do', {
     { area: 'Story Board', canDo: 'read the board, add beats to a cluster or loose ideas to the sparks shelf, move beats, plan them for the next session, log them as played, create clusters/storylines', askLike: '"Add these three rumors as sparks" / "Mark the ambush as played in session 5" / "What is planned for next session?"' },
     { area: 'Quests', canDo: 'list, create and update quests (status, giver, place, reward, objectives)', askLike: '"Add the missing-ship quest, given by the harbormaster" / "Tick off the first objective"' },
     { area: 'World', canDo: 'faction agendas with progress clocks, dated world events on the in-game calendar', askLike: '"Advance the Tide Court\'s clock by 2" / "On the 3rd of Frostmoon the bridge collapses"' },
+    { area: 'Naval', canDo: 'put ships (from the ship table or custom) into an encounter for ship-to-ship combat; set a character\'s ship role and rank (Captain, First Mate, Master Bosun, …) via update_entities', askLike: '"Add the Whritekeel ship and a pirate Prowler to tonight\'s encounter" / "Make Cassian the Captain"' },
+    { area: 'Reference data', canDo: 'list and add custom classes and races', askLike: '"Add Gunslinger as a class"' },
+    { area: 'DM Screen', canDo: 'read, add and edit DM Screen sections (the pinned rules reference)', askLike: '"Put the naval combat rules on my DM Screen"' },
     { area: 'Reading', canDo: 'look up what already exists: search entities, read one entity in full (relations, documents, tags), list sessions/groups/maps/encounters', askLike: '"What do we know about the mayor?" / "Which sessions exist?"' },
   ],
   rules: [
@@ -1092,6 +1095,113 @@ server.registerTool('add_world_event', {
 }, async ({ campaignId, ...event }) => {
   const r = await callApi('/api/calendar/events', { method: 'POST', body: JSON.stringify({ campaignId, ...event, eventType: 'world' }) })
   return asText(r.body)
+})
+
+// ---------------------------------------------------------------------------
+// Reference data: custom classes and races
+// ---------------------------------------------------------------------------
+
+server.registerTool('list_classes', {
+  description: 'List every class DM Hero knows (built-in and custom). Custom classes have key null; NPC class metadata accepts their English name.',
+}, async () => {
+  const r = await callApi('/api/classes')
+  if (!r.ok || !Array.isArray(r.body)) return asText(r.body)
+  return asText((r.body as Array<{ id: number, key: string | null, name: string, name_en: string | null, description: string | null }>)
+    .map(c => ({ id: c.id, key: c.key, name: c.name_en || c.name, custom: !c.key, description: c.description })))
+})
+
+server.registerTool('create_class', {
+  description: 'Add a custom class to DM Hero (global, all campaigns). Pass the English name; nameDe is the German name (use the English one if there is none). Ship jobs like Captain are NOT classes — use the ship_role metadata field for those.',
+  inputSchema: {
+    name: z.string().min(1),
+    nameDe: z.string().optional(),
+    description: z.string().optional(),
+  },
+}, async ({ name, nameDe, description }) => {
+  const r = await callApi('/api/classes', { method: 'POST', body: JSON.stringify({ name, name_en: name, name_de: nameDe || name, description }) })
+  return asText(r.body)
+})
+
+server.registerTool('list_races', {
+  description: 'List every race DM Hero knows (built-in and custom).',
+}, async () => {
+  const r = await callApi('/api/races')
+  if (!r.ok || !Array.isArray(r.body)) return asText(r.body)
+  return asText((r.body as Array<{ id: number, key: string | null, name: string, name_en: string | null }>)
+    .map(c => ({ id: c.id, key: c.key, name: c.name_en || c.name, custom: !c.key })))
+})
+
+server.registerTool('create_race', {
+  description: 'Add a custom race to DM Hero (global, all campaigns). Pass the English name; nameDe is the German name (use the English one if there is none).',
+  inputSchema: {
+    name: z.string().min(1),
+    nameDe: z.string().optional(),
+    description: z.string().optional(),
+  },
+}, async ({ name, nameDe, description }) => {
+  const r = await callApi('/api/races', { method: 'POST', body: JSON.stringify({ name, name_en: name, name_de: nameDe || name, description }) })
+  return asText(r.body)
+})
+
+// ---------------------------------------------------------------------------
+// DM Screen (pinned rules reference in the side panel)
+// ---------------------------------------------------------------------------
+
+server.registerTool('list_dm_screen', {
+  description: 'Read the DM Screen sections of a campaign (id, title, icon, markdown body). Check this before adding a section so you don\'t duplicate one.',
+  inputSchema: { campaignId: z.number().int().positive() },
+}, async ({ campaignId }) => {
+  const r = await callApi(`/api/dashboard/reference?campaignId=${campaignId}`)
+  return asText(r.body)
+})
+
+server.registerTool('save_dm_screen_section', {
+  description: 'Add a DM Screen section (no sectionId) or change one (sectionId). body is markdown; keep it short and scannable — headings, bullets, small tables. icon is an mdi icon name, e.g. "mdi-ferry".',
+  inputSchema: {
+    campaignId: z.number().int().positive(),
+    sectionId: z.number().int().positive().optional(),
+    title: z.string().min(1).optional(),
+    body: z.string().optional(),
+    icon: z.string().optional(),
+  },
+}, async ({ campaignId, sectionId, title, body, icon }) => {
+  const r = sectionId
+    ? await callApi(`/api/dashboard/reference/${sectionId}`, { method: 'PATCH', body: JSON.stringify({ title, body, icon }) })
+    : await callApi('/api/dashboard/reference', { method: 'POST', body: JSON.stringify({ campaignId, title, body, icon }) })
+  return asText(r.body)
+})
+
+// ---------------------------------------------------------------------------
+// Naval combat: ships in an encounter
+// ---------------------------------------------------------------------------
+
+const SHIP_PRESET_KEYS = ['skuttle', 'skirmisher', 'sprinter', 'buccaneer', 'striker', 'hauler', 'tactician', 'trader', 'bull', 'prowler', 'admiral-class', 'bombardier', 'cloudbuster', 'rowboat', 'launch'] as const
+
+server.registerTool('add_ships', {
+  description: 'Put ships into an encounter for naval combat (the Ships panel of the combat tracker). preset fills size, AC, hull, masts, agility and speed from the ship table; any field you pass overrides it. side: ally = the party\'s ship, enemy = the other one.',
+  inputSchema: {
+    encounterId: z.number().int().positive(),
+    ships: z.array(z.object({
+      name: z.string().min(1),
+      side: z.enum(['ally', 'enemy']).optional(),
+      preset: z.enum(SHIP_PRESET_KEYS).optional(),
+      size: z.number().int().min(0).max(4).optional(),
+      ac: z.number().int().optional(),
+      hullMax: z.number().int().positive().optional(),
+      helmsman: z.string().optional(),
+      helmBonus: z.number().int().optional().describe('helmsman INT or WIS mod + water-vehicle proficiency'),
+      notes: z.string().optional(),
+    })).min(1),
+  },
+}, async ({ encounterId, ships }) => {
+  const results: unknown[] = []
+  for (const { name, side, preset, hullMax, ...rest } of ships) {
+    const data: Record<string, unknown> = { preset, ...Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)) }
+    if (hullMax) Object.assign(data, { hullMax, hull: hullMax })
+    const r = await callApi('/api/naval/ships', { method: 'POST', body: JSON.stringify({ encounterId, name, side, data }) })
+    results.push(r.ok ? { id: (r.body as { id: number }).id, name } : { name, error: r.body })
+  }
+  return asText(results)
 })
 
 const transport = new StdioServerTransport()
