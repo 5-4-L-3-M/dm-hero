@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.31.1
+
+### Patch Changes
+
+- DM Screen: rename a section straight from its header (pencil next to the name). Edit and Add section put the cursor in the title box with the name selected, so you can just type; Enter saves. The Edit button is bigger and easier to hit.
+
 ## 1.31.0
 
 ### Minor Changes

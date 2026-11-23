@@ -27,11 +27,21 @@
           <v-expansion-panel-title class="dm-ref__title">
             <v-icon size="small" class="mr-2" color="primary">{{ s.icon || 'mdi-text-box-outline' }}</v-icon>
             <span class="dm-ref__title-text">{{ s.title }}</span>
+            <v-spacer />
+            <v-btn
+              v-if="editingId !== s.id"
+              icon="mdi-pencil"
+              size="small"
+              variant="text"
+              class="dm-ref__title-edit mr-1"
+              :aria-label="$t('common.edit')"
+              @click.stop="startEdit(s, true)"
+            />
           </v-expansion-panel-title>
           <v-expansion-panel-text>
             <!-- Edit in place -->
             <template v-if="editingId === s.id">
-              <v-text-field v-model="draft.title" :label="$t('dmReference.sectionTitle')" variant="outlined" density="compact" class="mb-2" hide-details />
+              <v-text-field :ref="setTitleField" v-model="draft.title" :label="$t('dmReference.sectionTitle')" variant="outlined" density="compact" class="mb-2" hide-details @keydown.space.stop @keydown.enter.stop="save(s)" />
               <v-textarea v-model="draft.body" variant="outlined" density="compact" auto-grow rows="8" hide-details class="dm-ref__editor" />
               <div class="text-body-small text-medium-emphasis mt-1">{{ $t('dmReference.formatHint') }}</div>
               <div class="d-flex flex-wrap align-center ga-2 mt-3">
@@ -46,7 +56,7 @@
             <template v-else>
               <SharedFormattedText :text="query ? filterBody(s.body) : s.body" class="dm-ref__body" />
               <div class="d-flex justify-end">
-                <v-btn size="x-small" variant="text" prepend-icon="mdi-pencil" @click="startEdit(s)">{{ $t('common.edit') }}</v-btn>
+                <v-btn size="small" variant="tonal" prepend-icon="mdi-pencil" @click="startEdit(s, true)">{{ $t('common.edit') }}</v-btn>
               </div>
             </template>
           </v-expansion-panel-text>
@@ -155,9 +165,21 @@ function toggleAll() {
   openIds.value = allOpen.value ? [] : visible.value.map(s => s.id)
 }
 
-function startEdit(s: Section) {
+type TitleField = { focus: () => void, $el?: HTMLElement }
+const titleField = shallowRef<TitleField | null>(null)
+function setTitleField(el: unknown) {
+  titleField.value = (el as TitleField | null) ?? null
+}
+/** Open the editor; with focusTitle the title box is focused and selected, ready to type a name. */
+async function startEdit(s: Section, focusTitle = false) {
   editingId.value = s.id
   draft.value = { title: s.title, body: s.body }
+  if (!openIds.value.includes(s.id)) openIds.value = [...openIds.value, s.id]
+  if (!focusTitle) return
+  await nextTick()
+  await new Promise(r => setTimeout(r, 250)) // let the panel finish opening
+  titleField.value?.focus()
+  titleField.value?.$el?.querySelector('input')?.select()
 }
 
 async function save(s: Section) {
@@ -178,7 +200,7 @@ async function add() {
   const created = await $fetch<Section>('/api/dashboard/reference', { method: 'POST', body: { campaignId: campaignId.value, title: t('dmReference.newSection'), body: '' } })
   sections.value.push(created)
   openIds.value = [...openIds.value, created.id]
-  startEdit(created)
+  startEdit(created, true)
 }
 
 async function remove(s: Section) {
@@ -207,6 +229,12 @@ async function move(s: Section, dir: -1 | 1) {
   min-height: 44px !important;
   padding-block: 8px;
   font-weight: 600;
+}
+.dm-ref__title-edit {
+  opacity: 0.6;
+}
+.dm-ref__title:hover .dm-ref__title-edit {
+  opacity: 1;
 }
 .dm-ref__title-text {
   min-width: 0;
