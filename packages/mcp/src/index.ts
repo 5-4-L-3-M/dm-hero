@@ -4,6 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
 import { readFile } from 'node:fs/promises'
 import { basename, extname, resolve } from 'node:path'
+import apiRoutes from './routes.generated.json'
 
 /**
  * dm-hero-mcp — stdio MCP server that lets an AI agent put content into a
@@ -185,6 +186,8 @@ server.registerTool('what_can_i_do', {
     { area: 'World', canDo: 'faction agendas with progress clocks, dated world events on the in-game calendar', askLike: '"Advance the Tide Court\'s clock by 2" / "On the 3rd of Frostmoon the bridge collapses"' },
     { area: 'Naval', canDo: 'put ships (from the ship table or custom) into an encounter for ship-to-ship combat; set a character\'s ship role and rank (Captain, First Mate, Master Bosun, …) via update_entities', askLike: '"Add the Whritekeel ship and a pirate Prowler to tonight\'s encounter" / "Make Cassian the Captain"' },
     { area: 'Reference data', canDo: 'list and add custom classes and races', askLike: '"Add Gunslinger as a class"' },
+    { area: 'Stat blocks & encounters', canDo: 'read and write NPC stat blocks; rename encounters, add/edit/remove participants (HP, initiative, combat notes); edit or remove ships', askLike: '"Make Edda a CR 6 caster" / "Give the boss 120 HP"' },
+    { area: 'Anything else', canDo: 'reach every part of DM Hero through its API (list_api_routes + api_request): edit or delete sessions, calendar events, maps, documents, relations, tags, folders, groups, roll tables, shops, settings …', askLike: '"Move the festival to the 12th" / "Delete the old map marker"' },
     { area: 'DM Screen', canDo: 'read, add and edit DM Screen sections (the pinned rules reference)', askLike: '"Put the naval combat rules on my DM Screen"' },
     { area: 'Reading', canDo: 'look up what already exists: search entities, read one entity in full (relations, documents, tags), list sessions/groups/maps/encounters', askLike: '"What do we know about the mayor?" / "Which sessions exist?"' },
   ],
@@ -1202,6 +1205,183 @@ server.registerTool('add_ships', {
     results.push(r.ok ? { id: (r.body as { id: number }).id, name } : { name, error: r.body })
   }
   return asText(results)
+})
+
+// ---------------------------------------------------------------------------
+// Stat blocks (NPCs and players)
+// ---------------------------------------------------------------------------
+
+const featureSchema = z.object({ name: z.string(), text: z.string() })
+const statBlockSchema = z.object({
+  size: z.string().nullable().optional(),
+  kind: z.string().nullable().optional().describe('"humanoid (human)", "dragon" …'),
+  alignment: z.string().nullable().optional(),
+  ac: z.number().int().nullable().optional(),
+  ac_note: z.string().nullable().optional(),
+  hp: z.number().int().nullable().optional(),
+  hp_formula: z.string().nullable().optional(),
+  speed: z.string().nullable().optional(),
+  str: z.number().int().nullable().optional(),
+  dex: z.number().int().nullable().optional(),
+  con: z.number().int().nullable().optional(),
+  int: z.number().int().nullable().optional(),
+  wis: z.number().int().nullable().optional(),
+  cha: z.number().int().nullable().optional(),
+  saves: z.string().nullable().optional(),
+  skills: z.string().nullable().optional(),
+  vulnerabilities: z.string().nullable().optional(),
+  resistances: z.string().nullable().optional(),
+  immunities: z.string().nullable().optional(),
+  condition_immunities: z.string().nullable().optional(),
+  senses: z.string().nullable().optional(),
+  languages: z.string().nullable().optional(),
+  cr: z.string().nullable().optional(),
+  xp: z.number().int().nullable().optional(),
+  traits: z.array(featureSchema).optional(),
+  actions: z.array(featureSchema).optional(),
+  bonus_actions: z.array(featureSchema).optional(),
+  reactions: z.array(featureSchema).optional(),
+  legendary: z.array(featureSchema).optional(),
+  notes: z.string().nullable().optional().describe('How it fights, tactics, rules for this fight'),
+})
+
+server.registerTool('get_stat_block', {
+  description: 'Read the combat stat block of an NPC (the one the combat tracker shows). null = it has none yet.',
+  inputSchema: { entityId: z.number().int().positive() },
+}, async ({ entityId }) => asText((await callApi(`/api/monsters/npc/${entityId}`)).body))
+
+server.registerTool('set_stat_block', {
+  description: 'Write an NPC\'s combat stat block (shown on its page and in every encounter it joins). mode "merge" (default) changes only the fields you pass; "replace" swaps the whole block; block null removes it. Show the user what you will change and wait for OK.',
+  inputSchema: {
+    entityId: z.number().int().positive(),
+    block: statBlockSchema.nullable(),
+    mode: z.enum(['merge', 'replace']).optional(),
+  },
+}, async ({ entityId, block, mode }) => {
+  let next: unknown = block
+  if (block && mode !== 'replace') {
+    const cur = await callApi(`/api/monsters/npc/${entityId}`)
+    next = { ...(((cur.body as { block?: object } | null)?.block) ?? {}), ...block }
+  }
+  const r = await callApi(`/api/monsters/npc/${entityId}`, { method: 'PUT', body: JSON.stringify({ block: next }) })
+  return asText(r.body)
+})
+
+// ---------------------------------------------------------------------------
+// Encounters: edit what's already there
+// ---------------------------------------------------------------------------
+
+server.registerTool('get_encounter', {
+  description: 'Read one encounter in full: status, round, participants (id, name, HP, initiative, notes, effects, stat block) and its ships.',
+  inputSchema: { encounterId: z.number().int().positive() },
+}, async ({ encounterId }) => {
+  const [enc, naval] = await Promise.all([callApi(`/api/encounters/${encounterId}`), callApi(`/api/naval/encounter/${encounterId}`)])
+  return asText({ ...(enc.body as object), naval: naval.ok ? naval.body : null })
+})
+
+server.registerTool('update_encounter', {
+  description: 'Change an encounter: rename it, attach it to a session, add participants, edit participants (HP, max HP, initiative, notes — notes are shown to the DM in combat), or remove participants. Participant ids come from get_encounter. Show the user what you will change and wait for OK.',
+  inputSchema: {
+    encounterId: z.number().int().positive(),
+    name: z.string().min(1).optional(),
+    sessionId: z.number().int().positive().nullable().optional(),
+    add: z.array(z.object({ entityId: z.number().int().positive(), maxHp: z.number().int().positive().optional() })).optional(),
+    edit: z.array(z.object({
+      participantId: z.number().int().positive(),
+      currentHp: z.number().int().nonnegative().optional(),
+      maxHp: z.number().int().positive().optional(),
+      tempHp: z.number().int().nonnegative().optional(),
+      initiative: z.number().int().optional(),
+      notes: z.string().optional(),
+    })).optional(),
+    remove: z.array(z.number().int().positive()).optional().describe('participant ids'),
+  },
+}, async ({ encounterId, name, sessionId, add, edit, remove }) => {
+  const out: Record<string, unknown> = {}
+  const edited: unknown[] = []
+  const removed: unknown[] = []
+  if (name !== undefined || sessionId !== undefined) {
+    out.encounter = (await callApi(`/api/encounters/${encounterId}`, { method: 'PATCH', body: JSON.stringify({ name, session_id: sessionId }) })).body
+  }
+  if (add?.length) {
+    out.added = (await callApi(`/api/encounters/${encounterId}/participants`, { method: 'POST', body: JSON.stringify({ participants: add.map(a => ({ entityId: a.entityId, maxHp: a.maxHp, currentHp: a.maxHp })) }) })).ok
+  }
+  for (const e of edit ?? []) {
+    const r = await callApi(`/api/encounters/${encounterId}/participants/${e.participantId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ current_hp: e.currentHp, max_hp: e.maxHp, temp_hp: e.tempHp, initiative: e.initiative, notes: e.notes }),
+    })
+    edited.push({ participantId: e.participantId, ok: r.ok })
+  }
+  for (const id of remove ?? []) {
+    const r = await callApi(`/api/encounters/${encounterId}/participants/${id}`, { method: 'DELETE' })
+    removed.push({ participantId: id, ok: r.ok })
+  }
+  if (edited.length) out.edited = edited
+  if (removed.length) out.removed = removed
+  return asText(out)
+})
+
+server.registerTool('update_ships', {
+  description: 'Change or remove ships in an encounter. data fields (merged into the ship): size, agility, ac, speed, hull, hullMax, masts (HP per mast), wheel, rudder, helmsman, helmBonus, deckhands, weapons, fires, repairs, notes. Ship ids from get_encounter.',
+  inputSchema: {
+    edit: z.array(z.object({
+      shipId: z.number().int().positive(),
+      name: z.string().optional(),
+      side: z.enum(['ally', 'enemy']).optional(),
+      data: z.record(z.string(), z.any()).optional(),
+    })).optional(),
+    remove: z.array(z.number().int().positive()).optional(),
+    encounterId: z.number().int().positive().describe('the encounter the ships belong to'),
+  },
+}, async ({ edit, remove, encounterId }) => {
+  const cur = await callApi(`/api/naval/encounter/${encounterId}`)
+  const ships = ((cur.body as { ships?: Array<{ id: number, data: object }> } | null)?.ships) ?? []
+  const results: unknown[] = []
+  for (const e of edit ?? []) {
+    const ship = ships.find(s => s.id === e.shipId)
+    if (!ship) {
+      results.push({ shipId: e.shipId, ok: false, error: 'not in this encounter' })
+      continue
+    }
+    const r = await callApi(`/api/naval/ships/${e.shipId}`, { method: 'PATCH', body: JSON.stringify({ name: e.name, side: e.side, data: e.data ? { ...ship.data, ...e.data } : undefined }) })
+    results.push({ shipId: e.shipId, ok: r.ok })
+  }
+  for (const id of remove ?? []) {
+    const r = await callApi(`/api/naval/ships/${id}`, { method: 'DELETE' })
+    results.push({ shipId: id, removed: r.ok })
+  }
+  return asText(results)
+})
+
+// ---------------------------------------------------------------------------
+// Everything else: the whole DM Hero API
+// ---------------------------------------------------------------------------
+
+interface ApiRoute { method: string, path: string, body?: string, query?: string }
+
+server.registerTool('list_api_routes', {
+  description: 'List DM Hero\'s API endpoints (method, path, body/query hints) so you can reach ANY part of the app with api_request — sessions, calendar, maps, groups, documents, relations, tags, folders, quests, story board, roll tables, music, shops, reputation, players, settings, and so on. filter = words that must appear in the path (e.g. "calendar events", "maps markers"). Prefer the dedicated tools when one fits.',
+  inputSchema: { filter: z.string().optional() },
+}, async ({ filter }) => {
+  const words = (filter ?? '').toLowerCase().split(/\s+/).filter(Boolean)
+  const list = (apiRoutes as ApiRoute[]).filter(r => words.every(w => r.path.toLowerCase().includes(w)))
+  return asText({ count: list.length, routes: list.slice(0, 200).map(r => `${r.method} ${r.path}${r.query ? `  ?${r.query}` : ''}${r.body ? `  body ${r.body}` : ''}`) })
+})
+
+server.registerTool('api_request', {
+  description: 'Call any DM Hero API endpoint directly (find it with list_api_routes). Use for anything no dedicated tool covers: editing or deleting sessions, calendar events, map markers, documents, relations, tags, folders, groups, roll tables, shop stock, settings, etc. GET first to see the current shape, send only the fields you change. Before any change, show the user what will change and wait for OK; DELETE only when the user asked for it.',
+  inputSchema: {
+    method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+    path: z.string().regex(/^\/api\//, 'must start with /api/').describe('e.g. /api/calendar/events/12 — fill in :params'),
+    query: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+    body: z.any().optional(),
+  },
+}, async ({ method, path, query, body }) => {
+  if (path.includes('..')) return asText({ ok: false, error: 'Invalid path' })
+  const qs = query ? `?${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}` : ''
+  const r = await callApi(`${path}${qs}`, { method, body: body === undefined || method === 'GET' ? undefined : JSON.stringify(body) })
+  return asText({ ok: r.ok, status: r.status, body: r.body })
 })
 
 const transport = new StdioServerTransport()

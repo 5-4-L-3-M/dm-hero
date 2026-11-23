@@ -1,5 +1,6 @@
 import { chmodSync } from 'node:fs'
 import { build } from 'esbuild'
+import './gen-routes.mjs'
 
 /**
  * Bundle the stdio MCP server into a single self-contained ESM file.
