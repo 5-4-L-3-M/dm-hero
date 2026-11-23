@@ -261,6 +261,9 @@
                     </template>
                   </v-select>
                 </v-col>
+                <v-col cols="12">
+                  <SharedShipRoleField v-model:role="form.metadata.ship_role" v-model:rank="form.metadata.ship_role_rank" />
+                </v-col>
                 <v-col cols="12" md="6">
                   <v-select
                     v-model="form.metadata.status"
@@ -554,6 +557,9 @@
                   </template>
                 </v-select>
               </v-col>
+              <v-col cols="12">
+                <SharedShipRoleField v-model:role="form.metadata.ship_role" v-model:rank="form.metadata.ship_role_rank" />
+              </v-col>
               <v-col cols="12" md="6">
                 <v-select
                   v-model="form.metadata.status"
@@ -634,6 +640,7 @@
 import type { Lore } from '~~/types/lore'
 import type { NpcItem, NpcMembership } from '~~/types/npc-components'
 import { NPC_TYPES, NPC_STATUSES, NPC_ITEM_RELATION_TYPES, NPC_LOYALTIES, NPC_LOYALTY_COLORS, readLoyalty, type NpcType, type NpcStatus, type NpcLoyalty, type NPC } from '~~/types/npc'
+import { readShipRank, readShipRole } from '~~/types/ship'
 import NpcRelationsTab from './NpcRelationsTab.vue'
 import EntityLocationsTab from '../shared/EntityLocationsTab.vue'
 import NpcMembershipsTab from './NpcMembershipsTab.vue'
@@ -707,9 +714,14 @@ const form = ref({
     type: [] as NpcType[],
     status: undefined as NpcStatus | undefined,
     loyalty: undefined as NpcLoyalty | undefined,
+    ship_role: undefined as string | undefined,
+    ship_role_rank: undefined as number | undefined,
     notes: '' as string,
   },
 })
+
+/** Metadata as loaded — keys this form doesn't know about are kept on save */
+const loadedMetadata = ref<Record<string, unknown>>({})
 
 // Snapshot of original values for image-critical fields
 const originalImageData = ref({
@@ -986,9 +998,13 @@ async function loadNpc(npcId: number) {
         type: toArray(data.metadata?.type) as NpcType[],
         status: data.metadata?.status as NpcStatus | undefined,
         loyalty: readLoyalty(data.metadata?.loyalty) ?? undefined,
+        ship_role: readShipRole(data.metadata?.ship_role) ?? undefined,
+        ship_role_rank: data.metadata?.ship_role ? readShipRank(data.metadata?.ship_role_rank) : undefined,
         notes: (data.metadata?.notes as string) || '',
       },
     }
+    // Keep keys this form doesn't know (set by the AI connector etc.) — the server replaces metadata whole
+    loadedMetadata.value = { ...(data.metadata ?? {}) }
 
     // Save snapshot of image-critical fields
     originalImageData.value = {
@@ -1123,9 +1139,12 @@ function resetForm() {
       type: [] as NpcType[],
       status: undefined as NpcStatus | undefined,
       loyalty: undefined,
+      ship_role: undefined,
+      ship_role_rank: undefined,
       notes: '',
     },
   }
+  loadedMetadata.value = {}
   mapSyncData.value = null
   npcRelations.value = []
   factionMemberships.value = []
@@ -1162,7 +1181,7 @@ async function save() {
         name: form.value.name,
         description: form.value.description || null,
         location_id: form.value.location_id,
-        metadata: form.value.metadata,
+        metadata: { ...loadedMetadata.value, ...form.value.metadata, ship_role_rank: form.value.metadata.ship_role ? (form.value.metadata.ship_role_rank ?? 1) : undefined },
       })
 
       // Handle map sync if enabled
@@ -1178,7 +1197,7 @@ async function save() {
         name: form.value.name,
         description: form.value.description || null,
         location_id: form.value.location_id,
-        metadata: form.value.metadata,
+        metadata: { ...loadedMetadata.value, ...form.value.metadata, ship_role_rank: form.value.metadata.ship_role ? (form.value.metadata.ship_role_rank ?? 1) : undefined },
       })
 
       // Handle map sync if enabled

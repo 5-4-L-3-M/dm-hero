@@ -39,7 +39,7 @@
     <v-card-text class="pt-0 pb-3" style="flex-grow: 0">
       <div class="group-description">
         <p v-if="group.description" class="text-body-medium text-medium-emphasis mb-0">
-          {{ group.description }}
+          <SharedCardText :text="group.description" />
         </p>
         <p v-else class="text-body-medium text-disabled mb-0 font-italic">
           {{ $t('common.noDescription') }}

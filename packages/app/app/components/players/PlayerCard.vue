@@ -66,7 +66,7 @@
     <v-card-text v-if="player.description || !hasCharacter" class="pt-0 pb-3" style="flex-grow: 0">
       <div class="player-description" :class="{ 'player-description--short': hasCharacter }">
         <p v-if="player.description" class="text-body-medium text-medium-emphasis mb-0">
-          {{ player.description }}
+          <SharedCardText :text="player.description" />
         </p>
         <p v-else class="text-body-medium text-disabled mb-0 font-italic">
           {{ $t('common.noDescription') }}

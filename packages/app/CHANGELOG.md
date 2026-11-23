@@ -1,5 +1,14 @@
 # @dm-hero/app
 
+## 1.30.0
+
+### Minor Changes
+
+- Naval combat: a Ships panel in the combat tracker (Ships button on an encounter). Add ships from the ship table or by hand, pick both ships' moves each round (ram / flank / withdraw) and it tells you the outcome, Brace DC and ram damage, with one click to roll and apply. Starts on Simple (hull and AC only); Detailed adds masts, wheel and rudder, ship weapons with load/aim/fire, fires that burn each round, and a repair-check calculator with timers. A sea log keeps each round.
+- Ship roles: players and NPCs get a Ship role (Captain, First Mate, Master Bosun, Purser, Cook, Master-at-Arms, Quartermaster, Bannerman) with rank I–III, next to their class rather than replacing it. The role's features show in the edit dialog, and a chip shows on the preview.
+- Cards no longer show markdown symbols (**, #, bullets) in descriptions, and entry links show by name.
+- AI connector: add custom classes and races, read and write DM Screen sections, put ships into an encounter, and set ship roles.
+
 ## 1.29.1
 
 ### Patch Changes

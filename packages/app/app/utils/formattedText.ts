@@ -118,3 +118,27 @@ export function parseFormattedText(text: string | null | undefined): TextBlock[]
   flush()
   return blocks
 }
+
+/**
+ * One-line plain text for card previews: markdown markers (**bold**, # headings,
+ * bullets, `code`, [links](…), > quotes) removed and entry-link codes shown by name.
+ */
+export function cardText(text: string | null | undefined, nameOf?: (type: string, id: number) => string): string {
+  if (!text) return ''
+  return text
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(LINK, (_, type: string, id: string) => (nameOf ? nameOf(type.toLowerCase(), Number(id)) : ''))
+    .split('\n')
+    .map(l => l
+      .replace(MD_HEADING, '$1')
+      .replace(/^\s*>\s?/, '')
+      .replace(BULLET, '$1')
+      .replace(/(\*\*|__)(.+?)\1/g, '$2')
+      .replace(/(^|[^\w*])\*(?!\s)([^*]+?)\*(?!\w)/g, '$1$2')
+      .replace(/`([^`]*)`/g, '$1')
+      .replace(/^\s*([-*_])\1{2,}\s*$/, '')
+      .trim())
+    .filter(Boolean)
+    .join(' ')
+}

@@ -8,6 +8,15 @@
         {{ $t(`encounters.statuses.${encounter.status}`) }}
       </v-chip>
       <v-spacer />
+      <v-btn
+        v-if="encounter.status !== 'finished'"
+        size="small"
+        :variant="showNaval ? 'flat' : 'tonal'"
+        prepend-icon="mdi-ferry"
+        @click="showNaval = !showNaval"
+      >
+        {{ $t('naval.button') }}
+      </v-btn>
       <!-- Round + Turn navigation (combat only) -->
       <template v-if="isCombat">
         <v-chip color="primary" variant="tonal" prepend-icon="mdi-refresh">
@@ -17,6 +26,14 @@
         <v-btn icon="mdi-chevron-right" size="small" variant="tonal" @click="onAdvanceTurn" />
       </template>
     </div>
+
+    <!-- Ships (naval combat): shown when the encounter has ships or the DM opens it -->
+    <EncountersEncounterNavalPanel
+      v-if="encounter.status !== 'finished'"
+      :encounter-id="encounter.id"
+      :round="encounter.round"
+      :open="showNaval"
+    />
 
     <!-- SETUP PHASE: participant list + add -->
     <template v-if="encounter.status === 'setup'">
@@ -163,6 +180,7 @@ const encounterStore = useEncounterStore()
 const snackbarStore = useSnackbarStore()
 
 const showAdd = ref(false)
+const showNaval = ref(false)
 const showEndDialog = ref(false)
 const showExpiredDialog = ref(false)
 const expiredEffectNames = ref<string[]>([])

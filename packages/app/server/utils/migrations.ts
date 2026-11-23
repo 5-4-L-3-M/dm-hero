@@ -3583,6 +3583,29 @@ export const migrations: Migration[] = [
       console.log('✅ Migration 87: map scale height')
     },
   },
+  {
+    version: 88,
+    name: 'naval_combat',
+    up: (db) => {
+      // Ships in an encounter (stats, parts, weapons, fires, repairs live in data as JSON)
+      // plus a per-encounter log of the round-by-round ship movements.
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS encounter_ships (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          encounter_id INTEGER NOT NULL,
+          side TEXT NOT NULL DEFAULT 'ally',
+          name TEXT NOT NULL,
+          data TEXT NOT NULL DEFAULT '{}',
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_encounter_ships_encounter ON encounter_ships(encounter_id);
+        ALTER TABLE encounters ADD COLUMN naval_log TEXT DEFAULT NULL;
+        ALTER TABLE encounters ADD COLUMN naval_detailed INTEGER NOT NULL DEFAULT 0;
+      `)
+      console.log('✅ Migration 88: naval combat')
+    },
+  },
 ]
 
 export async function runMigrations(db: Database.Database) {
