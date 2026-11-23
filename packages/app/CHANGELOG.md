@@ -1,5 +1,11 @@
 # @dm-hero/app
 
+## 1.31.0
+
+### Minor Changes
+
+- AI connector can now edit anything in DM Hero: NPC stat blocks (read/write), encounters (rename, add, edit or remove participants, HP and combat notes), ships (edit or remove), plus a general route list and API call so every part of the app is reachable — sessions, calendar, maps, documents, relations, tags, folders, groups, roll tables, shops, settings. The route list is built from the app's own API at build time, so new features are covered automatically.
+
 ## 1.30.0
 
 ### Minor Changes
