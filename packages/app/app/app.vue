@@ -77,6 +77,11 @@
       <MusicPlayerBar />
       <MusicMiniPlayer v-if="route.path !== '/music'" />
     </ClientOnly>
+
+    <!-- Quick access: find anything / ask Claude from any page (Ctrl+K) -->
+    <ClientOnly>
+      <QuickAccess />
+    </ClientOnly>
   </v-app>
 </template>
 

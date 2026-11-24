@@ -7,6 +7,8 @@ interface SettingsUpdateRequest {
   openai_model?: string
   gemini_api_key?: string
   gemini_model?: string
+  claude_api_key?: string
+  claude_model?: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -41,7 +43,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // API keys + models — encrypt if non-empty, delete if empty
-  for (const keyName of ['openai_api_key', 'openai_model', 'gemini_api_key', 'gemini_model'] as const) {
+  for (const keyName of ['openai_api_key', 'openai_model', 'gemini_api_key', 'gemini_model', 'claude_api_key', 'claude_model'] as const) {
     const val = body[keyName]
     if (val !== undefined) {
       if (val.trim().length > 0) {

@@ -124,6 +124,34 @@
             class="mb-4"
           />
 
+          <!-- Claude (in-app assistant) -->
+          <v-divider class="my-4" />
+          <div class="text-title-small mb-1">{{ $t('settings.ai.claudeTitle') }}</div>
+          <div class="text-body-small text-medium-emphasis mb-3">{{ $t('settings.ai.claudeHint') }}</div>
+          <v-text-field
+            v-model="claudeApiKey"
+            :label="$t('settings.ai.claudeApiKey')"
+            placeholder="sk-ant-..."
+            :type="showClaudeKey ? 'text' : 'password'"
+            variant="outlined"
+            density="comfortable"
+            class="mb-4"
+          >
+            <template #append-inner>
+              <v-btn :icon="showClaudeKey ? 'mdi-eye-off' : 'mdi-eye'" variant="text" size="small" @click="showClaudeKey = !showClaudeKey" />
+            </template>
+          </v-text-field>
+          <v-combobox
+            v-model="claudeModel"
+            :items="claudeModels"
+            :label="$t('settings.ai.claudeModel')"
+            :hint="$t('settings.ai.modelHint')"
+            variant="outlined"
+            density="comfortable"
+            persistent-hint
+            class="mb-4"
+          />
+
           <!-- Test Connection Button -->
           <v-btn
             :loading="testing"
@@ -447,6 +475,10 @@ const providerOptions = [
 
 const openaiModels = ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1', 'gpt-4.5-preview']
 const geminiModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro']
+const claudeApiKey = ref('')
+const claudeModel = ref('claude-sonnet-5-5')
+const showClaudeKey = ref(false)
+const claudeModels = ['claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-opus-5-5']
 
 const activeApiKey = computed(() =>
   aiProvider.value === 'openai' ? openaiApiKey.value : geminiApiKey.value,
@@ -601,6 +633,8 @@ async function loadSettings() {
     geminiApiKey.value = settings.gemini_api_key_full || ''
     openaiModel.value = settings.openai_model || 'gpt-4o-mini'
     geminiModel.value = settings.gemini_model || 'gemini-2.5-flash'
+    claudeApiKey.value = settings.claude_api_key_full || ''
+    claudeModel.value = settings.claude_model || 'claude-sonnet-5-5'
   }
   catch (error) {
     console.error('[Settings] Failed to load settings:', error)
@@ -621,6 +655,8 @@ async function saveSettings() {
         openai_model: openaiModel.value,
         gemini_api_key: geminiApiKey.value,
         gemini_model: geminiModel.value,
+        claude_api_key: claudeApiKey.value,
+        claude_model: claudeModel.value,
       },
     })
 
