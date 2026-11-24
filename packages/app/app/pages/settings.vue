@@ -476,9 +476,9 @@ const providerOptions = [
 const openaiModels = ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1', 'gpt-4.5-preview']
 const geminiModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro']
 const claudeApiKey = ref('')
-const claudeModel = ref('claude-sonnet-5-5')
+const claudeModel = ref('claude-opus-5-5')
 const showClaudeKey = ref(false)
-const claudeModels = ['claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-opus-5-5']
+const claudeModels = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5']
 
 const activeApiKey = computed(() =>
   aiProvider.value === 'openai' ? openaiApiKey.value : geminiApiKey.value,
