@@ -1,5 +1,12 @@
 # @dm-hero/app
 
+## 1.32.0
+
+### Minor Changes
+
+- Quick access on every page: the lightning button (or Ctrl+K) shows next-session beats, the party and open encounters, searches everything, and opens beats, encounters, people, places, items and player inventories as pop-ups.
+- Claude assistant in Quick access (Ask tab): answers stat, rule, item and campaign questions, can search the web, and can create items, NPCs, places, factions and lore, give items, and change gold, clocks, beats and HP — every change waits for your Confirm. Add your Claude API key in Settings → AI (Opus by default).
+
 ## 1.31.1
 
 ### Patch Changes
