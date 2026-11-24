@@ -1,5 +1,6 @@
 import { getDb } from './db'
 import { decrypt } from './encryption'
+import { ITEM_RARITIES, ITEM_TYPES } from '../../types/item'
 
 /**
  * In-app assistant: Claude with tools over DM Hero's own API.
@@ -9,7 +10,7 @@ import { decrypt } from './encryption'
  * the DM presses Confirm (the next request carries the decision).
  */
 
-export const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-5-5'
+export const DEFAULT_CLAUDE_MODEL = 'claude-opus-5-5'
 
 export interface AssistantBlock {
   type: string
@@ -45,6 +46,18 @@ async function api<T = unknown>(path: string, opts?: { method?: string, body?: u
   // Plain-typed fetch: Nitro's typed route inference goes infinitely deep on a dynamic path
   const f = $fetch as unknown as (url: string, o: Record<string, unknown>) => Promise<T>
   return await f(path, { method: opts?.method ?? 'GET', body: opts?.body })
+}
+
+async function giveItem(holderId: number, itemId: number, quantity: number) {
+  const c = await api<{ connections?: Array<{ relationId: number, entityId: number, relationType: string, relationNotes: unknown }> }>(`/api/entities/${holderId}/connections`)
+  const rel = (c.connections ?? []).find(r => r.entityId === itemId && r.relationType === 'carries')
+  if (rel) {
+    const cur = rel.relationNotes && typeof rel.relationNotes === 'object' ? rel.relationNotes as Record<string, unknown> : {}
+    const notes = { quantity: 1, equipped: false, ...cur }
+    notes.quantity = Number(notes.quantity ?? 1) + quantity
+    return api(`/api/entity-relations/${rel.relationId}`, { method: 'PATCH', body: { notes } })
+  }
+  return api('/api/entity-relations', { method: 'POST', body: { fromEntityId: holderId, toEntityId: itemId, relationType: 'carries', notes: { quantity, equipped: false } } })
 }
 
 const num = (v: unknown) => Number(v)
@@ -222,6 +235,49 @@ const TOOLS: ToolDef[] = [
     run: async ({ encounterId, participantId, currentHp, tempHp }) =>
       api(`/api/encounters/${num(encounterId)}/participants/${num(participantId)}`, { method: 'PATCH', body: { current_hp: currentHp, temp_hp: tempHp } }),
   },
+  {
+    name: 'create_item',
+    write: true,
+    description: 'Create a new item entry (e.g. one you looked up on the web or the DM described). Optionally hand it straight to a character with giveTo (player or NPC entity id). Search first so you do not duplicate an existing item.',
+    input_schema: { type: 'object', properties: {
+      name: { type: 'string' },
+      description: { type: 'string', description: 'What it is, what it does, what it looks like. Full rules text if relevant.' },
+      type: { type: 'string', enum: [...ITEM_TYPES] },
+      rarity: { type: 'string', enum: [...ITEM_RARITIES] },
+      value: { type: 'number', description: 'Value in gold pieces' },
+      weight: { type: 'number', description: 'Weight in lb' },
+      attunement: { type: 'boolean' },
+      damage: { type: 'string', description: 'e.g. 1d8 slashing' },
+      armor_class: { type: 'integer' },
+      properties: { type: 'string', description: 'e.g. Finesse, Light' },
+      giveTo: { type: 'integer', description: 'Entity id of the character who gets it (optional)' },
+      quantity: { type: 'integer' },
+      ...summaryProp,
+    }, required: ['name', 'summary'] },
+    run: async ({ name, description, type, rarity, value, weight, attunement, damage, armor_class, properties, giveTo, quantity }, ctx) => {
+      const metadata = Object.fromEntries(Object.entries({ type, rarity, value, weight, attunement, damage, armor_class, properties }).filter(([, v]) => v !== undefined))
+      const item = await api<{ id: number, name: string }>('/api/items', { method: 'POST', body: { name, description, metadata, campaignId: ctx.campaignId } })
+      if (giveTo) await giveItem(num(giveTo), item.id, num(quantity ?? 1))
+      return { created: item, givenTo: giveTo ?? null }
+    },
+  },
+  {
+    name: 'give_item',
+    write: true,
+    description: 'Put an existing item into a character\'s inventory (player or NPC). If they already carry it, adds to the quantity.',
+    input_schema: { type: 'object', properties: { itemId: { type: 'integer' }, toEntityId: { type: 'integer' }, quantity: { type: 'integer' }, ...summaryProp }, required: ['itemId', 'toEntityId', 'summary'] },
+    run: async ({ itemId, toEntityId, quantity }) => giveItem(num(toEntityId), num(itemId), num(quantity ?? 1)),
+  },
+  {
+    name: 'create_entry',
+    write: true,
+    description: 'Create a new NPC, location, faction or lore entry with a name and description.',
+    input_schema: { type: 'object', properties: { kind: { type: 'string', enum: ['npc', 'location', 'faction', 'lore'] }, name: { type: 'string' }, description: { type: 'string' }, ...summaryProp }, required: ['kind', 'name', 'summary'] },
+    run: async ({ kind, name, description }, ctx) => {
+      const path = { npc: '/api/npcs', location: '/api/locations', faction: '/api/factions', lore: '/api/lore' }[String(kind) as 'npc']
+      return api(path, { method: 'POST', body: { name, description, campaignId: ctx.campaignId } })
+    },
+  },
 ]
 
 const TOOL_BY_NAME = new Map(TOOLS.map(t => [t.name, t]))
@@ -249,6 +305,8 @@ function systemPrompt(campaignName: string) {
     'Look things up with the tools before answering; never guess stats, items, gold or names. Search first when the DM names something.',
     'Answer in a few short lines of plain text. Lead with the answer (the number, the item, the name). No preamble.',
     'D&D 5e rules questions you can answer from your own knowledge; campaign facts come only from the tools.',
+    'Use web_search for anything you are not sure of or that lives online (official item stats, rules text, real-world facts). Say briefly where it came from.',
+    'To add something the DM asks for (an item, NPC, place), search the campaign first, then call create_item / create_entry / give_item with full details filled in.',
     'When the DM asks for a change (gold, items, clocks, beats, HP), call the matching change tool once with a clear summary. The app asks the DM to confirm; do not ask again in text.',
     'If a change was declined, say so in one line and stop.',
   ].join('\n')
@@ -261,9 +319,13 @@ async function callClaude(messages: AssistantMessage[], system: string): Promise
     headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({
       model,
-      max_tokens: 1200,
+      max_tokens: 2000,
       system,
-      tools: TOOLS.map(t => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
+      tools: [
+        ...TOOLS.map(t => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
+        // Anthropic-hosted web search: runs on their side, results come back in the reply
+        { type: 'web_search_20250305', name: 'web_search', max_uses: 3 },
+      ],
       messages,
     }),
   })
@@ -315,18 +377,20 @@ export async function runAssistant(opts: { campaignId: number, messages: Assista
     messages.push({ role: 'user', content: results })
   }
 
-  for (let step = 0; step < 8; step++) {
+  for (let step = 0; step < 10; step++) {
     const reply = await callClaude(messages, system)
     messages.push({ role: 'assistant', content: reply.content })
+    // Long web searches can pause the turn; just let Claude carry on
+    if (reply.stop_reason === 'pause_turn') continue
     const uses = reply.content.filter(b => b.type === 'tool_use')
     if (!uses.length) {
-      const text = reply.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim()
+      const text = reply.content.filter(b => b.type === 'text').map(b => b.text).join('').trim()
       return { messages, reply: text, changed }
     }
     const writes = uses.filter(u => TOOL_BY_NAME.get(u.name ?? '')?.write)
     if (writes.length) {
       const pending: PendingChange[] = writes.map(w => ({ id: w.id!, tool: w.name!, summary: String(w.input?.summary ?? w.name) }))
-      const text = reply.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim()
+      const text = reply.content.filter(b => b.type === 'text').map(b => b.text).join('').trim()
       return { messages, reply: text, pending, changed }
     }
     const results: AssistantBlock[] = []
